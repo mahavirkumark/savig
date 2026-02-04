@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Personal Website - Essentials</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <style>
+        /* Custom scrollbar for the data container */
+        .custom-scroll::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background-color: #9ca3af; /* gray-400 */
+            border-radius: 4px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background-color: #f3f4f6; /* gray-100 */
+        }
+        /* Crucial CSS for Scrolling */
+        .custom-scroll {
+            /* Adjusted max-height to fit within the 520px parent */
+            max-height: 390px; 
+            overflow-y: auto; 
+        }
+        
+        /* Modern Input Focus Effect */
+        input:focus, select:focus {
+            --tw-ring-opacity: 1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, var(--tw-ring-opacity)); /* Indigo */
+            border-color: #6366f1 !important;
+        }
+        /* Modal Backdrop */
+        .modal {
+            background-color: rgba(0, 0, 0, 0.7);
+        }
+        
+        /* Style for active navigation link */
+        .nav-link-active {
+            color: #4f46e5; 
+            font-weight: 700; 
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-gray-50 pt-[72px]">
+
+    <nav class="bg-white shadow-lg fixed w-full z-50 top-0">
+        <div class="container mx-auto flex justify-between items-center p-4 md:px-8">
+            <div class="flex items-center gap-2 text-xl font-bold text-gray-800">
+                <i class="fas fa-user-circle" style="font-size: 28px; color: #4f46e5;"></i>
+                <span style="font-size: 22px;">My Personal Website</span>
+            </div>
+            
+            <div class="hidden md:flex space-x-6 font-medium">
+                <a href="home.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-house"></i> Home</a>
+                <a href="password.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-key"></i> Passwords</a>
+                <a href="income.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-wallet"></i> Income</a>
+                <a href="links.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-link"></i> Links</a>
+                <a href="calendar.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-calendar-alt"></i> Calendar</a>
+            </div>
+
+            <div class="hidden md:flex items-center gap-4">
+                <div class="text-right">
+                    <p id="userName" class="font-bold text-gray-900">Loading...</p>
+                    <p id="userEmail" class="text-sm text-gray-500">Loading...</p>
+                </div>
+                <img id="userPhoto" src="https://via.placeholder.com/40" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #4f46e5;">
+                <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-full hover:bg-red-600 transition duration-300 shadow-md">Logout</button>
+            </div>
+
+            <button id="menu-btn" class="md:hidden text-gray-700 text-2xl"><i class="fas fa-bars"></i></button>
+        </div>
+
+        <div id="mobileMenu" class="hidden md:hidden flex flex-col px-4 pb-4 space-y-2 text-sm text-gray-700 font-medium bg-gray-50">
+            <a href="home.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-house"></i> Home</a>
+            <a href="password.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-key"></i> Passwords</a>
+            <a href="income.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-wallet"></i> Income</a>
+            <a href="links.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-link"></i> Links</a>
+            <a href="calendar.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-calendar-alt"></i> Calendar</a>
+            <div class="border-t border-gray-300 mt-2 pt-2">
+                <p id="mobileUserName" class="font-bold text-gray-900">Loading...</p>
+                <p id="mobileUserEmail" class="text-xs text-gray-500">Loading...</p>
+                <button onclick="logout()" class="bg-red-500 text-white px-3 py-2 rounded-full hover:bg-red-600 mt-2 w-full">Logout</button>
+            </div>
+        </div>
+    </nav>
+    <main class="container mx-auto p-2 md:p-4 flex-grow">
+        <h1 class="text-2xl md:text-3xl font-extrabold text-gray-900 mb-6 flex items-center gap-2">
+            <i class="fas fa-cart-arrow-down text-indigo-600"></i> Daily Essentials Tracker
+        </h1>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            
+            <div class="bg-white p-6 rounded-2xl shadow-xl border border-indigo-100 max-h-[520px] overflow-y-hidden">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-3 flex items-center gap-2">
+                    <i class="fas fa-plus-circle text-indigo-500"></i> Add New Essential
+                </h2>
+                <form id="essentialForm" class="space-y-5">
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="personName" class="block text-sm font-semibold text-gray-700 mb-1">Person Name (Required)</label>
+                            <input type="text" id="personName" placeholder="e.g., John / Self" class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        </div>
+                        <div>
+                            <label for="quantity" class="block text-sm font-semibold text-gray-700 mb-1">Quantity (Opt)</label>
+                            <input type="number" step="1" id="quantity" placeholder="e.g., 1 or 2" class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="gender" class="block text-sm font-semibold text-gray-700 mb-1">Gender (Opt)</label>
+                            <select id="gender" onchange="updateProductTypeOptions('gender', 'productType')" class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition bg-white">
+                                <option value="">Select Gender</option>
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label for="productType" class="block text-sm font-semibold text-gray-700 mb-1">Product Type (Opt)</label>
+                            <select id="productType" class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition bg-white" disabled>
+                                <option value="">Select Type</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="purchaseDate" class="block text-sm font-semibold text-gray-700 mb-1">Purchase Date (Opt)</label>
+                            <input type="date" id="purchaseDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        </div>
+                         <div>
+                            <label for="color" class="block text-sm font-semibold text-gray-700 mb-1">Color(s) (Opt)</label>
+                            <input type="text" id="color" placeholder="e.g., Blue, Red" class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                            <label for="shopName" class="block text-sm font-semibold text-gray-700 mb-1">Shop Name (Opt)</label>
+                            <input type="text" id="shopName" placeholder="e.g., Big Bazaar" class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        </div>
+                        <div>
+                            <label for="productPrice" class="block text-sm font-semibold text-gray-700 mb-1">Product Price (Opt)</label>
+                            <input type="number" step="0.01" id="productPrice" placeholder="e.g., 49.99" class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        </div>
+                        <div>
+                            <label for="cityName" class="block text-sm font-semibold text-gray-700 mb-1">City Name (Opt)</label>
+                            <input type="text" id="cityName" class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-indigo-500 focus:border-indigo-500 transition">
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-center">
+                        <button type="submit" id="saveButton" class="w-11/12 md:w-5/6 flex justify-center items-center py-3 px-4 rounded-xl text-lg font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-500 focus:ring-opacity-50 transition duration-200 shadow-lg mt-4" disabled>
+                            <i class="fas fa-cloud-upload-alt mr-2"></i> Save Item
+                        </button>
+                    </div>
+                </form>
+                <div id="addStatus" class="mt-4 text-center text-sm font-medium"></div>
+            </div>
+            
+            <div class="bg-white p-6 rounded-2xl shadow-xl border border-gray-200 max-h-[520px] flex flex-col">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-3 flex items-center justify-between flex-shrink-0">
+                    <span class="flex items-center gap-2"><i class="fas fa-list-check text-indigo-500"></i> My Saved Essentials</span>
+                </h2>
+
+                <div class="mb-5 flex-shrink-0">
+                    <input type="text" id="searchBar" onkeyup="filterEssentials()" placeholder="Search items by name..." class="w-full px-5 py-3 border border-gray-300 rounded-full shadow-inner focus:ring-blue-500 focus:border-blue-500 transition duration-150">
+                </div>
+
+                <div id="essentialsContainer" class="custom-scroll space-y-4 pr-2 flex-grow min-h-0">
+                    <p class="text-center text-gray-500 py-10" id="loadingMessage">Waiting for user authentication...</p>
+                    <p class="text-center text-gray-500 py-10 hidden" id="noResultsMessage">No matching essentials found.</p>
+                </div>
+            </div>
+
+        </div>
+    </main>
+    <div id="detailModal" class="modal fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg transform transition-all border-t-4 border-indigo-600">
+            <div class="flex justify-between items-start border-b pb-3 mb-4">
+                <h2 class="text-2xl font-bold text-indigo-700 flex items-center gap-2"><i class="fas fa-file-invoice"></i> Item Details</h2>
+                <button type="button" onclick="closeDetailModal()" class="text-gray-400 hover:text-gray-700 transition duration-150 text-2xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div id="modalDetailsContent" class="space-y-4 text-gray-700 text-lg">
+                </div>
+
+            <div class="mt-6 border-t pt-4 flex justify-end items-center">
+                <div id="modalActions" class="flex space-x-4">
+                    </div>
+            </div>
+        </div>
+    </div>
+    <div id="editModal" class="modal fixed inset-0 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md border-t-4 border-green-600">
+            <h2 class="text-2xl font-bold text-gray-700 mb-4 border-b pb-3 flex items-center gap-2"><i class="fas fa-pencil-alt text-green-600"></i> Edit Item</h2>
+            <form id="editForm" class="space-y-4">
+                <input type="hidden" id="editKey">
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="editPersonName" class="block text-sm font-semibold text-gray-700 mb-1">Person Name (Optional)</label>
+                        <input type="text" id="editPersonName" class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm">
+                    </div>
+                    <div>
+                        <label for="editProductName" class="block text-sm font-semibold text-gray-700 mb-1">Essential Name (Optional)</label>
+                        <input type="text" id="editProductName" class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="editGender" class="block text-sm font-semibold text-gray-700 mb-1">Gender</label>
+                        <select id="editGender" onchange="updateProductTypeOptions('editGender', 'editProductType')" class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm bg-white">
+                            <option value="">Select Gender (Optional)</option>
+                            <option value="Male">Male</option>
+                            <option value="Female">Female</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="editProductType" class="block text-sm font-semibold text-gray-700 mb-1">Product Type</label>
+                        <select id="editProductType" class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm bg-white">
+                            <option value="">Select Type</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="editPurchaseDate" class="block text-sm font-semibold text-gray-700 mb-1">Purchase Date (Optional)</label>
+                        <input type="date" id="editPurchaseDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm">
+                    </div>
+                    <div>
+                        <label for="editQuantity" class="block text-sm font-semibold text-gray-700 mb-1">Quantity (Optional)</label>
+                        <input type="number" step="1" id="editQuantity" class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm">
+                    </div>
+                </div>
+                
+                <div>
+                    <label for="editColor" class="block text-sm font-semibold text-gray-700 mb-1">Color(s) (Optional)</label>
+                    <input type="text" id="editColor" class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label for="editShopName" class="block text-sm font-semibold text-gray-700 mb-1">Shop Name (Optional)</label>
+                        <input type="text" id="editShopName" class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm">
+                    </div>
+                    <div>
+                        <label for="editProductPrice" class="block text-sm font-semibold text-gray-700 mb-1">Product Price (Optional)</label>
+                        <input type="number" step="0.01" id="editProductPrice" class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm">
+                    </div>
+                </div>
+
+                <div>
+                    <label for="editCityName" class="block text-sm font-semibold text-gray-700 mb-1">City Name (Optional)</label>
+                    <input type="text" id="editCityName" class="w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm">
+                </div>
+
+                <div class="flex justify-end space-x-3 pt-4">
+                    <button type="button" onclick="closeEditModal()" class="px-5 py-2 text-sm font-medium text-gray-700 bg-gray-200 rounded-xl hover:bg-gray-300 transition duration-150">Cancel</button>
+                    <button type="submit" id="updateButton" class="px-5 py-2 text-sm font-medium text-white bg-green-600 rounded-xl hover:bg-green-700 transition duration-150 shadow-md">
+                        <i class="fas fa-check mr-2"></i> Update Item
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <footer class="mt-auto bg-white text-gray-600 text-center p-4 border-t text-sm border-t border-gray-200">
+        &copy; 2025 Personal Website | All rights reserved
+    </footer>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    
+    <script>
+        // --- Firebase Configuration and Initialization ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc",
+            authDomain: "sk12-58e9e.firebaseapp.com",
+            databaseURL: "https://sk12-58e9e-default-rtdb.firebaseio.com", 
+            projectId: "sk12-58e9e",
+            storageBucket: "sk12-58e9e.appspot.com",
+            messagingSenderId: "470207874652",
+            appId: "1:470207874652:web:67ba1cf3629b7e5b144899"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth(); 
+        
+        let essentialsRef = null; 
+        let essentialsListener = null;
+        
+        // --- Product Type Data ---
+        const productTypes = {
+            Male: ['T-Shirt', 'Jersey', 'Lower', 'Inner Wear (Jockey)', 'Sweater', 'Jacket', 'Blazer', 'Boat Shoes', 'Sneakers', 'Sandals', 'Formal Wear', 'Perfume'], // 'Watch' and 'Electronics' removed
+            Female: ['Dress', 'Top', 'Skirt', 'Saree', 'Inner Wear', 'Heels', 'Flats', 'Sandals', 'Jewelry', 'Cosmetics', 'Perfume'], // 'Bag' and 'Electronics' removed
+            Other: ['General Apparel', 'Footwear', 'Inner Wear', 'Accessories', 'Perfume'], // 'Electronics' removed
+            None: ['T-Shirt', 'Jersey', 'Lower', 'Boat Shoes', 'Shoes', 'Sandals', 'Dress', 'Top', 'Skirt', 'Saree', 'Inner Wear', 'Jacket', 'Blazer', 'Perfume', 'General Items'] // 'Electronics', 'Watch', 'Bag' removed
+        };
+
+        // --- Conditional Logic Function (NEW) ---
+        window.updateProductTypeOptions = function(genderSelectId, productTypeSelectId, initialValue = null) {
+            const genderSelect = document.getElementById(genderSelectId);
+            const productTypeSelect = document.getElementById(productTypeSelectId);
+            const selectedGender = genderSelect.value || 'None';
+            
+            productTypeSelect.innerHTML = '<option value="">Select Type</option>';
+            
+            const types = productTypes[selectedGender] || productTypes['None'];
+            
+            types.forEach(type => {
+                const option = document.createElement('option');
+                option.value = type;
+                option.textContent = type;
+                if (initialValue === type) {
+                    option.selected = true;
+                }
+                productTypeSelect.appendChild(option);
+            });
+            
+            productTypeSelect.disabled = false;
+        }
+
+        // --- User Authentication and Initialization ---
+
+        function initializeApp(user) {
+            const uid = user.uid;
+            
+            // 1. Detach old listener if needed
+            if (essentialsRef && essentialsListener) {
+                essentialsRef.off('value', essentialsListener);
+            }
+            
+            // 2. Set new database reference
+            essentialsRef = firebase.database().ref(`users/${uid}/essentials`);
+            
+            document.getElementById('saveButton').disabled = false;
+            document.getElementById('saveButton').textContent = 'Save Item';
+            document.getElementById('loadingMessage').textContent = 'Loading essentials...';
+
+            // 3. Attach/Redefine CRUD functions with the correct scope
+            window.deleteEssential = createDeleteEssentialFunction(essentialsRef);
+            window.openDetailModal = createOpenDetailModalFunction(essentialsRef);
+            window.openEditModal = createOpenEditModalFunction(essentialsRef);
+            window.shareEssential = createShareEssentialFunction(essentialsRef);
+
+            // 4. Start the data listener
+            listenForEssentials();
+        }
+
+        function checkAuthStatus() {
+            auth.onAuthStateChanged(user => {
+                const defaultPhotoUrl = "https://via.placeholder.com/40"; 
+
+                if (user) {
+                    const name = user.displayName || 'Authenticated User';
+                    const email = user.email || 'Email Not Available';
+                    const photoURL = user.photoURL || defaultPhotoUrl; 
+
+                    document.getElementById('userName').textContent = name;
+                    document.getElementById('userEmail').textContent = email;
+                    document.getElementById('userPhoto').src = photoURL;
+                    document.getElementById('mobileUserName').textContent = name;
+                    document.getElementById('mobileUserEmail').textContent = email;
+                    
+                    // Initialize or re-initialize app components
+                    if (!essentialsRef) { 
+                        initializeApp(user); 
+                    }
+                    
+                } else {
+                    const guestText = 'Guest / Sign In';
+                    document.getElementById('userName').textContent = guestText;
+                    document.getElementById('userEmail').textContent = 'Not Logged In';
+                    document.getElementById('userPhoto').src = defaultPhotoUrl;
+                    document.getElementById('mobileUserName').textContent = guestText;
+                    document.getElementById('mobileUserEmail').textContent = 'Not Logged In';
+                    
+                    document.getElementById('saveButton').disabled = true;
+                    document.getElementById('saveButton').textContent = 'Login Required';
+                    document.getElementById('essentialsContainer').innerHTML = '<p class="text-center text-red-600 py-10 text-lg font-medium border-2 border-dashed border-red-300 rounded-xl p-6 bg-red-50"><i class="fas fa-lock mr-2"></i> Access Denied. Please log in to view your data.</p>';
+                    
+                    // Detach listener and clear reference on sign out
+                    if (essentialsRef && essentialsListener) {
+                        essentialsRef.off('value', essentialsListener);
+                    }
+                    essentialsRef = null;
+                }
+            });
+        }
+        
+        window.logout = function() {
+            auth.signOut().then(() => {
+                
+                window.location.href = 'index.html'; 
+            }).catch((error) => {
+                console.error("Sign Out Error:", error);
+                alert("Error logging out: " + error.message);
+            });
+        }
+
+
+        // --- Utility Functions ---
+
+        function formatPrice(price) {
+            if (price !== undefined && price !== null && price !== '') {
+                const num = parseFloat(price);
+                if (!isNaN(num)) {
+                    return num.toLocaleString('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 2 });
+                }
+            }
+            return 'N/A';
+        }
+
+        function calculateElapsedTime(purchaseDateStr) {
+            if (!purchaseDateStr || purchaseDateStr.trim() === '') {
+                return "Date Missing";
+            }
+            
+            const purchaseDate = new Date(purchaseDateStr + 'T00:00:00'); 
+            const today = new Date();
+            
+            const diffTime = today.getTime() - purchaseDate.getTime();
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            
+            if (diffDays < 0) return "Future Date?";
+
+            if (diffDays <= 30) {
+                 return "Recently Purchased";
+            } else if (diffDays < 365) {
+                const months = Math.floor(diffDays / 30);
+                return `${months} Month${months !== 1 ? 's' : ''} Ago`;
+            } else {
+                const years = Math.floor(diffDays / 365);
+                if (years >= 1) {
+                    return `${years} Year${years !== 1 ? 's' : ''} Completed!`;
+                }
+            }
+            return "Just Purchased";
+        }
+
+
+        // --- Rendering ---
+
+        function createEssentialItemHTML(key, item) {
+            const purchaseDateStr = item.purchaseDate;
+            // Use Person Name or a fallback since Product Name is removed
+            const itemName = item.personName ? `${item.personName}'s Item` : 'Unnamed Item';
+            const personName = item.personName ? `(For ${item.personName})` : ''; 
+            const timeElapsed = calculateElapsedTime(purchaseDateStr);
+            
+            const dateDisplay = purchaseDateStr ? purchaseDateStr : 'Date N/A';
+
+            let tagClass = 'bg-gray-200 text-gray-700';
+            if (timeElapsed.includes('Completed')) {
+                 tagClass = 'bg-indigo-100 text-indigo-700 font-semibold';
+            } else if (timeElapsed.includes('Recently')) {
+                 tagClass = 'bg-green-100 text-green-700';
+            } else if (timeElapsed.includes('Ago')) {
+                 tagClass = 'bg-blue-100 text-blue-700';
+            }
+
+            // NOTE: item.productName is no longer saved, so check for other identifier if needed for border style
+            const borderStyle = item.personName ? (tagClass.includes('indigo') ? 'border-indigo-500' : 'border-green-500') : 'border-gray-400';
+
+            return `
+                <div id="item-${key}" class="essential-item item bg-white p-4 rounded-xl shadow-md border-l-4 ${borderStyle} transition duration-300 hover:shadow-lg hover:translate-y-[-2px]" data-name="${itemName.toLowerCase()}">
+                    <div class="flex justify-between items-center">
+                        <div class="flex items-center space-x-3 min-w-0 w-full md:w-auto">
+                            <span class="text-xl font-bold text-gray-800 truncate w-full">${itemName} <span class="text-base text-gray-500 font-normal ml-2">${personName}</span></span> 
+                            
+                            <span class="hidden md:inline-flex text-sm font-medium px-3 py-1 rounded-full ${tagClass} whitespace-nowrap">${dateDisplay}</span>
+                        </div>
+                        <button onclick="openDetailModal('${key}')" class="open-detail-btn bg-indigo-600 text-white text-xs px-2 py-1 md:text-sm md:px-4 md:py-2 rounded-full hover:bg-indigo-700 transition duration-300 shadow-md flex items-center justify-center flex-shrink-0 ml-2">
+                            <span class="hidden md:inline">Open Detail</span>
+                            <i class="fas fa-arrow-right ml-0 md:ml-2"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+        
+        function renderEssentials(essentialsData) {
+            const container = document.getElementById('essentialsContainer');
+            container.innerHTML = '';
+            
+            const hasData = essentialsData && Object.keys(essentialsData).length > 0;
+
+            if (!hasData) {
+                container.innerHTML = '<p class="text-center text-gray-500 py-10 text-lg font-medium border-2 border-dashed border-gray-300 rounded-xl p-6 bg-gray-50"><i class="fas fa-exclamation-circle mr-2 text-indigo-500"></i> Data not saved till now. Add your first essential item on the left!</p>';
+                document.getElementById('noResultsMessage').classList.add('hidden');
+                return;
+            }
+
+            const sortedKeys = Object.keys(essentialsData).sort((a, b) => {
+                const dateA = essentialsData[a].purchaseDate || '1970-01-01'; 
+                const dateB = essentialsData[b].purchaseDate || '1970-01-01';
+                return new Date(dateB) - new Date(dateA);
+            });
+
+            sortedKeys.forEach(key => {
+                const item = essentialsData[key];
+                container.insertAdjacentHTML('beforeend', createEssentialItemHTML(key, item));
+            });
+
+            filterEssentials(); 
+        }
+
+
+        // --- Firebase Real-time Data Listeners ---
+        
+        function listenForEssentials() {
+            // Define the listener function separately
+            essentialsListener = (snapshot) => {
+                document.getElementById('loadingMessage').classList.add('hidden');
+                const essentialsData = snapshot.val();
+                renderEssentials(essentialsData);
+            };
+
+            // Attach the listener
+            essentialsRef.on('value', essentialsListener, (error) => {
+                console.error("Firebase Read Failed:", error);
+                document.getElementById('loadingMessage').className = 'text-center text-red-600 py-10 text-lg font-medium border-2 border-dashed border-red-300 rounded-xl p-6 bg-red-50';
+                document.getElementById('loadingMessage').innerHTML = '❌ **Failed to Load Data!** Please check your internet connection or verify database permissions.';
+            });
+        }
+
+
+        // --- CRUD Operations (Factories defined outside, called inside initializeApp) ---
+        
+        // Factory function for Delete 
+        function createDeleteEssentialFunction(ref) {
+            return function(key) {
+                if (confirm("Are you sure you want to delete this essential item?")) {
+                    
+                    // OPTIMISTIC UI FIX 1: Manually remove item from the DOM instantly 
+                    const itemElement = document.getElementById(`item-${key}`);
+                    if (itemElement) {
+                        itemElement.style.display = 'none'; 
+                    }
+
+                    ref.child(key).remove()
+                        .then(() => {
+                            console.log(`Item ${key} deleted successfully.`);
+                            // Listener will eventually confirm and fully clean the DOM
+                        })
+                        .catch(error => {
+                            // If deletion fails on server, re-display the item and alert user
+                            if (itemElement) {
+                                itemElement.style.display = '';
+                            }
+                            alert(`Error deleting item: ${error.message}`);
+                            console.error("Error deleting data:", error);
+                        });
+                }
+            };
+        }
+
+        // Factory function for Open Detail 
+        function createOpenDetailModalFunction(ref) {
+            return function(key) {
+                ref.child(key).once('value', snapshot => {
+                    const item = snapshot.val();
+                    if (item) {
+                        const purchaseDate = item.purchaseDate;
+                        const purchaseDateText = purchaseDate ? new Date(purchaseDate + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A';
+                        
+                        // item.productName is now null, display placeholder name based on person
+                        const itemName = item.personName ? `${item.personName}'s Item` : 'Unnamed Item'; 
+                        const itemPerson = item.personName || 'N/A';
+                        const itemGender = item.gender || 'N/A';
+                        const itemProductType = item.productType || 'N/A';
+                        const itemQuantity = item.quantity || 'N/A';
+                        const itemColor = item.color || 'N/A';
+                        const itemShop = item.shopName || 'N/A';
+                        const itemCity = item.cityName || 'N/A';
+                        const itemPrice = formatPrice(item.productPrice); 
+
+                        // Display each detail in its own line/row (column display)
+                        const detailContent = `
+                            <p class="text-2xl font-extrabold text-gray-900 mb-4">${itemName}</p>
+                            
+                            <div class="space-y-3 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                                <p class="text-lg font-semibold text-indigo-700 border-b pb-2 mb-2 flex items-center gap-2"><i class="fas fa-box"></i> Item Details</p>
+
+                                <p class="flex items-center gap-3 text-base"><i class="fas fa-user text-indigo-500 w-5"></i> <span class="font-semibold">Purchased For:</span> ${itemPerson}</p>
+                                
+                                <p class="flex items-center gap-3 text-base"><i class="fas fa-venus-mars text-indigo-500 w-5"></i> <span class="font-semibold">Gender:</span> ${itemGender}</p>
+                                <p class="flex items-center gap-3 text-base"><i class="fas fa-tag text-indigo-500 w-5"></i> <span class="font-semibold">Type:</span> ${itemProductType}</p>
+
+                                <p class="flex items-center gap-3 text-base"><i class="fas fa-calendar-day text-indigo-500 w-5"></i> <span class="font-semibold">Purchase Date:</span> ${purchaseDateText} ${purchaseDate ? '(' + purchaseDate + ')' : ''}</p>
+                                <p class="flex items-center gap-3 text-base"><i class="fas fa-hashtag text-indigo-500 w-5"></i> <span class="font-semibold">Quantity:</span> ${itemQuantity}</p>
+                                
+                                <p class="flex items-center gap-3 text-base"><i class="fas fa-palette text-indigo-500 w-5"></i> <span class="font-semibold">Color(s):</span> ${itemColor}</p>
+
+                                <p class="flex items-center gap-3 text-base"><i class="fas fa-store text-indigo-500 w-5"></i> <span class="font-semibold">Shop Name:</span> ${itemShop}</p>
+
+                                <p class="flex items-center gap-3 text-base"><i class="fas fa-money-bill-wave text-green-600 w-5"></i> <span class="font-semibold">Price:</span> ${itemPrice}</p>
+                                
+                                <p class="flex items-center gap-3 text-base"><i class="fas fa-map-marker-alt text-indigo-500 w-5"></i> <span class="font-semibold">City:</span> ${itemCity}</p>
+                            </div>
+                        `;
+
+                        const actionsContent = `
+                            <button onclick="closeDetailModal(); openEditModal('${key}')" class="text-blue-600 hover:text-blue-800 transition duration-150 flex items-center gap-1 font-semibold"><i class="fas fa-edit"></i> Edit</button>
+                            <button onclick="deleteEssential('${key}'); closeDetailModal();" class="text-red-600 hover:text-red-800 transition duration-150 flex items-center gap-1 font-semibold"><i class="fas fa-trash-alt"></i> Delete</button>
+                            <button onclick="shareEssential('${key}')" class="text-green-600 hover:text-green-800 transition duration-150 flex items-center gap-1 font-semibold"><i class="fas fa-share-alt"></i> Share</button>
+                        `;
+                        
+                        document.getElementById('modalDetailsContent').innerHTML = detailContent;
+                        document.getElementById('modalActions').innerHTML = actionsContent;
+                        document.getElementById('detailModal').classList.remove('hidden');
+                    } else {
+                        alert('Error: Item data not found.');
+                    }
+                });
+            };
+        }
+        
+        // Factory function for Open Edit Modal 
+        function createOpenEditModalFunction(ref) {
+            return function(key) {
+                ref.child(key).once('value', snapshot => {
+                    const item = snapshot.val();
+                    if (item) {
+                        document.getElementById('editKey').value = key;
+                        document.getElementById('editPersonName').value = item.personName || '';
+                        // Removed population of editProductName
+
+                        // Populate Gender and Product Type, calling the update function
+                        document.getElementById('editGender').value = item.gender || '';
+                        updateProductTypeOptions('editGender', 'editProductType', item.productType); 
+
+                        document.getElementById('editPurchaseDate').value = item.purchaseDate || '';
+                        document.getElementById('editQuantity').value = item.quantity || '';
+                        document.getElementById('editColor').value = item.color || '';
+                        document.getElementById('editShopName').value = item.shopName || '';
+                        document.getElementById('editProductPrice').value = item.productPrice || ''; 
+                        document.getElementById('editCityName').value = item.cityName || '';
+                        document.getElementById('editModal').classList.remove('hidden');
+                    } else {
+                        alert('Item not found for editing.');
+                    }
+                });
+            };
+        }
+
+        // Factory function for Share 
+        function createShareEssentialFunction(ref) {
+            return function(key) {
+                ref.child(key).once('value', snapshot => {
+                    const item = snapshot.val();
+                    if (item) {
+                        const purchaseDateText = item.purchaseDate ? new Date(item.purchaseDate + 'T00:00:00').toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : 'N/A';
+                        const itemPrice = formatPrice(item.productPrice);
+                        const itemNameForShare = item.personName ? `${item.personName}'s Item` : 'Unnamed Item';
+
+                        const shareText = `Essential Item: ${itemNameForShare}. Gender: ${item.gender || 'N/A'}. Type: ${item.productType || 'N/A'}. Qty: ${item.quantity || 'N/A'}. Color: ${item.color || 'N/A'}. Purchased: ${purchaseDateText} from ${item.shopName || 'N/A'} in ${item.cityName || 'N/A'}. Price: ${itemPrice}.`;
+
+                        if (navigator.share) {
+                            navigator.share({
+                                title: 'Daily Essential Tracker Item',
+                                text: shareText
+                            }).catch(error => console.error('Error sharing:', error));
+                        } else {
+                            prompt("Copy this to share:", shareText);
+                        }
+                    }
+                });
+            };
+        }
+
+
+        document.getElementById('essentialForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            if (!auth.currentUser || !essentialsRef) {
+                alert("Authentication error. Please log in again.");
+                return;
+            }
+            
+            const personName = document.getElementById('personName').value.trim();
+            // productName is removed from the form but defined here as empty/null for consistency
+            const productName = ''; 
+            const productPrice = document.getElementById('productPrice').value.trim(); 
+            const gender = document.getElementById('gender').value.trim();
+            const productType = document.getElementById('productType').value.trim();
+            const quantity = document.getElementById('quantity').value.trim();
+            const color = document.getElementById('color').value.trim();
+
+            // *** MANDATORY CHECK: Person Name ***
+            if (!personName) {
+                document.getElementById('addStatus').className = 'mt-4 text-center text-sm font-medium text-red-600';
+                document.getElementById('addStatus').innerHTML = `❌ **Error:** The **Person Name** is required to save the essential item.`;
+                return;
+            }
+
+            // Fallback check: Ensure at least one other field is filled besides Person Name
+            if (!document.getElementById('purchaseDate').value && !document.getElementById('shopName').value.trim() && !productPrice && !document.getElementById('cityName').value.trim() && !gender && !productType && !quantity && !color) {
+                document.getElementById('addStatus').className = 'mt-4 text-center text-sm font-medium text-red-600';
+                document.getElementById('addStatus').innerHTML = `⚠️ Please enter at least one piece of information besides the name.`;
+                return;
+            }
+            // *** END VALIDATION LOGIC ***
+
+
+            const newEssential = {
+                personName: personName,
+                productName: productName, // Saved as empty string
+                gender: gender, 
+                productType: productType, 
+                purchaseDate: document.getElementById('purchaseDate').value,
+                quantity: quantity, 
+                color: color, 
+                shopName: document.getElementById('shopName').value.trim(),
+                productPrice: productPrice, 
+                cityName: document.getElementById('cityName').value.trim(),
+                timestamp: firebase.database.ServerValue.TIMESTAMP 
+            };
+
+            essentialsRef.push(newEssential)
+                .then(() => {
+                    document.getElementById('addStatus').className = 'mt-4 text-center text-sm font-medium text-green-600';
+                    document.getElementById('addStatus').innerHTML = "✅ Essential saved successfully!";
+                    setTimeout(() => document.getElementById('addStatus').innerHTML = '', 3000);
+                    this.reset();
+                    document.getElementById('productType').disabled = true; // Disable dropdown again
+                    
+                    // OPTIMISTIC UI FIX: Manually trigger render after successful save 
+                    essentialsRef.once('value', (snapshot) => {
+                        renderEssentials(snapshot.val());
+                    });
+                })
+                .catch(error => {
+                    document.getElementById('addStatus').className = 'mt-4 text-center text-sm font-medium text-red-600';
+                    document.getElementById('addStatus').innerHTML = `❌ Error saving: ${error.message}`;
+                    console.error("Error saving data:", error);
+                });
+        });
+
+        document.getElementById('editForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const key = document.getElementById('editKey').value;
+            const updatedPersonName = document.getElementById('editPersonName').value.trim();
+            // updatedProductName is kept null or empty string in Firebase based on previous state
+            const updatedProductName = document.getElementById('editProductName').value.trim(); 
+            const updatedProductPrice = document.getElementById('editProductPrice').value.trim();
+            const updatedGender = document.getElementById('editGender').value.trim();
+            const updatedProductType = document.getElementById('editProductType').value.trim();
+            const updatedQuantity = document.getElementById('editQuantity').value.trim();
+            const updatedColor = document.getElementById('editColor').value.trim();
+
+            // Ensure Person Name is not empty on edit either
+            if (!updatedPersonName) {
+                 alert('⚠️ Cannot update: The Person Name field must not be empty.');
+                 return;
+            }
+            
+            // Note: Since productName field is technically absent in the live form,
+            // we should set it to an empty string on update, matching the save logic.
+            // If you want to retain the old productName value from the database, 
+            // you'd need to load it explicitly first. For now, we set it to the value 
+            // from the (now removed) edit form field, which defaults to empty if not present.
+
+            const updatedEssential = {
+                personName: updatedPersonName,
+                productName: updatedProductName, // This value comes from the previous state of the database, or an empty string from the edit form.
+                gender: updatedGender, 
+                productType: updatedProductType, 
+                purchaseDate: document.getElementById('editPurchaseDate').value,
+                quantity: updatedQuantity, 
+                color: updatedColor, 
+                shopName: document.getElementById('editShopName').value.trim(),
+                productPrice: updatedProductPrice, 
+                cityName: document.getElementById('editCityName').value.trim(),
+            };
+            
+            essentialsRef.child(key).update(updatedEssential)
+                .then(() => {
+                    closeEditModal();
+                    alert("Update successful!");
+                    
+                    // Manually trigger render after successful update for instant refresh
+                    essentialsRef.once('value', (snapshot) => {
+                        renderEssentials(snapshot.val());
+                    });
+                })
+                .catch(error => {
+                    alert(`Error updating item: ${error.message}`);
+                    console.error("Error updating data:", error);
+                });
+        });
+
+
+        // --- Global UI/Filter Functions (Unchanged) ---
+
+        window.closeDetailModal = function() {
+            document.getElementById('detailModal').classList.add('hidden');
+        }
+
+        window.closeEditModal = function() {
+            document.getElementById('editModal').classList.add('hidden');
+        }
+        
+        function filterEssentials() {
+            const searchInput = document.getElementById('searchBar').value.toLowerCase();
+            const items = document.querySelectorAll('.essential-item');
+            let found = 0;
+
+            items.forEach(item => {
+                const productName = item.getAttribute('data-name');
+                if (productName.includes(searchInput)) {
+                    item.style.display = '';
+                    found++;
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            document.getElementById('noResultsMessage').classList.toggle('hidden', found > 0);
+        }
+        
+        document.getElementById('menu-btn').addEventListener('click', () => {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        document.addEventListener('DOMContentLoaded', () => {
+            checkAuthStatus(); 
+            
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('purchaseDate').max = today;
+            if (document.getElementById('editPurchaseDate')) {
+                document.getElementById('editPurchaseDate').max = today;
+            }
+        });
+    </script>
+</body>
+</html>

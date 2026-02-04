@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>👥 Friend Hub | Realtime Manager</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-database.js"></script>
+
+    <style>
+        :root {
+            --primary-color: #4CAF50; /* Green */
+            --secondary-color: #03A9F4; /* Light Blue */
+            --background-light: #f7f9fc;
+            --background-dark: #ffffff;
+            --text-dark: #333;
+            --text-light: #666;
+            --shadow-light: 0 4px 12px rgba(0, 0, 0, 0.08);
+            --border-radius: 10px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: var(--background-light);
+            color: var(--text-dark);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 40px auto;
+            padding: 20px;
+            display: flex;
+            gap: 30px;
+        }
+
+        h2 {
+            color: var(--primary-color);
+            margin-top: 0;
+            font-weight: 700;
+            border-bottom: 2px solid rgba(76, 175, 80, 0.1);
+            padding-bottom: 10px;
+        }
+
+        /* --- LEFT: Input Section Styling (Form) --- */
+        .input-section {
+            flex: 1; /* Takes 1 part of the flex space */
+            background: var(--background-dark);
+            padding: 30px;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-light);
+            min-width: 300px; /* Ensure minimum size */
+        }
+
+        #friendForm input {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            transition: border-color 0.3s;
+        }
+        
+        #friendForm input:focus {
+            border-color: var(--primary-color);
+            outline: none;
+        }
+
+        #friendForm button {
+            width: 100%;
+            padding: 14px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: background-color 0.3s, transform 0.1s;
+        }
+
+        #friendForm button:hover {
+            background-color: #43A047;
+        }
+
+        /* --- RIGHT: Data Section Styling (List) --- */
+        .data-section {
+            flex: 2; /* Takes 2 parts of the flex space */
+        }
+        
+        .friends-list-container {
+            margin-top: 20px;
+        }
+
+        .friend-card {
+            background: var(--background-dark);
+            border: 1px solid #eee;
+            padding: 20px;
+            margin-bottom: 15px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s;
+        }
+        
+        .friend-card:hover {
+            transform: translateY(-2px);
+        }
+
+        .friend-card h3 {
+            margin-top: 0;
+            margin-bottom: 10px;
+            color: var(--secondary-color);
+        }
+
+        .friend-card p {
+            margin: 4px 0;
+            font-size: 0.95em;
+            color: var(--text-light);
+        }
+
+        .friend-card strong {
+            color: var(--text-dark);
+        }
+
+        .actions {
+            margin-top: 15px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .actions button {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 600;
+            transition: opacity 0.2s;
+        }
+        
+        .actions button:hover {
+            opacity: 0.9;
+        }
+
+        .actions .edit { background-color: #FFC107; color: #333; }
+        .actions .delete { background-color: #E53935; color: white; }
+        .actions .share { background-color: #03A9F4; color: white; }
+        .actions .copy { background-color: #4CAF50; color: white; }
+
+        .loading-text {
+            text-align: center;
+            padding: 30px;
+            color: var(--text-light);
+        }
+        
+        /* --- RESPONSIVENESS: Stack columns on smaller screens --- */
+        @media (max-width: 900px) {
+            .container {
+                flex-direction: column; /* Stack vertically */
+                margin: 20px;
+            }
+            .input-section {
+                order: 1; /* Form goes first */
+            }
+            .data-section {
+                order: 2; /* Data list goes second */
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="input-section">
+            <h2>📝 Add New Friend</h2>
+            <form id="friendForm">
+                <input type="text" id="name" placeholder="Name" required>
+                <input type="number" id="age" placeholder="Age (optional)">
+                <input type="tel" id="mobile" placeholder="Mobile No. (optional)">
+                <input type="email" id="email" placeholder="Email (optional)">
+                <input type="url" id="social" placeholder="Social Media Link (optional)">
+                <button type="submit">✨ Save Friend</button>
+            </form>
+        </div>
+
+        <div class="data-section">
+            <h2>💾 Saved Friends</h2>
+            <div id="friendsList" class="friends-list-container">
+                <p class="loading-text">Loading friends...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ** STEP 1: FIREBASE CONFIGURATION **
+        // !! IMPORTANT: Replace these placeholders with your actual Firebase project details !!
+        const firebaseConfig = {
+  apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc", // <--- REPLACE WITH YOUR FIREBASE KEY
+        authDomain: "sk12-58e9e.firebaseapp.com",
+        databaseURL: "https://sk12-58e9e-default-rtdb.firebaseio.com",
+        projectId: "sk12-58e9e",
+        storageBucket: "sk12-58e9e.appspot.com",
+        messagingSenderId: "470207874652",
+        appId: "1:470207874652:web:67ba1cf3629b7e5b144899"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Reference to the database service and the 'friends' node
+        const database = firebase.database();
+        const friendsRef = database.ref('friends');
+
+        const form = document.getElementById('friendForm');
+        const friendsList = document.getElementById('friendsList');
+
+        // Helper function for display
+        const cleanValue = (value) => value ? value : 'N/A';
+
+        // ** STEP 2: ADD NEW FRIEND (CREATE) **
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const friendData = {
+                name: document.getElementById('name').value.trim(),
+                age: document.getElementById('age').value.trim(),
+                mobile: document.getElementById('mobile').value.trim(),
+                email: document.getElementById('email').value.trim(),
+                social: document.getElementById('social').value.trim()
+            };
+
+            if (!friendData.name) {
+                alert('Name is required!');
+                return;
+            }
+
+            // Push the new data to Firebase, which generates a unique ID.
+            friendsRef.push(friendData)
+                .then(() => {
+                    form.reset(); // Clear the form
+                })
+                .catch((error) => {
+                    console.error("Error writing data: ", error);
+                    alert('Error saving data!');
+                });
+        });
+
+        // ** STEP 3: REAL-TIME DATA DISPLAY (READ) **
+        // Listen for changes in the 'friends' collection
+        friendsRef.on('value', (snapshot) => {
+            const data = snapshot.val();
+            friendsList.innerHTML = ''; // Clear the current list
+
+            if (!data) {
+                friendsList.innerHTML = '<p class="loading-text">No friends added yet. Start by filling out the form!</p>';
+                return;
+            }
+
+            // Loop through the data object (key is the Firebase ID)
+            Object.keys(data).reverse().forEach((key) => { // Reverse to show latest first
+                const friend = data[key];
+                const card = document.createElement('div');
+                card.className = 'friend-card';
+                card.setAttribute('data-key', key);
+
+                // Populate the card details
+                card.innerHTML = `
+                    <h3>${cleanValue(friend.name)}</h3>
+                    <p><strong>Age:</strong> ${cleanValue(friend.age)}</p>
+                    <p><strong>Mobile:</strong> ${cleanValue(friend.mobile)}</p>
+                    <p><strong>Email:</strong> ${cleanValue(friend.email)}</p>
+                    ${friend.social ? `<p><strong>Social:</strong> <a href="${friend.social}" target="_blank" rel="noopener noreferrer">${friend.social.length > 30 ? friend.social.substring(0, 30) + '...' : friend.social}</a></p>` : ''}
+                    
+                    <div class="actions">
+                        <button class="edit" data-key="${key}">✏️ Edit</button>
+                        <button class="delete" data-key="${key}">🗑️ Delete</button>
+                        <button class="share" data-key="${key}">🔗 Share</button>
+                        <button class="copy" data-key="${key}">📋 Copy</button>
+                    </div>
+                `;
+                friendsList.appendChild(card);
+            });
+        });
+
+        // ** STEP 4: EDIT, DELETE, SHARE, COPY ACTIONS (UPDATE & DELETE) **
+        friendsList.addEventListener('click', async (e) => {
+            const key = e.target.getAttribute('data-key');
+            if (!key) return;
+            
+            const friendCard = e.target.closest('.friend-card');
+            const currentFriend = (await friendsRef.child(key).once('value')).val();
+
+            // --- DELETE ACTION ---
+            if (e.target.classList.contains('delete')) {
+                if (confirm(`Are you sure you want to delete ${currentFriend.name}?`)) {
+                    friendsRef.child(key).remove()
+                        .catch(error => console.error("Delete failed:", error));
+                }
+            }
+
+            // --- EDIT ACTION (Prompts for all fields) ---
+            if (e.target.classList.contains('edit')) {
+                const newName = prompt("Edit Name:", currentFriend.name || '');
+                const newAge = prompt("Edit Age:", currentFriend.age || '');
+                const newMobile = prompt("Edit Mobile:", currentFriend.mobile || '');
+                const newEmail = prompt("Edit Email:", currentFriend.email || '');
+                const newSocial = prompt("Edit Social Link:", currentFriend.social || '');
+
+                if (newName !== null) { // Check if user didn't hit cancel
+                    friendsRef.child(key).update({ 
+                        name: newName,
+                        age: newAge,
+                        mobile: newMobile,
+                        email: newEmail,
+                        social: newSocial
+                    })
+                    .catch(error => console.error("Update failed:", error));
+                }
+            }
+
+            // --- SHARE & COPY ACTIONS (Browser API) ---
+            if (e.target.classList.contains('copy') || e.target.classList.contains('share')) {
+                const infoText = `
+                    Friend: ${cleanValue(currentFriend.name)}
+                    Age: ${cleanValue(currentFriend.age)}
+                    Mobile: ${cleanValue(currentFriend.mobile)}
+                    Email: ${cleanValue(currentFriend.email)}
+                    Social: ${cleanValue(currentFriend.social)}
+                `.trim();
+
+                if (e.target.classList.contains('copy')) {
+                    navigator.clipboard.writeText(infoText)
+                        .then(() => alert('Information copied to clipboard!'))
+                        .catch(err => console.error('Could not copy text: ', err));
+                }
+                
+                if (e.target.classList.contains('share')) {
+                    if (navigator.share) {
+                        navigator.share({
+                            title: `Friend: ${currentFriend.name}`,
+                            text: infoText,
+                        }).catch(error => console.log('Error sharing', error));
+                    } else {
+                        alert('Web Share API is not supported in your browser. Copy info instead.');
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>

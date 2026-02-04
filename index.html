@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>MyTracker</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<link rel="manifest" href="manifest.json?v=2">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#2196F3">
+
+<link rel="apple-touch-icon" href="icon-192.jpg">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    
+    <style>
+        /* --- RESTORED GLOBAL AND ANIMATION STYLES --- */
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f4f8;
+            overflow-x: hidden;
+        }
+        @keyframes fadeInZoom {
+            0% { opacity: 0; transform: scale(0.8); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        @keyframes slideInLeft {
+            0% { opacity: 0; transform: translateX(-50px); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideInRight {
+            0% { opacity: 0; transform: translateX(50px); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideInUp {
+            0% { opacity: 0; transform: translateY(50px); }
+            100% { opacity: 1; transform: translateY(0); }
+        }
+        .section-title {
+            font-size: 2rem; 
+            font-weight: 700;
+            text-align: center;
+            color: #1f2937;
+            margin-bottom: 2.5rem; 
+        }
+
+        /* --- RESTORED MESSAGE BOX STYLES --- */
+        #msgBox {
+            /* Initial state for hidden/off-screen */
+            opacity: 0;
+            transform: translateX(100%);
+            /* Transition for smooth animation */
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            /* Ensure it is block/flex for content */
+            display: flex;
+            align-items: center;
+            gap: 8px; 
+        }
+        #msgBox.show {
+            /* End state for visible/on-screen */
+            opacity: 1;
+            transform: translateX(0);
+        }
+        #msgBox.success {
+            background-color: #d1fae5; /* Tailwind bg-green-100 */
+            color: #065f46; /* Tailwind text-green-800 */
+            border-color: #34d399; /* Tailwind border-green-400 */
+        }
+        #msgBox.error {
+            background-color: #fee2e2; /* Tailwind bg-red-100 */
+            color: #991b1b; /* Tailwind text-red-800 */
+            border-color: #f87171; /* Tailwind border-red-400 */
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+    <nav class="bg-white shadow-sm py-4">
+   <div class="block md:hidden fade-in">
+    <header class="bg-white shadow-sm border-b">
+        <div class="flex justify-between items-center py-3 px-4">
+            <div class="flex items-center gap-1 slide-left">
+                <div class="relative flex items-center justify-center">
+                    <i class="fas fa-shield text-blue-600" style="font-size:27px;"></i>
+                    <i class="fas fa-database text-white absolute" style="font-size: 14px; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
+                </div>
+                <span class="font-black text-gray-900 tracking-tighter" style="font-size: 21px;">SAVIG</span>
+            </div>
+            
+            <div class="flex items-center gap-3 slide-right">
+                 <img id="user-pic-m" src="https://via.placeholder.com/100" alt="User" class="w-8 h-8 rounded-full border" />
+            </div>
+        </div>
+    </header>
+    </nav>
+<div id="login-msg" style="display:none; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; padding: 12px; margin: 10px 0; border-radius: 4px; text-align: center; font-family: sans-serif;">
+    <strong>Security Timeout:</strong> Your session has expired. Please try to login again.
+</div>
+    <main class="flex-grow flex items-center justify-center p-6 lg:p-6 relative">
+        <div class="w-full grid grid-cols-1 lg:grid-cols-3 gap-6 items-center max-w-7xl">
+
+            <div class="hidden lg:block space-y-6" style="animation: slideInLeft 1s ease-out forwards; opacity: 0; animation-delay: 0.3s;">
+                <div class="p-5 bg-white rounded-xl shadow-lg" style="transition: transform 0.3s ease, box-shadow 0.3s ease;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 20px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)';">
+                    <div class="flex items-center gap-3 mb-2">
+                        <i class="fas fa-chart-line text-2xl text-blue-600"></i>
+                        <h3 class="text-lg font-bold text-gray-800">Financial Management</h3>
+                    </div>
+                    <p class="text-gray-600 text-sm leading-relaxed">
+                        Track your income and expenses to gain a clear, real-time understanding of your cash flow. Set and monitor your savings goals with visual progress bars.
+                    </p>
+                </div>
+                <div class="p-5 bg-white rounded-xl shadow-lg" style="transition: transform 0.3s ease, box-shadow 0.3s ease;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 20px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)';">
+                    <div class="flex items-center gap-3 mb-2">
+                        <i class="fas fa-address-book text-2xl text-blue-600"></i>
+                        <h3 class="text-lg font-bold text-gray-800">Secure Contacts Manager</h3>
+                    </div>
+                    <p class="text-gray-600 text-sm leading-relaxed">
+                        Keep all your contacts organized and secure. Easily add, edit, or delete contact information, including names, emails, and birthdays.
+                    </p>
+                </div>
+            </div>
+
+            <div class="w-full flex justify-center items-center relative">
+                <div id="loginCard" class="bg-white rounded-xl p-8 shadow-2xl w-full max-w-xs text-center" style="animation: fadeInZoom 0.8s ease-out forwards;">
+                    <h2 class="text-2xl font-bold mb-4 text-gray-800">Login to Your Hub</h2>
+                    <p class="text-gray-600 mb-6 text-sm">Access your secure personal dashboard with your Google account and PIN.</p>
+                    <button id="googleLoginBtn" class="flex items-center justify-center gap-2 text-base font-semibold px-5 py-3 rounded-full bg-white text-gray-800 border-2 border-blue-600 shadow-md mx-auto hover:bg-blue-600 hover:text-white" style="transition: all 0.2s ease; transform: scale(1.0); " onmouseover="this.style.transform='translateY(-2px) scale(1.02)'; this.style.boxShadow='0 8px 15px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='scale(1.0)'; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)';">
+                        <img src="https://developers.google.com/identity/images/g-logo.png" style="width: 20px; height: 20px;"> Sign in with Google
+                    </button>
+                </div>
+                
+                <div id="pinCard" class="hidden bg-white rounded-xl p-8 shadow-2xl w-full max-w-xs text-center">
+                    <h2 id="pinTitle" class="text-2xl font-bold mb-4 text-gray-800">Enter PIN</h2>
+
+                    <input id="pinInput" type="password" maxlength="6" placeholder="Enter 4-6 digit PIN" class="w-full p-3 border rounded-lg mb-3 text-center text-base focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"/>
+
+                    <div id="resetPinInputs" class="hidden flex flex-col gap-2 mb-3">
+                        <input id="currentPinInput" type="password" maxlength="6" placeholder="Current PIN" class="w-full p-3 border rounded-lg text-center text-base focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"/>
+                        <input id="newPinInput" type="password" maxlength="6" placeholder="New PIN" class="w-full p-3 border rounded-lg text-center text-base focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"/>
+                        <input id="confirmNewPinInput" type="password" maxlength="6" placeholder="Confirm New PIN" class="w-full p-3 border rounded-lg text-center text-base focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-300"/>
+                    </div>
+                    
+                    <button id="pinActionBtn" 
+                        class="w-full py-3 rounded-lg bg-blue-600 text-white font-semibold shadow-md mb-2 text-base hover:bg-blue-700 transition duration-200 ease-in-out hover:scale-[1.01] hover:shadow-lg">
+                    </button>
+                    <p class="mt-2 text-sm text-blue-600 cursor-pointer hover:underline" id="forgotPinBtn">Forgot PIN?</p>
+                    <p class="mt-1 text-sm text-blue-600 cursor-pointer hover:underline" id="resetPinBtn">Reset PIN</p>
+                </div>
+            </div>
+
+            <div class="hidden lg:block space-y-6" style="animation: slideInRight 1s ease-out forwards; opacity: 0; animation-delay: 0.6s;">
+                <div class="p-5 bg-white rounded-xl shadow-lg" style="transition: transform 0.3s ease, box-shadow 0.3s ease;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 20px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)';">
+                    <div class="flex items-center gap-3 mb-2">
+                        <i class="fas fa-lock text-2xl text-blue-600"></i>
+                        <h3 class="text-lg font-bold text-gray-800">Advanced Password Vault</h3>
+                    </div>
+                    <p class="text-gray-600 text-sm leading-relaxed">
+                        Secure all your online credentials in one place with military-grade encryption. Access them with your personal PIN for instant login.
+                    </p>
+                </div>
+                <div class="p-5 bg-white rounded-xl shadow-lg" style="transition: transform 0.3s ease, box-shadow 0.3s ease;" onmouseover="this.style.transform='translateY(-5px)'; this.style.boxShadow='0 10px 20px rgba(0,0,0,0.1)';" onmouseout="this.style.transform='none'; this.style.boxShadow='0 4px 6px rgba(0,0,0,0.1)';">
+                    <div class="flex items-center gap-3 mb-2">
+                        <i class="fas fa-link text-2xl text-blue-600"></i>
+                        <h3 class="text-lg font-bold text-gray-800">Personalized Link Hub</h3>
+                    </div>
+                    <p class="text-gray-600 text-sm leading-relaxed">
+                        Stop losing important websites. Organize your bookmarks and digital resources in a centralized, categorized hub for easy access.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <section class="py-12 md:py-16 bg-gray-50">
+        <div class="container mx-auto px-6">
+            <h2 class="section-title" style="animation: slideInUp 1s ease-out forwards; opacity: 0; animation-delay: 0.2s;">About This Website</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="p-5 bg-white rounded-xl shadow-md text-center" style="animation: slideInUp 0.8s ease-out forwards; opacity: 0; animation-delay: 0.1s;">
+                    <i class="fas fa-database text-4xl text-blue-600 mb-3"></i>
+                    <h3 class="text-lg font-semibold mb-2">Your Digital Vault</h3>
+                    <p class="text-gray-600 text-base leading-relaxed">
+                        A single platform that combines financial tracking, secure storage, and personal management. Say goodbye to scattered apps.
+                    </p>
+                </div>
+                <div class="p-5 bg-white rounded-xl shadow-md text-center" style="animation: slideInUp 0.8s ease-out forwards; opacity: 0; animation-delay: 0.3s;">
+                    <i class="fas fa-users text-4xl text-blue-600 mb-3"></i>
+                    <h3 class="text-lg font-semibold mb-2">Personal & Professional</h3>
+                    <p class="text-gray-600 text-base leading-relaxed">
+                        Whether you're a student, working professional, or entrepreneur—this hub adapts to your lifestyle and keeps you organized.
+                    </p>
+                </div>
+                <div class="p-5 bg-white rounded-xl shadow-md text-center" style="animation: slideInUp 0.8s ease-out forwards; opacity: 0; animation-delay: 0.5s;">
+                    <i class="fas fa-shield-alt text-4xl text-blue-600 mb-3"></i>
+                    <h3 class="text-lg font-semibold mb-2">Privacy First</h3>
+                    <p class="text-gray-600 text-base leading-relaxed">
+                        Designed with security at its core. Your personal information stays private and under your control, always.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-12 md:py-16 bg-white">
+        <div class="container mx-auto px-6">
+            <h2 class="section-title" style="animation: slideInUp 1s ease-out forwards; opacity: 0; animation-delay: 0.2s;">Key Benefits</h2>
+            <div class="space-y-8 relative border-l-4 border-blue-500 pl-4 max-w-3xl mx-auto">
+                <div style="animation: slideInUp 0.8s ease-out forwards; opacity: 0; animation-delay: 0.1s;">
+                    <h3 class="text-lg font-bold text-blue-600 mb-1"><i class="fas fa-bullseye mr-2"></i> Stay Focused</h3>
+                    <p class="text-gray-600 text-base">No distractions—only essential tools you need daily to save time and improve productivity.</p>
+                </div>
+                <div style="animation: slideInUp 0.8s ease-out forwards; opacity: 0; animation-delay: 0.3s;">
+                    <h3 class="text-lg font-bold text-blue-600 mb-1"><i class="fas fa-coins mr-2"></i> Smarter Finances</h3>
+                    <p class="text-gray-600 text-base">Automatically track your income, savings, and expenses in a visually engaging way.</p>
+                </div>
+                <div style="animation: slideInUp 0.8s ease-out forwards; opacity: 0; animation-delay: 0.5s;">
+                    <h3 class="text-lg font-bold text-blue-600 mb-1"><i class="fas fa-globe mr-2"></i> Access Anywhere</h3>
+                    <p class="text-gray-600 text-base">Fully cloud-based—your data follows you across all devices, with secure access.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-12 md:py-16 bg-white">
+        <div class="container mx-auto px-6">
+            <h2 class="section-title mb-10" style="animation: slideInUp 1s ease-out forwards; opacity: 0; animation-delay: 0.2s;">How It Works</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                <div class="flex flex-col items-center" style="animation: slideInUp 0.8s ease-out forwards; opacity: 0; animation-delay: 0.1s;">
+                    <i class="fas fa-user-plus text-4xl text-blue-500 mb-3"></i>
+                    <h3 class="text-lg font-semibold mb-1">Step 1: Get Started</h3>
+                    <p class="text-gray-600 text-base leading-relaxed">
+                        Sign up instantly using your **Google account**. This provides a secure, familiar, and quick way to get access to your personal hub.
+                    </p>
+                </div>
+                <div class="flex flex-col items-center" style="animation: slideInUp 0.8s ease-out forwards; opacity: 0; animation-delay: 0.3s;">
+                    <i class="fas fa-key text-4xl text-blue-500 mb-3"></i>
+                    <h3 class="text-lg font-semibold mb-1">Step 2: Set Your PIN</h3>
+                    <p class="text-gray-600 text-base leading-relaxed">
+                        For an added layer of security, you'll be prompted to create a personal **4-6 digit PIN**. This ensures that only you can access your data.
+                    </p>
+                </div>
+                <div class="flex flex-col items-center" style="animation: slideInUp 0.8s ease-out forwards; opacity: 0; animation-delay: 0.5s;">
+                    <i class="fas fa-cubes text-4xl text-blue-500 mb-3"></i>
+                    <h3 class="text-lg font-semibold mb-1">Step 3: Start Organizing</h3>
+                    <p class="text-gray-600 text-base leading-relaxed">
+                        Once inside, you're free to use our suite of tools: manage your finances, store passwords securely, and organize your digital contacts.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="py-12 md:py-16">
+        <div class="container mx-auto px-6">
+            <h2 class="section-title" style="animation: slideInUp 1s ease-out forwards; opacity: 0; animation-delay: 0.2s;">Why Choose Us?</h2>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div class="p-5 bg-white rounded-xl shadow-md text-center" style="animation: slideInUp 0.8s ease-out forwards; opacity: 0; animation-delay: 0.1s;">
+                    <div class="mb-3">
+                        <i class="fas fa-user-shield text-4xl text-blue-500"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-1">Advanced Security Protocols</h3>
+                    <p class="text-gray-600 text-sm">Your data is protected by a two-factor authentication system, combining a secure Google login with a personal PIN.</p>
+                </div>
+                <div class="p-5 bg-white rounded-xl shadow-md text-center" style="animation: slideInUp 0.8s ease-out forwards; opacity: 0; animation-delay: 0.3s;">
+                    <div class="mb-3">
+                        <i class="fas fa-lightbulb text-4xl text-blue-500"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-1">All-in-One Convenience</h3>
+                    <p class="text-gray-600 text-sm">Say goodbye to scattered apps. Manage your finances, contacts, passwords, and links from a single, seamless dashboard.</p>
+                </div>
+                <div class="p-5 bg-white rounded-xl shadow-md text-center" style="animation: slideInUp 0.8s ease-out forwards; opacity: 0; animation-delay: 0.5s;">
+                    <div class="mb-3">
+                        <i class="fas fa-cogs text-4xl text-blue-500"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-1">Seamless User Experience</h3>
+                    <p class="text-gray-600 text-sm">Our modern, intuitive interface is designed for simplicity, making it easy for anyone to get organized without a steep learning curve.</p>
+                </div>
+                <div class="p-5 bg-white rounded-xl shadow-md text-center" style="animation: slideInUp 0.8s ease-out forwards; opacity: 0; animation-delay: 0.7s;">
+                    <div class="mb-3">
+                        <i class="fas fa-mobile-alt text-4xl text-blue-500"></i>
+                    </div>
+                    <h3 class="text-lg font-semibold mb-1">Mobile-Friendly Design</h3>
+                    <p class="text-gray-600 text-sm">Access your personal hub on the go, with a design optimized for any device, from your desktop to your smartphone.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+<footer class="bg-white text-gray-900 text-center py-4 text-sm mt-10">
+    &copy; 2025 My Personal Website | All Rights Reserved.
+</footer>
+
+<div id="msgBox" style="position: fixed; top: 20px; right: 20px; padding: 10px 18px; border: 1px solid; border-radius: 6px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 999; font-weight: 500;"></div>
+
+<script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+<script>
+    // --- Firebase Configuration Using Your Provided ID ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc",
+        authDomain: "sk12-58e9e.firebaseapp.com",
+        projectId: "sk12-58e9e",
+        storageBucket: "sk12-58e9e.appspot.com",
+        messagingSenderId: "470207874652",
+        appId: "1:470207874652:web:67ba1cf3629b7e5b144899"
+    };
+
+    if (typeof firebase !== 'undefined' && firebase.apps.length === 0) {
+        firebase.initializeApp(firebaseConfig);
+    }
+
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+    const provider = new firebase.auth.GoogleAuthProvider();
+
+    let currentUID = null;
+    let currentEmail = null;
+
+    const msgBoxEl = document.getElementById("msgBox");
+    const loginCardEl = document.getElementById("loginCard");
+    
+    // --- Helper Function for Toast Messages ---
+    function showMsg(msg, success = true, duration = 6000) {
+        // 1. Clear previous state and determine style class
+        msgBoxEl.className = ''; 
+        msgBoxEl.classList.add(success ? 'success' : 'error');
+        
+        // 2. Set Content
+        const iconClass = success ? 'fas fa-check-circle' : 'fas fa-exclamation-triangle';
+        msgBoxEl.innerHTML = `<i class="${iconClass}"></i><span class="flex-grow">${msg}</span>`;
+        
+        // 3. Trigger Fade-in and Slide-in
+        requestAnimationFrame(() => {
+            msgBoxEl.classList.add('show');
+        });
+
+        // 4. Set Timeout to Hide
+        setTimeout(() => {
+            msgBoxEl.classList.remove('show');
+            setTimeout(() => {
+                msgBoxEl.className = '';
+            }, 300); 
+        }, duration); 
+    }
+
+    // --- Event Handler for Google Login ---
+    document.getElementById("googleLoginBtn").onclick = async () => {
+        try {
+            const result = await auth.signInWithPopup(provider);
+            currentUID = result.user.uid;
+            currentEmail = result.user.email;
+
+            // Check if user document exists (for new user setup)
+            const doc = await db.collection("users").doc(currentUID).get();
+
+            if (!doc.exists) {
+                // First time login: Create the user document (no PIN needed)
+                await db.collection("users").doc(currentUID).set({ 
+                    email: currentEmail,
+                });
+            }
+            
+            // --- IMMEDIATE REDIRECTION FOR FAST SIGN-IN ---
+            
+            setTimeout(() => { window.location.href = "home.html"; }, 1000); 
+
+        } catch (e) {
+            showMsg("Login failed: " + e.message, false);
+        }
+    };
+</script>
+    
+<button id="theme-toggle-btn" title="Toggle Dark/Light Mode">
+    <span id="theme-icon">🌙</span>
+</button>
+
+<style>
+
+    /* --- BUTTON STYLING --- */
+    #theme-toggle-btn {
+        position: fixed;
+        bottom: 25px;
+        right: 25px;
+        z-index: 1000;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        border: none;
+        background: #2563eb; /* Blue in Light Mode */
+        color: white;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    #theme-toggle-btn:hover {
+        transform: scale(1.1) rotate(15deg);
+    }
+
+    #theme-toggle-btn:active {
+        transform: scale(0.95);
+    }
+
+    /* --- DARK MODE DEFINITIONS --- */
+    /* Using [data-theme="dark"] on the root (html) element */
+    [data-theme="dark"] {
+        background-color: #0f172a !important; /* Deep Navy */
+        color: #f1f5f9 !important;
+    }
+
+    /* Background Overrides */
+    [data-theme="dark"] body {
+        background-color: #0f172a !important;
+    }
+
+    [data-theme="dark"] nav, 
+    [data-theme="dark"] footer,
+    [data-theme="dark"] .bg-white, 
+    [data-theme="dark"] #loginCard, 
+    [data-theme="dark"] #pinCard,
+    [data-theme="dark"] .lg\:block > div { 
+        background-color: #1e293b !important; /* Lighter navy for cards */
+        color: #f1f5f9 !important;
+        border: 1px solid #334155 !important;
+    }
+
+    [data-theme="dark"] .bg-gray-50 {
+        background-color: #111827 !important; /* Darker section background */
+    }
+
+    /* Text Color Overrides */
+    [data-theme="dark"] .text-gray-800,
+    [data-theme="dark"] .text-gray-900,
+    [data-theme="dark"] h2, 
+    [data-theme="dark"] h3 {
+        color: #ffffff !important;
+    }
+
+    [data-theme="dark"] .text-gray-600 {
+        color: #94a3b8 !important; /* Muted slate for descriptions */
+    }
+
+    /* Input Fields */
+    [data-theme="dark"] input {
+        background-color: #0f172a !important;
+        border: 1px solid #334155 !important;
+        color: #ffffff !important;
+    }
+
+    [data-theme="dark"] input::placeholder {
+        color: #64748b !important;
+    }
+
+    /* Icon Colors */
+    [data-theme="dark"] .text-blue-600,
+    [data-theme="dark"] .text-blue-500,
+    [data-theme="dark"] .fas {
+        color: #60a5fa !important; /* Brighter blue for visibility */
+    }
+
+    /* Google Button Adjustments */
+    [data-theme="dark"] #googleLoginBtn {
+        background-color: #1e293b !important;
+        color: #ffffff !important;
+        border: 1px solid #475569 !important;
+    }
+
+    [data-theme="dark"] #googleLoginBtn:hover {
+        background-color: #334155 !important;
+    }
+    /* 1. Fix the Brand Name Visibility */
+[data-theme="dark"] .text-gray-900 {
+    color: #ffffff !important;
+}
+
+/* 2. Fix the Database Icon (The small white one) */
+/* We target the specific combination of classes you have in your HTML */
+[data-theme="dark"] .fas.fa-database.text-white {
+    color: #ffffff !important; /* Force it to stay white */
+    opacity: 1 !important;
+    z-index: 2; /* Ensure it stays above the shield */
+}
+
+/* 3. Enhance the Shield for Dark Mode */
+[data-theme="dark"] .fa-shield {
+    color: #3b82f6 !important; /* Brighter blue for better contrast */
+    filter: drop-shadow(0 0 5px rgba(59, 130, 246, 0.5)); /* Subtle glow */
+}
+
+/* 4. Optical Alignment Fix */
+/* Since you have absolute and translateY(-50%), 
+   sometimes it looks slightly high. This centers it perfectly. */
+.fa-database.absolute {
+    left: 50%;
+    transform: translate(-50%, -50%) !important;
+}
+</style>
+
+<script>
+    (function() {
+        const themeBtn = document.getElementById('theme-toggle-btn');
+        const themeIcon = document.getElementById('theme-icon');
+        const htmlElement = document.documentElement;
+
+        // 1. Check for saved preference or system preference
+        const savedTheme = localStorage.getItem('theme') || 
+                          (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        
+        // 2. Apply theme on load
+        applyTheme(savedTheme);
+
+        // 3. Toggle event
+        themeBtn.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            applyTheme(newTheme);
+        });
+
+        function applyTheme(theme) {
+            htmlElement.setAttribute('data-theme', theme);
+            localStorage.setItem('theme', theme);
+            
+            if (theme === 'dark') {
+                themeIcon.textContent = '☀️';
+                themeBtn.style.background = '#fbbf24'; // Amber for Sun
+                themeBtn.style.boxShadow = '0 4px 15px rgba(251, 191, 36, 0.4)';
+            } else {
+                themeIcon.textContent = '🌙';
+                themeBtn.style.background = '#2563eb'; // Blue for Moon
+                themeBtn.style.boxShadow = '0 4px 15px rgba(37, 99, 235, 0.4)';
+            }
+        }
+    })();
+</script>
+    
+
+<script>
+    // Check if the user was redirected because of a timeout
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('reason') === 'timeout') {
+        document.getElementById('login-msg').style.display = 'block';
+    }
+</script>
+<script>
+  // 1. We push TWO states to ensure the 'Back' button is fully trapped
+  window.history.pushState({exit: true}, null, "");
+  window.history.pushState({exit: true}, null, "");
+
+  window.onpopstate = function (event) {
+    // 2. This triggers when 'Back' is pressed
+    if (confirm("Do you want to exit the Personal App?")) {
+      // 3. Try to close
+      window.close();
+      
+      // 4. If close is blocked, force a 'Deep Back' to the phone home screen
+      window.history.go(-2); 
+      
+      // 5. Ultimate fallback: Blank the app
+      setTimeout(() => { window.location.href = "about:blank"; }, 300);
+    } else {
+      // 6. If they stay, reset the double trap
+      window.history.pushState({exit: true}, null, "");
+    }
+  };
+</script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

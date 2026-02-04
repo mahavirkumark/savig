@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Friends' Socials - My Personal Website</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" integrity="sha512-SnH5WK+bZxgPHs44uWIX+LLMDJqL2sM6B4b1zX0M2t4tM8uC+3p/yM1l/K9cK3t/hK2jP6L0P9Q1N9z2Qz5g==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-indigo': '#4f46e5',
+                        'accent-blue': '#3b82f6', 
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'], 
+                    },
+                    borderRadius: {
+                        'xl': '1rem', 
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            padding-top: 72px; 
+            background-color: #f7f9fb; 
+        }
+        main {
+            flex-grow: 1;
+        }
+        .link-text {
+            word-break: break-all;
+        }
+        .modern-input:focus {
+            border-color: var(--primary-indigo, #4f46e5);
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.2); 
+            outline: none;
+        }
+    </style>
+</head>
+<body class="font-sans">
+
+    <nav class="bg-white shadow-lg fixed w-full z-50 top-0">
+        <div class="container mx-auto flex justify-between items-center p-4 md:px-8">
+            <div class="flex items-center gap-2 text-xl font-bold text-gray-800">
+                <i class="fas fa-user-circle" style="font-size: 28px; color: #4f46e5;"></i>
+                <span class="text-xl">My Personal Website</span>
+            </div>
+            
+            <div class="hidden md:flex space-x-6 font-medium">
+                <a href="home.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-accent-blue hover:-translate-y-0.5"><i class="fas fa-house"></i> Home</a>
+                <a href="address.html" class="flex items-center gap-2 transition duration-300 text-primary-indigo font-semibold hover:text-accent-blue hover:-translate-y-0.5"><i class="fas fa-tasks"></i> Address</a>
+                <a href="birthday.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-accent-blue hover:-translate-y-0.5"><i class="fas fa-birthday-cake"></i> Birthday</a>
+                <a href="password.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-accent-blue hover:-translate-y-0.5"><i class="fas fa-key"></i> Passwords</a>
+                <a href="income.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-accent-blue hover:-translate-y-0.5"><i class="fas fa-wallet"></i> Income</a>
+                <a href="links.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-accent-blue hover:-translate-y-0.5"><i class="fas fa-link"></i> Links</a>
+                <a href="calendar.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-accent-blue hover:-translate-y-0.5"><i class="fas fa-calendar-alt"></i> Calendar</a>
+            </div>
+
+            <div class="hidden md:flex items-center gap-4">
+                <div class="text-right">
+                    <p id="userName" class="font-bold text-gray-900">Loading...</p>
+                    <p id="userEmail" class="text-sm text-gray-500">Loading...</p>
+                </div>
+                <img id="userPhoto" src="https://via.placeholder.com/40" alt="User Photo" class="w-10 h-10 rounded-full border-2 border-primary-indigo">
+                <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-full text-sm font-medium hover:bg-red-600 transition duration-300">Logout</button>
+            </div>
+
+            <button id="menu-btn" class="md:hidden text-gray-700 text-2xl"><i class="fas fa-bars"></i></button>
+        </div>
+
+        <div id="mobileMenu" class="hidden md:hidden flex flex-col px-4 pb-4 space-y-2 text-sm text-gray-700 font-medium bg-gray-50">
+            <a href="home.html" class="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-200 hover:text-accent-blue transition duration-300 mb-1"><i class="fas fa-house"></i> Home</a>
+            <a href="address.html" class="flex items-center gap-2 p-2 rounded-lg text-primary-indigo font-semibold hover:bg-gray-200 hover:text-accent-blue transition duration-300 mb-1"><i class="fas fa-tasks"></i> Address</a>
+            <a href="birthday.html" class="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-200 hover:text-accent-blue transition duration-300 mb-1"><i class="fas fa-birthday-cake"></i> Birthday</a>
+            <a href="password.html" class="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-200 hover:text-accent-blue transition duration-300 mb-1"><i class="fas fa-key"></i> Passwords</a>
+            <a href="income.html" class="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-200 hover:text-accent-blue transition duration-300 mb-1"><i class="fas fa-wallet"></i> Income</a>
+            <a href="links.html" class="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-200 hover:text-accent-blue transition duration-300 mb-1"><i class="fas fa-link"></i> Links</a>
+            <a href="calendar.html" class="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-200 hover:text-accent-blue transition duration-300 mb-1"><i class="fas fa-calendar-alt"></i> Calendar</a>
+            <div class="border-t border-gray-300 mt-2 pt-2">
+                <p id="mobileUserName" class="font-bold text-gray-900">Loading...</p>
+                <p id="mobileUserEmail" class="text-xs text-gray-500">Loading...</p>
+                <button onclick="logout()" class="bg-red-500 text-white px-3 py-2 rounded-full hover:bg-red-600 mt-2 w-full text-sm">Logout</button>
+            </div>
+        </div>
+    </nav>
+    <main class="container mx-auto p-4 md:p-8">
+        <h1 class="text-4xl font-extrabold text-gray-900 mb-8 text-center tracking-tight">Friends' Social Links <i class="fas fa-share-alt-square text-primary-indigo"></i></h1>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-10">
+            
+            <div class="bg-white p-6 md:p-8 rounded-2xl shadow-xl border border-gray-100 h-fit lg:sticky top-24">
+                <h2 class="text-2xl font-bold text-primary-indigo mb-6">Input Social Links</h2>
+                
+                <form id="addFriendForm">
+                    <div class="mb-5">
+                        <label for="friendName" class="block text-sm font-medium text-gray-700 mb-2">Friend's Name</label>
+                        <input type="text" id="friendName" required class="modern-input w-full px-4 py-2 border border-gray-300 rounded-lg transition duration-150" placeholder="e.g., Alex Bennett">
+                    </div>
+                    
+                    <div id="socialLinksContainer" class="space-y-4 mb-4">
+                        </div>
+
+                    <button type="button" onclick="addLinkField()" class="w-full bg-gray-100 text-gray-700 py-3 rounded-xl hover:bg-gray-200 transition duration-300 mb-4 font-medium flex items-center justify-center gap-2 border border-dashed border-gray-300">
+                        <i class="fas fa-plus text-primary-indigo"></i> Add Another Link
+                    </button>
+                    
+                    <div class="flex gap-4">
+                        <button type="button" id="cancelEditBtn" onclick="resetForm()" class="hidden w-1/3 bg-gray-300 text-gray-800 py-3 rounded-xl font-bold text-lg hover:bg-gray-400 transition duration-300 shadow-md hover:shadow-lg">
+                            Cancel
+                        </button>
+                        <button type="submit" id="submitFriendBtn" class="w-full bg-primary-indigo text-white py-3 rounded-xl font-bold text-lg hover:bg-indigo-600 transition duration-300 shadow-md hover:shadow-lg">
+                            Save Friend's Data
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="p-4 md:p-6 rounded-xl">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6">Friends List</h2>
+                
+                <div id="friendsList" class="space-y-6">
+                    <p id="loadingIndicator" class="text-gray-500 text-center p-6 bg-white rounded-xl shadow-md">Loading friends' data...</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="mt-auto bg-white text-gray-600 text-center p-4 border-t text-sm border-t border-gray-200">
+        &copy; 2025 Personal Website | All rights reserved
+    </footer>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+
+    <script>
+        // --- Firebase Configuration (FIXED: Added databaseURL) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc",
+            authDomain: "sk12-58e9e.firebaseapp.com",
+            projectId: "sk12-58e9e",
+            storageBucket: "sk12-58e9e.appspot.com",
+            messagingSenderId: "470207874652",
+            appId: "1:470207874652:web:67ba1cf3629b7e5b144899",
+            // FIX: Explicitly setting the databaseURL is CRITICAL for display issues
+            databaseURL: "https://sk12-58e9e-default-rtdb.firebaseio.com" 
+        };
+        firebase.initializeApp(firebaseConfig);
+
+        // --- Global Initialization ---
+        const auth = firebase.auth();
+        const database = firebase.database();
+        let currentUserID = null;
+        let isEditing = false;
+        let editingFriendId = null;
+
+        // --- UI Utility Functions ---
+        const submitButton = document.getElementById('submitFriendBtn');
+        const cancelButton = document.getElementById('cancelEditBtn');
+
+        document.getElementById('menu-btn').addEventListener('click', () => {
+            document.getElementById('mobileMenu').classList.toggle('hidden');
+        });
+
+        function updateUserInfo(user) {
+            document.getElementById('userName').textContent = user.displayName || 'User';
+            document.getElementById('userEmail').textContent = user.email || 'No email';
+            document.getElementById('mobileUserName').textContent = user.displayName || 'User';
+            document.getElementById('mobileUserEmail').textContent = user.email || 'No email';
+            document.getElementById('userPhoto').src = user.photoURL || 'https://via.placeholder.com/40';
+        }
+
+        // Must be a global function for inline onclick in HTML
+        window.logout = function() {
+            auth.signOut().then(() => {
+                window.location.href = 'index.html'; 
+            }).catch((error) => {
+                console.error("Logout Error:", error);
+                alert('Logout failed: ' + error.message);
+            });
+        }
+
+        /**
+         * Returns the icon class for a social media platform.
+         */
+        function getSocialIcon(platform) {
+            switch (platform.toLowerCase()) {
+                case 'facebook': return 'fab fa-facebook-f text-blue-600';
+                case 'instagram': return 'fab fa-instagram text-pink-600';
+                case 'twitter/x': return 'fab fa-x-twitter text-gray-800'; 
+                case 'linkedin': return 'fab fa-linkedin-in text-blue-700';
+                case 'tiktok': return 'fab fa-tiktok text-black';
+                case 'youtube': return 'fab fa-youtube text-red-600';
+                case 'personal website': return 'fas fa-globe text-primary-indigo';
+                default: return 'fas fa-link text-gray-500';
+            }
+        }
+
+        /**
+         * Generates the HTML for a single social link input field.
+         */
+        function createLinkFieldHTML(media = '', url = '') {
+            const index = Date.now() + Math.random(); 
+            return `
+                <div class="link-group flex flex-col md:flex-row gap-2 bg-gray-50 p-3 rounded-lg border border-gray-200" data-id="${index}">
+                    <div class="flex-grow">
+                        <label class="block text-xs font-medium text-gray-600">Social Media</label>
+                        <select name="socialMedia" required class="modern-input w-full px-3 py-2 border border-gray-300 rounded-lg text-sm transition duration-150">
+                            <option value="">-- Select Platform --</option>
+                            <option value="Facebook" ${media === 'Facebook' ? 'selected' : ''}>Facebook</option>
+                            <option value="Instagram" ${media === 'Instagram' ? 'selected' : ''}>Instagram</option>
+                            <option value="Twitter/X" ${media === 'Twitter/X' ? 'selected' : ''}>Twitter/X</option>
+                            <option value="LinkedIn" ${media === 'LinkedIn' ? 'selected' : ''}>LinkedIn</option>
+                            <option value="TikTok" ${media === 'TikTok' ? 'selected' : ''}>TikTok</option>
+                            <option value="YouTube" ${media === 'YouTube' ? 'selected' : ''}>YouTube</option>
+                            <option value="Personal Website" ${media === 'Personal Website' ? 'selected' : ''}>Personal Website</option>
+                            <option value="Other" ${media === 'Other' ? 'selected' : ''}>Other</option>
+                        </select>
+                    </div>
+                    <div class="flex-grow-2 w-full md:w-3/5">
+                        <label class="block text-xs font-medium text-gray-600">Link URL</label>
+                        <input type="url" name="linkUrl" required value="${url}" class="modern-input w-full px-3 py-2 border border-gray-300 rounded-lg text-sm transition duration-150" placeholder="https://www.socialmedia.com/...">
+                    </div>
+                    <button type="button" onclick="removeLinkField(this)" class="md:self-end bg-red-50 text-red-600 px-3 py-2 rounded-lg hover:bg-red-100 transition duration-300 mt-2 md:mt-0 w-full md:w-auto flex items-center justify-center" title="Remove Link">
+                        <i class="fas fa-trash-alt"></i>
+                    </button>
+                </div>
+            `;
+        }
+
+        // Must be a global function for inline onclick in HTML
+        window.addLinkField = function(media = '', url = '') {
+            document.getElementById('socialLinksContainer').insertAdjacentHTML('beforeend', createLinkFieldHTML(media, url));
+        }
+
+        // Must be a global function for inline onclick in HTML
+        window.removeLinkField = function(button) {
+            button.closest('.link-group').remove();
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            addLinkField(); 
+        });
+
+        // FIX: Moved resetForm to be a window function so it can be called by the new Cancel button
+        window.resetForm = function() {
+            document.getElementById('addFriendForm').reset();
+            document.getElementById('socialLinksContainer').innerHTML = '';
+            addLinkField();
+            isEditing = false;
+            editingFriendId = null;
+            // Update UI
+            submitButton.textContent = 'Save Friend\'s Data';
+            submitButton.classList.remove('w-2/3');
+            submitButton.classList.add('w-full');
+            cancelButton.classList.add('hidden');
+        }
+
+        // --- Firebase Data Functions ---
+
+        document.getElementById('addFriendForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            if (!currentUserID) {
+                alert("ERROR: User not authenticated. Please log in to save data.");
+                return;
+            }
+
+            const friendName = document.getElementById('friendName').value.trim();
+            const linkGroups = document.querySelectorAll('.link-group');
+            const links = [];
+
+            linkGroups.forEach(group => {
+                const socialMedia = group.querySelector('select[name="socialMedia"]').value;
+                const linkUrl = group.querySelector('input[name="linkUrl"]').value.trim();
+                
+                if (socialMedia && linkUrl) {
+                    links.push({ socialMedia, linkUrl });
+                }
+            });
+
+            if (links.length === 0) {
+                alert("Please add at least one social media link.");
+                return;
+            }
+
+            const friendData = {
+                name: friendName,
+                links: links,
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            };
+
+            const databaseRef = database.ref('users/' + currentUserID + '/friends');
+
+            let savePromise;
+            if (isEditing) {
+                savePromise = databaseRef.child(editingFriendId).update(friendData);
+            } else {
+                savePromise = databaseRef.push(friendData);
+            }
+
+            savePromise.then(() => {
+                console.log("Data successfully saved/updated in Firebase.");
+                alert(isEditing ? 'Friend data updated successfully!' : 'Friend data saved successfully!');
+                resetForm();
+            }).catch((error) => {
+                // FIX: Log error clearly to console to help diagnose security rules issue
+                console.error("FATAL FIREBASE SAVE ERROR:", error);
+                alert("Failed to save data. CHECK YOUR FIREBASE SECURITY RULES AND CONSOLE LOGS.");
+            });
+        });
+
+        /**
+         * Renders the list of friends on the right side.
+         */
+        function renderFriendsList(friends) {
+            const listContainer = document.getElementById('friendsList');
+            listContainer.innerHTML = '';
+            document.getElementById('loadingIndicator').classList.add('hidden');
+
+            if (!friends) {
+                listContainer.innerHTML = '<p class="text-gray-500 text-center p-6 bg-white rounded-xl shadow-md">No friends added yet. Start by using the form on the left! ✨</p>';
+                return;
+            }
+
+            const friendsArray = Object.keys(friends).map(key => ({
+                id: key,
+                ...friends[key]
+            })).sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0)); 
+
+            friendsArray.forEach(friend => {
+                const linkItems = friend.links.map(link => `
+                    <div class="flex items-center gap-3 border-b border-gray-100 py-3 last:border-b-0">
+                        <i class="${getSocialIcon(link.socialMedia)} text-lg w-5 text-center"></i>
+                        <span class="text-sm font-medium text-gray-700 w-1/4 min-w-[100px]">${link.socialMedia}</span>
+                        <a href="${link.linkUrl}" target="_blank" rel="noopener noreferrer" class="link-text text-sm text-accent-blue hover:text-indigo-600 transition duration-150 hover:underline w-full truncate">
+                            ${link.linkUrl}
+                        </a>
+                    </div>
+                `).join('');
+
+                const friendCard = document.createElement('div');
+                friendCard.className = 'bg-white p-6 rounded-2xl shadow-lg border border-gray-200 hover:shadow-xl transition duration-300';
+                friendCard.innerHTML = `
+                    <h3 class="text-2xl font-bold text-gray-900 mb-4 border-b pb-2">${friend.name}</h3>
+                    
+                    <div class="mb-5 divide-y divide-gray-100">
+                        ${linkItems}
+                    </div>
+
+                    <div class="flex flex-wrap gap-2 pt-3 border-t border-gray-100">
+                        <button onclick="editFriend('${friend.id}')" class="text-sm text-blue-500 font-medium hover:text-blue-700 transition duration-150 px-3 py-1 rounded-full bg-blue-50 hover:bg-blue-100 flex items-center">
+                            <i class="fas fa-edit mr-1"></i> Edit
+                        </button>
+                        <button onclick="copyFriendData('${friend.id}')" class="text-sm text-green-600 font-medium hover:text-green-800 transition duration-150 px-3 py-1 rounded-full bg-green-50 hover:bg-green-100 flex items-center">
+                            <i class="fas fa-copy mr-1"></i> Copy
+                        </button>
+                        <button onclick="shareFriendData('${friend.id}')" class="text-sm text-yellow-600 font-medium hover:text-yellow-800 transition duration-150 px-3 py-1 rounded-full bg-yellow-50 hover:bg-yellow-100 flex items-center">
+                            <i class="fas fa-share-alt mr-1"></i> Share
+                        </button>
+                        <button onclick="deleteFriend('${friend.id}', '${friend.name}')" class="text-sm text-red-600 font-medium hover:text-red-800 transition duration-150 px-3 py-1 rounded-full bg-red-50 hover:bg-red-100 flex items-center">
+                            <i class="fas fa-trash-alt mr-1"></i> Delete
+                        </button>
+                    </div>
+                `;
+                listContainer.appendChild(friendCard);
+            });
+        }
+
+        // Must be a global function for inline onclick in HTML
+        window.editFriend = function(friendId) {
+            if (!currentUserID) return;
+            database.ref('users/' + currentUserID + '/friends/' + friendId).once('value', (snapshot) => {
+                const friend = snapshot.val();
+                if (friend) {
+                    isEditing = true;
+                    editingFriendId = friendId;
+                    
+                    // Update UI for editing
+                    submitButton.textContent = 'Update Friend\'s Data';
+                    submitButton.classList.remove('w-full'); // Make room for cancel button
+                    submitButton.classList.add('w-2/3');
+                    cancelButton.classList.remove('hidden'); // Show cancel button
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+                    document.getElementById('friendName').value = friend.name;
+
+                    const container = document.getElementById('socialLinksContainer');
+                    container.innerHTML = ''; 
+                    
+                    friend.links.forEach(link => {
+                        addLinkField(link.socialMedia, link.linkUrl);
+                    });
+                } else {
+                    alert("Friend not found for editing.");
+                }
+            });
+        }
+
+        // Must be a global function for inline onclick in HTML
+        window.deleteFriend = function(friendId, friendName) {
+            if (!currentUserID) return;
+            if (confirm(`Are you sure you want to delete all links for ${friendName}?`)) {
+                database.ref('users/' + currentUserID + '/friends/' + friendId).remove()
+                    .then(() => {
+                        console.log("Data successfully deleted from Firebase.");
+                        alert(`Links for ${friendName} deleted successfully.`);
+                    })
+                    .catch(error => {
+                        console.error("Delete Error:", error);
+                        alert("Failed to delete data. Check your Firebase rules.");
+                    });
+            }
+        }
+
+        // Must be a global function for inline onclick in HTML
+        window.copyFriendData = function(friendId) {
+            if (!currentUserID) return;
+            database.ref('users/' + currentUserID + '/friends/' + friendId).once('value', (snapshot) => {
+                const friend = snapshot.val();
+                if (friend) {
+                    let textToCopy = `Social links for ${friend.name}:\n\n`;
+                    friend.links.forEach(link => {
+                        textToCopy += `${link.socialMedia}: ${link.linkUrl}\n`;
+                    });
+                    navigator.clipboard.writeText(textToCopy).then(() => {
+                        alert(`Links for ${friend.name} copied to clipboard!`);
+                    });
+                }
+            });
+        }
+
+        // Must be a global function for inline onclick in HTML
+        window.shareFriendData = function(friendId) {
+            if (!currentUserID) return;
+            database.ref('users/' + currentUserID + '/friends/' + friendId).once('value', (snapshot) => {
+                const friend = snapshot.val();
+                if (friend && navigator.share) {
+                    let textToShare = `Check out ${friend.name}'s social links:\n\n`;
+                    friend.links.forEach(link => {
+                        textToShare += `${link.socialMedia}: ${link.linkUrl}\n`;
+                    });
+                    navigator.share({
+                        title: `Social links for ${friend.name}`,
+                        text: textToShare
+                    }).catch((error) => {
+                        console.error('Error sharing:', error);
+                    });
+                } else if (friend) {
+                    alert('Web Share API not supported on this device. Copying to clipboard instead.');
+                    copyFriendData(friendId);
+                }
+            });
+        }
+
+        // --- Authentication Listener (CRITICAL for data access) ---
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUserID = user.uid;
+                updateUserInfo(user);
+                
+                // Set up Realtime Database listener ONLY when user is authenticated
+                const friendsRef = database.ref('users/' + currentUserID + '/friends');
+                friendsRef.on('value', (snapshot) => {
+                    const friends = snapshot.val();
+                    renderFriendsList(friends);
+                }, (error) => {
+                    // FIX: This error is often a permissions issue.
+                    console.error("FIREBASE READ ERROR (likely due to Security Rules):", error);
+                    document.getElementById('friendsList').innerHTML = '<p class="text-red-500 text-center p-4 bg-white rounded-xl shadow-md">ERROR: Failed to load data. Check Firebase Console for Security Rules!</p>';
+                });
+
+            } else {
+                currentUserID = null;
+                // Redirect if not logged in
+                window.location.href = 'index.html'; 
+            }
+        });
+
+    </script>
+</body>
+</html>

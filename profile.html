@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Personal Website - Profile</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
+    
+    <style>
+        /* Custom Tailwind Colors (Retained for original links) */
+        .bg-primary-indigo { background-color: #4f46e5; }
+        .text-primary-indigo { color: #4f46e5; }
+        
+        /* Modern Primary Color (Indigo-600) for profile elements */
+        .bg-modern-blue { background-color: #4F46E5; }
+        .text-modern-blue { color: #4F46E5; }
+        .border-modern-blue { border-color: #4F46E5; }
+        
+        body {
+            padding-top: 80px; /* Adjusted back to 80px for the taller original nav */
+            min-height: 100vh;
+            background-color: #f7f7f7; /* Light background */
+            font-family: ui-sans-serif, system-ui;
+        }
+
+        /* Original Nav Styling */
+        nav {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+        }
+
+        /* Modal Backdrop */
+        .modal-backdrop {
+            background-color: rgba(0, 0, 0, 0.4);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 flex flex-col">
+
+    <nav class="bg-white shadow-lg fixed w-full z-50 top-0">
+        <div class="container mx-auto flex justify-between items-center p-4 md:px-8">
+            <div class="flex items-center gap-2 text-xl font-bold text-gray-800">
+                <i class="fas fa-user-circle" style="font-size: 28px; color: #4f46e5;"></i>
+                <span style="font-size: 22px;">My Personal Website</span>
+            </div>
+            
+            <div class="hidden md:flex space-x-6 text-gray-600 font-medium">
+                <a href="home.html" class="flex items-center gap-2 transition duration-300 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-house"></i> Home</a>
+                <a href="address.html" class="flex items-center gap-2 transition duration-300 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-tasks"></i> Address</a>
+                <a href="password.html" class="flex items-center gap-2 transition duration-300 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-key"></i> Passwords</a>
+                <a href="income.html" class="flex items-center gap-2 transition duration-300 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-wallet"></i> Income</a>
+                <a href="links.html" class="flex items-center gap-2 transition duration-300 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-link"></i> Links</a>
+                <a href="calendar.html" class="flex items-center gap-2 transition duration-300 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-calendar-alt"></i> Calendar</a>
+            </div>
+            
+            <div class="hidden md:flex items-center gap-4">
+                <div class="text-right">
+                    <p id="userName" class="font-bold text-gray-900">Loading...</p>
+                    <p id="userEmail" class="text-sm text-gray-500">Loading...</p>
+                </div>
+                <img id="userPhoto" src="https://via.placeholder.com/40" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #4f46e5;">
+                <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-full hover:bg-red-600 transition duration-300">Logout</button>
+            </div>
+            <button id="menu-btn" class="md:hidden text-gray-700 text-2xl"><i class="fas fa-bars"></i></button>
+        </div>
+        
+        <div id="mobileMenu" class="hidden md:hidden flex flex-col px-4 pb-4 space-y-2 text-sm text-gray-700 font-medium bg-gray-50">
+            <a href="home.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-house"></i> Home</a>
+            <a href="address.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-tasks"></i> Address</a>
+            <a href="password.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-key"></i> Passwords</a>
+            <a href="income.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-wallet"></i> Income</a>
+            <a href="links.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-link"></i> Links</a>
+            <a href="calendar.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-calendar-alt"></i> Calendar</a>
+            
+            <div class="border-t border-gray-300 mt-2 pt-2">
+                <p id="mobileUserName" class="font-bold text-gray-900">Loading...</p>
+                <p id="mobileUserEmail" class="text-xs text-gray-500">Loading...</p>
+                <button onclick="logout()" class="bg-red-500 text-white px-3 py-2 rounded-full hover:bg-red-600 mt-2 w-full">Logout</button>
+            </div>
+        </div>
+    </nav>
+    
+    <main class="flex-grow container mx-auto p-4 md:px-8 py-10">
+        <div class="max-w-xl mx-auto space-y-6">
+            
+            <h1 class="text-3xl font-extrabold text-gray-900 flex items-center gap-3 mb-6">
+                <i class="fas fa-id-card text-modern-blue"></i> My Profile
+            </h1>
+
+            <div class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-modern-blue">
+                <div class="flex flex-col items-center">
+                    <img id="profilePhotoLarge" src="https://via.placeholder.com/128" class="w-28 h-28 rounded-full object-cover border-4 border-modern-blue p-0.5 mb-4 shadow-md" alt="User Profile Photo">
+                    
+                    <h2 id="profileName" class="text-xl font-bold text-gray-900 mb-1 text-center">Loading Name...</h2>
+                    <p id="profileEmail" class="text-md text-gray-500 font-light text-center mb-6">Loading Email...</p>
+                </div>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl shadow-lg space-y-3">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Manage Account</h3>
+                
+                <button onclick="openUpdateModal()" class="w-full bg-modern-blue text-white px-4 py-3 rounded-lg hover:bg-indigo-700 transition duration-300 font-semibold flex items-center justify-center gap-2">
+                    <i class="fas fa-user-edit"></i> Update Name & Photo
+                </button>
+                
+                <button onclick="logout()" class="w-full bg-red-600 text-white px-4 py-3 rounded-lg hover:bg-red-700 transition duration-300 font-semibold shadow-md flex items-center justify-center gap-2 mt-4">
+                    <i class="fas fa-sign-out-alt"></i> Log Out
+                </button>
+                
+            </div>
+        </div>
+    </main>
+
+    <footer class="mt-auto bg-white text-gray-600 text-center p-4 border-t text-sm border-t border-gray-200">
+        &copy; 2025 Personal Website | All rights reserved
+    </footer>
+
+    <div id="updateModal" class="fixed inset-0 hidden items-center justify-center z-50 modal-backdrop">
+        <div class="bg-white p-6 rounded-lg shadow-2xl w-full max-w-sm mx-4">
+            <h3 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">Update Profile</h3>
+            <form onsubmit="event.preventDefault(); updateProfileInfo()">
+                <div class="mb-3">
+                    <label for="updateName" class="block text-sm font-medium text-gray-700 mb-1">Display Name</label>
+                    <input type="text" id="updateName" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                </div>
+                <div class="mb-4">
+                    <label for="updatePhotoUrl" class="block text-sm font-medium text-gray-700 mb-1">Photo URL</label>
+                    <input type="url" id="updatePhotoUrl" placeholder="https://..." class="w-full px-3 py-2 border border-gray-300 rounded-md">
+                </div>
+                <div class="flex justify-end space-x-2">
+                    <button type="button" onclick="closeUpdateModal()" class="px-3 py-2 text-gray-700 rounded-md hover:bg-gray-100">Cancel</button>
+                    <button type="submit" class="px-3 py-2 bg-modern-blue text-white rounded-md hover:bg-indigo-700 font-semibold">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <script>
+        // ====================================================================
+        // *** 1. FIREBASE CONFIGURATION ***
+        // ====================================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc",
+            authDomain: "sk12-58e9e.firebaseapp.com",
+            projectId: "sk12-58e9e",
+            storageBucket: "sk12-58e9e.appspot.com",
+            messagingSenderId: "470207874652",
+            appId: "1:470207874652:web:67ba1cf3629b7e5b144899"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        
+        // --- UI Update Function ---
+        function updateUI(user) {
+            if (!user) return;
+
+            const name = user.displayName || 'User Name Not Set';
+            const email = user.email || 'No Email';
+            const photoURL = user.photoURL || 'https://via.placeholder.com/40';
+            const largePhotoURL = user.photoURL || 'https://via.placeholder.com/128';
+
+            // 1. Nav Bar Updates
+            document.getElementById('userName').textContent = name;
+            document.getElementById('userEmail').textContent = email;
+            document.getElementById('userPhoto').src = photoURL;
+            document.getElementById('mobileUserName').textContent = name;
+            document.getElementById('mobileUserEmail').textContent = email;
+            
+            // 2. Profile Card Updates
+            document.getElementById('profileName').textContent = name;
+            document.getElementById('profileEmail').textContent = email;
+            document.getElementById('profilePhotoLarge').src = largePhotoURL;
+            
+            // Pre-fill modal inputs
+            document.getElementById('updateName').value = name;
+            document.getElementById('updatePhotoUrl').value = user.photoURL || '';
+        }
+
+        // --- FIREBASE AUTH LISTENERS & LOGIC ---
+        auth.onAuthStateChanged((user) => {
+            if (user) {
+                updateUI(user);
+            } else {
+                console.log("No user is logged in.");
+                // Redirect to login page if user isn't authenticated
+                // window.location.href = 'index.html';
+            }
+        });
+
+        function logout() {
+            auth.signOut().then(() => {
+                window.location.href = 'index.html'; 
+            }).catch((error) => {
+                console.error("Logout Error:", error);
+                alert('An error occurred during logout.');
+            });
+        }
+        
+        // ====================================================================
+        // *** WORKING PROFILE FEATURE (Update Name/Photo) ***
+        // ====================================================================
+
+        function openUpdateModal() {
+            document.getElementById('updateModal').classList.remove('hidden');
+            document.getElementById('updateModal').classList.add('flex');
+        }
+
+        function closeUpdateModal() {
+            document.getElementById('updateModal').classList.remove('flex');
+            document.getElementById('updateModal').classList.add('hidden');
+        }
+
+        function updateProfileInfo() {
+            const user = auth.currentUser;
+            if (!user) {
+                alert("You must be logged in to update your profile.");
+                return;
+            }
+
+            const newName = document.getElementById('updateName').value.trim();
+            const newPhotoUrl = document.getElementById('updatePhotoUrl').value.trim();
+
+            user.updateProfile({
+                displayName: newName,
+                photoURL: newPhotoUrl || null
+            }).then(() => {
+                alert("Profile successfully updated! 👍");
+                closeUpdateModal();
+                updateUI(user); 
+            }).catch((error) => {
+                console.error("Profile Update Error:", error);
+                alert(`Error updating profile: ${error.message}`);
+            });
+        }
+
+        // The password functions (openPasswordModal, changePassword) and modal are removed.
+        
+        // --- Mobile Menu Toggle ---
+        document.addEventListener('DOMContentLoaded', () => {
+            const menuBtn = document.getElementById('menu-btn');
+            const mobileMenu = document.getElementById('mobileMenu');
+            
+            if (menuBtn && mobileMenu) {
+                menuBtn.onclick = () => {
+                    mobileMenu.classList.toggle('hidden');
+                    const icon = menuBtn.querySelector('i');
+                    icon.classList.toggle('fa-bars');
+                    icon.classList.toggle('fa-times');
+                };
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Task Calendar</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<style>
+
+    /* --- Base Styles for Floating Widget --- */
+    .floating-chat-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 9999; /* Ensure it's above all page content */
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        font-family: 'Arial', sans-serif; /* Ensure consistent font */
+    }
+
+    /* --- Chat Button (Logo) Styling --- */
+    #chat-toggle-button {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        background-color: #4285F4; /* Google Blue */
+        color: white;
+        border: none;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        cursor: pointer;
+        font-size: 24px;
+        transition: all 0.3s ease;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    #chat-toggle-button:hover {
+        background-color: #3367D6;
+        transform: scale(1.05);
+    }
+
+    /* AI/Logo Icon Styling */
+    #chat-toggle-button i {
+        /* This uses FontAwesome for a common chat/AI look */
+        transition: transform 0.3s ease;
+    }
+
+    /* Change icon when chat is open (e.g., to an X) */
+    #chat-toggle-button.open {
+        background-color: #DC3545; /* Red/Close color */
+    }
+    #chat-toggle-button.open i:before {
+        content: "\f00d"; /* FontAwesome 'xmark' icon */
+    }
+
+    /* --- Chat Window Styling --- */
+    .chat-window {
+        width: 330px; /* Standard widget width */
+        height: 400px; /* Standard widget height */
+        background: white;
+        box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+        border-radius: 10px;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 15px;
+        
+        /* Initial State: Hidden and scaled down */
+        transform: scale(0);
+        transform-origin: bottom right;
+        transition: transform 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28), opacity 0.3s ease;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .chat-window.open {
+        transform: scale(1);
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    /* --- Chat Window Content (Modified for Widget size) --- */
+    #chat-box-widget {
+        flex-grow: 1;
+        padding: 15px;
+        overflow-y: auto;
+        background-color: #f0f4f9; /* Lighter background */
+        scroll-behavior: smooth;
+    }
+
+    .message {
+        margin-bottom: 8px;
+        padding: 8px 12px;
+        border-radius: 16px;
+        max-width: 85%;
+        word-wrap: break-word;
+        line-height: 1.4;
+        font-size: 14px;
+    }
+
+    .user-message {
+        background-color: #4285F4;
+        color: white;
+        margin-left: auto;
+        border-bottom-right-radius: 4px;
+    }
+
+    .gemini-message {
+        background-color: #dceaf7;
+        color: #333;
+        margin-right: auto;
+        border-bottom-left-radius: 4px;
+    }
+    
+    /* --- Input Form --- */
+    #input-form-widget {
+        display: flex;
+        padding: 10px;
+        border-top: 1px solid #ccc;
+        background-color: #ffffff;
+    }
+
+    #user-input-widget {
+        flex-grow: 1;
+        padding: 8px;
+        border: 1px solid #ddd;
+        border-radius: 20px;
+        margin-right: 8px;
+        font-size: 14px;
+    }
+
+    #send-button-widget {
+        padding: 8px 15px;
+        border: none;
+        background-color: #34A853; /* Google Green */
+        color: white;
+        border-radius: 20px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: background-color 0.2s;
+        font-size: 14px
+    }
+
+    #send-button-widget:hover:not(:disabled) {
+        background-color: #2E7D32;
+    }
+
+    #send-button-widget:disabled {
+        background-color: #A5D6A7;
+        cursor: not-allowed;
+    }
+
+    body { 
+        font-family: Arial, sans-serif; 
+        background-color: #f3f4f6; 
+        margin:0; 
+        overflow-x: hidden;
+    }
+    nav a { text-decoration:none; padding:5px; }
+    
+    /* Custom Scrollbar and Smooth Scrolling */
+    .custom-scroll {
+        overflow-y: auto;
+        padding-right: 5px; 
+        scroll-behavior: smooth; 
+    }
+
+body.search-active #searchResults {
+    /* Apply 110 pixels margin-top when search is active */
+    margin-top: 110px !important; 
+}
+
+    .custom-scroll::-webkit-scrollbar { width: 6px; }
+    .custom-scroll::-webkit-scrollbar-thumb { background:#9ca3af; border-radius:3px; }
+    .custom-scroll::-webkit-scrollbar-thumb:hover { background:#6b7280; }
+
+    /* Calendar Cell Base - MODERNIZED */
+    .calendar-cell { 
+        min-height: 80px; 
+        padding:0.5rem; 
+        border-radius:0.75rem; 
+        border:1px solid #e5e7eb; 
+        background:#fff; 
+        cursor:pointer; 
+        transition: all 0.2s ease-in-out;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05); 
+        overflow: hidden; 
+    }
+    .calendar-cell:hover { 
+        background:#f3f4f6; 
+        transform: translateY(-1px); 
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); 
+    }
+    .today { border: 2px solid #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3); } 
+    .sunday { background-color:#f97316; color:#fff; border-color: #ea580c; }
+    .sunday:hover { background-color:#c2410c; }
+    
+    /* Task list container base (Default/Laptop View) */
+    #existingTasks { 
+        max-height: 400px; /* Laptop Max Height */
+        padding: 10px; 
+    }
+    #existingTasks > div {
+        background-color: #fff;
+        border: 1px solid #f3f4f6;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+        padding: 12px; 
+        margin-bottom: 10px;
+        transition: all 0.15s;
+    }
+    
+    /* Saved data font size and color (Default/Laptop View) */
+    #existingTasks strong {
+        font-size: 1.25rem; /* text-xl */
+        color: #1f2937; /* text-gray-800 */
+    }
+    #existingTasks p.task-desc {
+        font-size: 1rem; /* text-base */
+        color: #374151; /* text-gray-700 */
+    }
+
+    /* Search Bar container spacing (Default/Laptop View) */
+    .search-container {
+        margin-bottom: 1.5rem; /* Default margin */
+    }
+
+    /* Responsive Calendar Grid */
+    #calendar { display:grid; gap:5px; width: 100%; } 
+
+    /* Mobile (Small Screens): max-width: 767px (Tailwind 'md' breakpoint) */
+    @media (max-width: 767px) {
+        
+        /* FIX: REDUCED MODAL PADDING (INCREASES PERCEIVED TASK LIST WIDTH) */
+        #taskModal {
+            padding: 1rem !important; /* Reduced from p-6 (1.5rem) */
+        }
+        
+        /* FIX: REDUCED MAX-HEIGHT OF TASK CONTAINER AND SET BACKGROUND TO WHITE */
+        #existingTasks { 
+            max-height: 270px; /* Reduced Max Height on Mobile (from 250px) */
+            padding: 0px 6px 0px 0px; 
+            margin-top: 5px; /* Minimal top margin */
+            border-radius: 0.5rem; 
+            background: #fff; /* FIX: Set background to white to remove the gray unwanted background */
+        } 
+        
+        /* FIX: REDUCED MARGIN-BOTTOM FOR INDIVIDUAL TASK ITEMS */
+        #existingTasks > div {
+            padding: 6px; 
+            margin-bottom: 4px; /* Reduced from 6px to 4px */
+        }
+        
+        #modalDate {
+            font-size: 1.125rem !important; /* text-lg */
+        }
+        
+        /* Reduced NAV height */
+        .nav-content-padding { 
+            padding-top: 5px; 
+            padding-bottom: 15px; 
+        }
+
+        /* Calendar Grid */
+        #calendar { grid-template-columns: repeat(2, 1fr); gap: 4px; padding: 0; }
+        
+        /* Reduced Task Container Heading Font (Mobile) */
+        #existingTasks strong {
+            font-size: 1rem; /* text-base */
+        }
+        
+        /* Reduced Placeholder Height of Task Title (Mobile View) */
+        #taskModal #taskTitle {
+            padding-top: 8px; 
+            padding-bottom: 8px; 
+        }
+
+        /* Reduced Task Detail Height (Mobile View) */
+        #taskModal #taskDesc {
+            min-height: 80px !important; 
+            max-height: 100px !important; 
+        }
+        
+        /* Saved Data Width & Layout */
+        #existingTasks > div {
+            flex-wrap: nowrap; 
+            align-items: flex-start; 
+        }
+        
+        /* REDUCE EDIT/DELETE BUTTON SIZE/HEIGHT */
+        #existingTasks .flex-shrink-0 button {
+            padding: 5px !important; /* Reduced padding */
+            font-size: 0.875rem !important; /* Smaller text/icon size (text-sm) */
+            height: 30px; /* Explicit height control */
+            width: 30px; /* Explicit width control */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #existingTasks .flex-shrink-0 {
+            flex-direction: row; 
+            gap: 4px; /* Smaller gap */
+            width: auto; 
+        }
+        #existingTasks > div > div:first-child {
+            min-width: calc(100% - 70px); /* Adjusted width for space */
+            margin-right: 8px; 
+        }
+        
+        /* REDUCE SAVE/CANCEL BUTTON SIZE/HEIGHT */
+        #saveTaskBtn, #cancelTaskBtn {
+            padding-top: 6px !important; 
+            padding-bottom: 6px !important; 
+            font-size: 0.875rem !important;
+            height: 36px; 
+        }
+        
+        /* Search Result Styling (Mobile) */
+        .search-result-title { 
+            font-size: 1rem; 
+            color: #1f2937;
+        } 
+        .search-result-desc { 
+            font-size: 0.875rem; 
+            color: #374151;
+        } 
+        .search-result-date { 
+            font-size: 0.75rem; 
+            color: #4b5563;
+        }
+        
+        /* Task Modal body: Ensures vertical stacking on mobile */
+        #taskModal .grid-cols-1.md\:grid-cols-2 {
+            grid-template-columns: 1fr;
+            gap: 0.75rem; /* Reduced gap from 5 (1.25rem) to 3 (0.75rem) to save space */
+        }
+    }
+
+    /* Tablet/Desktop (Medium Screens): 768px to 1023px */
+    @media (min-width: 768px) and (max-width:1023px) {
+        #calendar { grid-template-columns: repeat(4, 1fr); gap:6px; }
+        
+        /* Increased margin between nav and search bar in tablet view */
+        .search-container {
+            margin-top: 1.5rem; 
+            margin-bottom: 2rem;
+        }
+        .main-content-padding { padding-top: 110px; }
+    }
+    
+    /* Desktop (Large Screens): 1024px and up */
+    @media (min-width: 1024px) {
+        #calendar { 
+            grid-template-columns: repeat(7, 1fr); 
+            gap:10px; 
+            max-width:1400px; 
+        }
+        
+        /* Increased Margin of Nav and Search Bar (Laptop View) */
+        .search-container {
+            margin-top: 3rem; 
+            margin-bottom: 3rem; 
+        }
+        
+        /* Reduced Placeholder Height of Task and Detail (Laptop View) */
+        #taskModal #taskTitle {
+            padding-top: 1;
+            padding-bottom: 1px;
+        }
+        #taskModal #taskDesc {
+            min-height: 120px !important; 
+        }
+    }
+
+    /* Main Content Padding control */
+    .main-content-padding {
+        padding-top: 50px; /* Default desktop */
+    }
+    /* Reduced padding-top for mobile view to reduce distance to nav bar/search area */
+    @media (max-width: 767px) {
+        .main-content-padding { padding-top: 80px; padding-left: 10px; padding-right: 10px; }
+    }
+    
+    /* --- YOUTUBE-LIKE SEARCH BEHAVIOR STYLES --- */
+    /* Hide non-search content when the search input is focused */
+    body.search-active #calendar-controls,
+    body.search-active #calendar,
+    body.search-active #downloadMonthTasks {
+        display: none !important;
+    }
+    
+    /* Maximize search results area */
+    body.search-active #searchResults {
+        position: fixed;
+        top: 130px; /* Adjust based on your nav/search bar height */
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 40; /* Above regular content, below modal */
+        padding: 0 16px 16px; /* Match main padding */
+        /* Enable scrolling within search results container */
+        overflow-y: auto; 
+    }
+
+    /* Adjust main content padding when search is active to keep search results visible */
+    @media (min-width: 768px) {
+        body.search-active .main-content-padding {
+            padding-top: 100px; 
+        }
+        body.search-active #searchResults {
+            top: 100px; 
+        }
+    }
+    @media (max-width: 767px) {
+        body.search-active #searchResults {
+            top: 130px; 
+        }
+    }
+    
+    /* Positioning the Footer 500px Below Viewport when Search is Active */
+    body.search-active footer {
+        position: absolute; 
+        /* The key calculation: 100vh (bottom of viewport) + 500px */
+        top: calc(100vh + 500px); 
+        bottom: auto; 
+        width: 100%;
+        margin-top: 0; 
+        padding-top: 4px; 
+        z-index: 30; 
+    }
+    /* ------------------------------------------- */
+</style>
+</head>
+<body class="bg-gray-50">
+
+<nav class="bg-white shadow-xl fixed w-full z-50 top-0 border-b border-gray-100">
+    <div class="container mx-auto flex justify-between items-center p-4 md:px-6 nav-content-padding"> 
+        <div class="flex items-center gap-2 text-xl font-bold text-gray-800">
+            <i class="fas fa-user-circle" style="font-size: 28px; color: #4f46e5;"></i>
+            <span style="font-size: 22px;">My Personal Website</span>
+        </div>
+        
+
+        <div class="hidden md:flex space-x-6 font-medium">
+            <a href="home.html" class="flex items-center gap-2 transition duration-300 text-gray-900 hover:text-blue-600 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-house"></i> Home</a>
+            <a href="adress.html" class="flex items-center gap-2 transition duration-300 text-gray-900 hover:text-blue-600 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-map-marker-alt"></i> Address</a>
+            <a href="birthday.html" class="flex items-center gap-2 transition duration-300 text-gray-900 hover:text-blue-600 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-birthday-cake"></i> Birthday</a>
+            <a href="password.html" class="flex items-center gap-2 transition duration-300 text-gray-900 hover:text-blue-600 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-key"></i> Passwords</a>
+            <a href="income.html" class="flex items-center gap-2 transition duration-300 text-gray-900 hover:text-blue-600 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-wallet"></i> Income</a>
+            <a href="links.html" class="flex items-center gap-2 transition duration-300 text-gray-900 hover:text-blue-600 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-link"></i> Links</a>
+            <a href="calendar.html" class="flex items-center gap-2 transition duration-300 text-gray-900 hover:text-blue-600 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-calendar-alt"></i> Calendar</a>
+        </div>
+
+        <div class="hidden md:flex items-center gap-4">
+            <div class="text-right">
+                <p id="userName" class="font-bold text-gray-900">Loading...</p>
+                <p id="userEmail" class="text-sm text-gray-500">Loading...</p>
+            </div>
+            <img id="userPhoto" src="https://via.placeholder.com/40" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #4f46e5;">
+            <button onclick="logout()" class="bg-red-600 text-white px-4 py-2 rounded-full hover:bg-red-700 transition duration-300 shadow-md">Logout</button>
+        </div>
+
+        <button id="menu-btn" class="md:hidden text-gray-700 text-2xl"><i class="fas fa-bars"></i></button>
+    </div>
+
+    <div id="mobileMenu" class="hidden md:hidden w-full flex-col px-4 pb-4 space-y-2 text-sm text-gray-700 font-medium bg-gray-50 shadow-inner">
+        <a href="home.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-600 transition duration-300"><i class="fas fa-house"></i> Home</a>
+        <a href="adress.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-600 transition duration-300"><i class="fas fa-map-marker-alt"></i> Address</a>
+        <a href="birthday.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-600 transition duration-300"><i class="fas fa-birthday-cake"></i> Birthday</a>
+        <a href="password.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-600 transition duration-300"><i class="fas fa-key"></i> Passwords</a>
+        <a href="income.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-600 transition duration-300"><i class="fas fa-wallet"></i> Income</a>
+        <a href="links.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-600 transition duration-300"><i class="fas fa-link"></i> Links</a>
+        <a href="calendar.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-600 transition duration-300"><i class="fas fa-calendar-alt"></i> Calendar</a>
+        <div class="border-t border-gray-300 mt-2 pt-2 flex items-center gap-3">
+             <img id="mobileUserPhoto" src="https://via.placeholder.com/40" style="width: 30px; height: 30px; border-radius: 50%; border: 1px solid #4f46e5;">
+            <div>
+                <p id="mobileUserName" class="font-bold text-gray-900">Loading...</p>
+                <p id="mobileUserEmail" class="text-xs text-gray-500">Loading...</p>
+            </div>
+        </div>
+        <button onclick="logout()" class="bg-red-600 text-white px-3 py-2 rounded-full hover:bg-red-700 mt-2 w-full shadow-md">Logout</button>
+    </div>
+</nav>
+<main class="main-content-padding flex flex-col gap-2 mx-auto w-full max-w-7xl">
+
+    <div class="search-container flex flex-col md:flex-row justify-between items-center gap-3 md:gap-5 px-4 md:px-0 pt-4 md:pt-0">
+        <input type="text" id="searchInput" placeholder="Search tasks..."
+            class="flex-1 p-3 rounded-full border border-gray-300 shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition text-base w-full md:w-auto">
+        <button id="downloadMonthTasks"
+            class="px-5 py-3 bg-emerald-600 text-white rounded-full shadow-lg hover:bg-emerald-700 transition w-full md:w-auto font-semibold text-base">
+            <i class="fas fa-download mr-2"></i> Download Month Tasks
+        </button>
+    </div>
+    <div id="searchResults" class="mt-[10px] px-4 md:px-0"></div>
+
+<div id="gemini-chat-widget-embed" class="floating-chat-container">
+    <div class="chat-window">
+        <div id="chat-box-widget">
+            <div class="message gemini-message">Hello! I'm a Gemini-powered chat assistant. Ask me anything!</div>
+        </div>
+
+        <form id="input-form-widget">
+            <input type="text" id="user-input-widget" placeholder="Type your message..." required>
+            <button type="submit" id="send-button-widget">Send</button>
+        </form>
+    </div>
+
+    <button id="chat-toggle-button" aria-label="Toggle Chatbot">
+        <i class="fas fa-comment-dots"></i>
+    </button>
+</div>
+
+<script>
+    // Select button and mobile menu
+const menuBtn = document.getElementById("menu-btn");
+const mobileMenu = document.getElementById("mobileMenu"); 
+
+// Toggle menu on click
+menuBtn.addEventListener("click", () => {
+    mobileMenu.classList.toggle("hidden"); 
+});
+</script>
+
+    <div id="calendar-controls" class="flex justify-between items-center mb-2 px-4 md:px-0">
+        <button onclick="changeMonth(-1)" class="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100 transition shadow-sm font-bold">← Prev</button>
+        <h2 id="monthYear" class="text-xl md:text-2xl font-bold text-center flex-1">Month Year</h2>
+        <button onclick="changeMonth(1)" class="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100 transition shadow-sm font-bold">Next →</button>
+    </div>
+
+<div id="calendar" class="text-base md:text-[22px] pb-8"></div>
+
+</main>
+
+<div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden z-40 text-white text-2xl flex items-center justify-center">
+</div>
+
+<div id="taskModal" 
+    class="fixed bg-white shadow-2xl p-6 text-base rounded-xl w-11/12 md:w-3/4 max-w-4xl z-50 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 hidden h-[90vh] md:h-auto border border-gray-100">
+
+
+    <div class="flex justify-between items-center mb-4 border-b pb-3">
+        <h2 id="modalDate" class="text-xl md:text-2xl font-extrabold text-blue-700">Tasks for date</h2> 
+        <button id="closeModal" 
+                class="text-gray-500 hover:text-red-600 text-[32px] font-bold transition duration-200">&times;</button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5"> 
+        
+        <div class="flex flex-col">
+            <input id="taskTitle" type="text" placeholder="Title" 
+                class="border border-gray-300 rounded-lg p-3 w-full mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 text-lg shadow-sm">
+            <textarea id="taskDesc" placeholder="Details (optional)" 
+                      class="border border-gray-300 rounded-lg p-3 w-full mb-3 focus:outline-none focus:ring-2 focus:ring-blue-500 transition duration-200 text-lg flex-1 min-h-[150px] md:min-h-[250px] shadow-sm"></textarea>
+            <div class="flex gap-3 mt-2">
+                <button id="saveTaskBtn" 
+                        class="flex-1 bg-blue-600 text-white px-4 py-3 rounded-xl shadow-lg hover:bg-blue-700 transition duration-200 font-bold text-lg transform hover:scale-[1.01]">
+                    Save Task
+                </button>
+                <button id="cancelTaskBtn" 
+                        class="flex-1 bg-gray-400 text-white px-4 py-3 rounded-xl shadow-lg hover:bg-gray-500 transition duration-200 font-bold text-lg transform hover:scale-[1.01]">
+                    Cancel
+                </button>
+            </div>
+        </div>
+
+        <div id="existingTasks" class="border border-gray-200 rounded-xl p-3 bg-gray-50 custom-scroll shadow-inner">
+            <div class="text-center text-gray-500 italic p-3">No tasks yet.</div>
+        </div>
+
+    </div>
+</div>
+
+<footer class="mt-12 pt-4 pb-4 bg-white text-gray-500 text-center text-sm border-t shadow-inner">
+    &copy; 2025 Personal Website | All rights reserved
+</footer>
+
+</body>
+</html>

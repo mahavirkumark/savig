@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Tasks - My Personal Website</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <style>
+        /* Custom CSS for Animations and Modern UI */
+        .task-list-item {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        .task-list-item:hover {
+            transform: translateY(-2px) scale(1.01);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        /* Animation for Check/Delete buttons */
+        .control-btn {
+            transition: transform 0.15s ease-out;
+        }
+        .control-btn:active {
+            transform: scale(0.9);
+        }
+        /* Style for the main container cards */
+        .task-card {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+        }
+        /* Custom class to prevent text cutting */
+        .task-completed .task-name {
+            text-decoration: none !important; /* Override line-through */
+        }
+
+        /* --- Custom Scroller Styling --- */
+        .custom-scroller {
+            max-height: 400px; /* Set a max height for the scroller */
+            overflow-y: auto;
+            padding-right: 8px; /* Space for the scrollbar */
+        }
+        .custom-scroller::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scroller::-webkit-scrollbar-thumb {
+            background-color: #a5b4fc; /* indigo-300 */
+            border-radius: 10px;
+        }
+        .custom-scroller::-webkit-scrollbar-track {
+            background: #f1f1f1;
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <nav class="bg-white shadow-lg fixed w-full z-50">
+        <div class="container mx-auto flex justify-between items-center p-4 md:px-8">
+            <div class="flex items-center gap-2 text-xl font-bold text-gray-800">
+                <i class="fas fa-user-circle text-indigo-500" style="font-size: 28px;"></i>
+                <span style="font-size: 22px;">My Personal Website</span>
+            </div>
+            <div class="hidden md:flex space-x-6 text-gray-600 font-medium">
+                <a href="home.html" class="flex items-center gap-2 hover:text-indigo-500 transition duration-300" style="font-size: 18px;"><i class="fas fa-house"></i> Home</a>
+                <a href="adress.html" class="flex items-center gap-2 hover:text-indigo-500 transition duration-300" style="font-size: 18px;"><i class="fas fa-tasks"></i> Address</a>
+                <a href="password.html" class="flex items-center gap-2 hover:text-indigo-500 transition duration-300" style="font-size: 18px;"><i class="fas fa-key"></i> Passwords</a>
+                <a href="income.html" class="flex items-center gap-2 hover:text-indigo-500 transition duration-300" style="font-size: 18px;"><i class="fas fa-wallet"></i> Income</a>
+                <a href="links.html" class="flex items-center gap-2 hover:text-indigo-500 transition duration-300" style="font-size: 18px;"><i class="fas fa-link"></i> Links</a>
+                
+                <a href="calendar.html" class="flex items-center gap-2 hover:text-indigo-500 transition duration-300" style="font-size: 18px;"><i class="fas fa-calendar-alt"></i> Calendar</a>
+            </div>
+            <div class="hidden md:flex items-center gap-4">
+                <div class="text-right">
+                    <p id="userName" class="font-bold text-gray-900">Loading...</p>
+                    <p id="userEmail" class="text-sm text-gray-500">Loading...</p>
+                </div>
+                <img id="userPhoto" src="https://via.placeholder.com/40" class="w-10 h-10 rounded-full border-2 border-indigo-500">
+                <button id="desktopLogout" onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-full hover:bg-red-600 transition duration-300 control-btn">Logout</button>
+            </div>
+            <button id="menu-btn" class="md:hidden text-gray-700 text-2xl control-btn"><i class="fas fa-bars"></i></button>
+        </div>
+        <div id="mobileMenu" class="hidden md:hidden flex flex-col px-4 pb-4 space-y-2 text-sm text-gray-700 font-medium bg-gray-50">
+            <a href="home.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200"><i class="fas fa-house"></i> Home</a>
+            <a href="adress.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200"><i class="fas fa-tasks"></i> Address</a>
+            <a href="password.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200"><i class="fas fa-key"></i> Passwords</a>
+            <a href="income.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200"><i class="fas fa-wallet"></i> Income</a>
+            <a href="links.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200"><i class="fas fa-link"></i> Links</a>
+             <a href="birthday.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200"><i class="fas fa-link"></i> Birthday</a>
+            <a href="calendar.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200"><i class="fas fa-calendar-alt"></i> Calendar</a>
+            <div class="border-t border-gray-300 mt-2 pt-2">
+                <p id="mobileUserName" class="font-bold text-gray-900">Loading...</p>
+                <p id="mobileUserEmail" class="text-xs text-gray-500">Loading...</p>
+                <button onclick="logout()" class="bg-red-500 text-white px-3 py-2 rounded-full hover:bg-red-600 mt-2 w-full control-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+    <main class="pt-24 container mx-auto p-4 md:px-8">
+        <h1 class="text-3xl font-extrabold text-gray-900 mb-8 flex items-center gap-3">
+            <i class="fas fa-list-check text-indigo-600"></i> Daily Task Manager
+        </h1>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            
+            <div class="bg-white task-card rounded-xl p-6 border border-gray-100 lg:col-span-1">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-3">Add New Task</h2>
+                <form id="taskForm" class="grid grid-cols-1 gap-4">
+                    <div>
+                        <input type="text" id="taskName" placeholder="What needs to be done?" required 
+                                class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150">
+                    </div>
+                    <div>
+                        <label for="taskDate" class="text-sm font-medium text-gray-600 block mb-1">Due Date</label>
+                        <input type="date" id="taskDate" required 
+                                class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150">
+                    </div>
+                    <div>
+                        <label for="taskTime" class="text-sm font-medium text-gray-600 block mb-1">Time (e.g., 9:00 AM)</label>
+                        <input type="text" id="taskTime" placeholder="Optional: e.g., 1:30 PM"
+                                class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150">
+                    </div>
+                    <div>
+                        <button type="submit" class="w-full bg-indigo-600 text-white p-3 rounded-xl font-bold hover:bg-indigo-700 transition duration-300 control-btn mt-4">
+                            <i class="fas fa-plus mr-2"></i> Add Task
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                <div class="bg-white task-card rounded-xl p-6 border border-indigo-200/50">
+                    <h2 class="text-xl font-bold mb-4 text-indigo-600 flex items-center gap-2 border-b-2 border-indigo-100 pb-3">
+                        <i class="fas fa-sun"></i> Today's Tasks (<span id="todayDateDisplay"></span>)
+                    </h2>
+                    <div class="custom-scroller">
+                        <ul id="todayTaskList" class="space-y-3 pt-3">
+                            <li class="text-gray-500">Loading tasks...</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="bg-white task-card rounded-xl p-6 border border-yellow-200/50">
+                    <h2 class="text-2xl font-bold mb-4 text-yellow-600 flex items-center gap-2 border-b-2 border-yellow-100 pb-3">
+                        <i class="fas fa-calendar-day"></i> Upcoming Tasks
+                    </h2>
+                    <div class="custom-scroller">
+                        <ul id="upcomingTaskList" class="space-y-3 pt-3">
+                            <li class="text-gray-500">Loading tasks...</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            
+            <div class="bg-white task-card rounded-xl p-6 border border-blue-200/50">
+                <h2 class="text-2xl font-bold mb-4 text-blue-600 flex items-center gap-2 border-b-2 border-blue-100 pb-3">
+                    <i class="fas fa-clipboard-list"></i> Overdue Tasks
+                </h2>
+                <div class="mb-4">
+                    <div class="relative">
+                        <input type="text" id="incompleteSearch" placeholder="Search overdue tasks..." 
+                                class="w-full pl-10 pr-4 py-2 border border-blue-300 rounded-lg focus:ring-blue-500 focus:border-blue-500 transition">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-500"></i>
+                    </div>
+                </div>
+                <div class="custom-scroller">
+                    <ul id="incompleteTaskList" class="space-y-3 pt-3">
+                        <li class="text-gray-500">Loading tasks...</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="bg-white task-card rounded-xl p-6 border border-green-200/50">
+                <h2 class="text-2xl font-bold mb-4 text-green-600 flex items-center gap-2 border-b-2 border-green-100 pb-3">
+                    <i class="fas fa-check-double"></i> Completed Tasks
+                </h2>
+                <div class="mb-4">
+                    <div class="relative">
+                        <input type="text" id="completedSearch" placeholder="Search completed tasks..." 
+                                class="w-full pl-10 pr-4 py-2 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-green-500"></i>
+                    </div>
+                </div>
+                <div class="custom-scroller">
+                    <ul id="completedTaskList" class="space-y-3 pt-3">
+                        <li class="text-gray-500">No tasks completed yet.</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+        
+    </main>
+
+    <div id="editModal" class="hidden fixed inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-[100]">
+        <div class="bg-white rounded-xl shadow-2xl p-6 w-full max-w-lg mx-4 transform transition-all scale-100 duration-300">
+            <h3 class="text-2xl font-bold text-indigo-700 mb-6 border-b pb-3">Edit Task</h3>
+            <form id="editTaskForm" class="grid grid-cols-1 gap-4">
+                <input type="hidden" id="editTaskId">
+                <div>
+                    <label for="editTaskName" class="text-sm font-medium text-gray-600 block mb-1">Task Name</label>
+                    <input type="text" id="editTaskName" required 
+                           class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150">
+                </div>
+                <div>
+                    <label for="editTaskDate" class="text-sm font-medium text-gray-600 block mb-1">Due Date</label>
+                    <input type="date" id="editTaskDate" required 
+                           class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150">
+                </div>
+                <div>
+                    <label for="editTaskTime" class="text-sm font-medium text-gray-600 block mb-1">Time (Optional)</label>
+                    <input type="text" id="editTaskTime" placeholder="e.g., 1:30 PM"
+                           class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150">
+                </div>
+
+                <div class="flex justify-end space-x-3 mt-6">
+                    <button type="button" onclick="document.getElementById('editModal').classList.add('hidden')" 
+                            class="bg-gray-300 text-gray-800 px-4 py-2 rounded-xl font-semibold hover:bg-gray-400 transition control-btn">
+                        Cancel
+                    </button>
+                    <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded-xl font-bold hover:bg-indigo-700 transition control-btn">
+                        <i class="fas fa-save mr-2"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <script type="module">
+// =================================================================
+// 1. CONFIGURATION AND INITIALIZATION
+// =================================================================
+
+// --- Firebase Configuration (REPLACE WITH YOUR OWN CONFIG) ---
+const firebaseConfig = {
+    apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc",
+    authDomain: "sk12-58e9e.firebaseapp.com",
+    projectId: "sk12-58e9e",
+    storageBucket: "sk12-58e9e.appspot.com",
+    messagingSenderId: "470207874652",
+    appId: "1:470207874652:web:67ba1cf3629b7e5b144899"
+};
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+const auth = firebase.auth();
+const database = firebase.database(); 
+
+// Global state variables
+let currentUserId = null;
+let allTasks = {}; 
+
+// Date constants
+const TODAY_DATE = new Date();
+const TODAY_DATE_KEY = TODAY_DATE.toISOString().split('T')[0]; // YYYY-MM-DD format
+const AUTO_DELETE_DAYS = 30; // Tasks completed more than 30 days ago will be deleted.
+
+// Date formatting utility function: 2 Jan 2025 (Wed)
+function formatDateForDisplay(dateString) {
+    if (!dateString) return '';
+    try {
+        const dateParts = dateString.split('-');
+        // Use UTC values to ensure correct date interpretation, preventing timezone shifts
+        const date = new Date(Date.UTC(dateParts[0], dateParts[1] - 1, dateParts[2]));
+        
+        const day = date.getUTCDate();
+        const month = date.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' });
+        const year = date.toLocaleDateString('en-US', { year: 'numeric', timeZone: 'UTC' });
+        const weekday = date.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' }).replace(/\.$/, '');
+
+        return `${day} ${month} ${year} (${weekday})`;
+
+    } catch (e) {
+        console.error("Date formatting failed:", e);
+        return dateString;
+    }
+}
+
+
+// =================================================================
+// 2. TASK FIREBASE LOGIC
+// =================================================================
+
+/**
+ * Checks and removes completed tasks older than 30 days.
+ */
+function autoCleanupCompletedTasks() {
+    if (!currentUserId || !allTasks) return;
+
+    // Calculate the cutoff time: 30 days ago in milliseconds
+    const cutoffTimestamp = TODAY_DATE.getTime() - (AUTO_DELETE_DAYS * 24 * 60 * 60 * 1000);
+    let tasksToDelete = [];
+
+    Object.entries(allTasks).forEach(([taskId, task]) => {
+        // Check if the task is completed AND has a timestamp (from when it was completed)
+        if (task.completed && task.timestamp) {
+            if (task.timestamp < cutoffTimestamp) {
+                tasksToDelete.push(taskId);
+            }
+        }
+    });
+
+    if (tasksToDelete.length > 0) {
+        console.log(`Auto-cleanup: Deleting ${tasksToDelete.length} old completed tasks.`);
+        
+        const updates = {};
+        tasksToDelete.forEach(taskId => {
+            // Set the task path to null to delete it
+            updates[`/users/${currentUserId}/tasks/${taskId}`] = null;
+        });
+
+        database.ref().update(updates)
+            .then(() => {
+                console.log("Old completed tasks removed successfully.");
+            })
+            .catch(error => {
+                console.error("Error during auto-cleanup:", error);
+            });
+    } else {
+        console.log("Auto-cleanup: No old completed tasks found for deletion.");
+    }
+}
+
+/**
+ * Adds a new task to Firebase Realtime Database.
+ */
+function addTaskToFirebase(name, date, time) {
+    if (!currentUserId) {
+        console.error("Task not added: User ID is null.");
+        alert("Cannot add task. Please ensure you are logged in.");
+        return;
+    }
+
+    const newTaskRef = database.ref(`users/${currentUserId}/tasks`).push();
+    newTaskRef.set({
+        name: name,
+        date: date, 
+        time: time || '',
+        completed: false,
+        timestamp: firebase.database.ServerValue.TIMESTAMP 
+    })
+    .then(() => {
+        document.getElementById('taskForm').reset();
+        document.getElementById('taskDate').value = TODAY_DATE_KEY; // Reset date to today
+        console.log("Task successfully added to Firebase.");
+    })
+    .catch(error => {
+        console.error("Error adding task:", error);
+        alert("Failed to add task. Check Firebase Rules: " + error.message);
+    });
+}
+
+/**
+ * Updates a task's completion status in Firebase, setting a timestamp.
+ */
+window.toggleTaskCompletion = function(taskId, isCompleted) {
+    if (!currentUserId) return;
+
+    const task = allTasks[taskId]; // Get current task state for checking overdue status
+
+    database.ref(`users/${currentUserId}/tasks/${taskId}`).update({
+        completed: isCompleted,
+        // Set the timestamp only when completing the task. 
+        // Set to null when incomplete so it's ignored by cleanup.
+        timestamp: isCompleted ? firebase.database.ServerValue.TIMESTAMP : null
+    })
+    .then(() => {
+        if (isCompleted) {
+            // --- New Alert Logic ---
+            const isOverdue = task.date < TODAY_DATE_KEY;
+
+            if (isOverdue) {
+                alert(`✅ Excellent work! You cleared an overdue task: "${task.name}"`);
+            } else {
+                alert(`🎉 Great job! Task completed: "${task.name}"`);
+            }
+            // --- End New Alert Logic ---
+
+            const li = document.querySelector(`li[data-id="${taskId}"]`);
+            if (li) {
+                li.classList.add('animate-pulse', 'border-4', 'border-green-400');
+                setTimeout(() => {
+                    li.classList.remove('animate-pulse', 'border-4', 'border-green-400');
+                }, 500);
+            }
+        } else {
+             // Optional: Alert when task is marked incomplete
+             // alert(`Task marked incomplete: "${task.name}"`); 
+        }
+    })
+    .catch(error => {
+        console.error("Error updating task:", error);
+        alert("Failed to update task: " + error.message);
+    });
+}
+
+/**
+ * Deletes a task from Firebase.
+ */
+window.deleteTask = function(taskId) {
+    if (!currentUserId) return;
+
+    if (confirm("Are you sure you want to delete this task?")) {
+        database.ref(`users/${currentUserId}/tasks/${taskId}`).remove()
+            .then(() => {
+                console.log("Task deleted.");
+            })
+            .catch(error => {
+                console.error("Error deleting task:", error);
+                alert("Failed to delete task: " + error.message);
+            });
+    }
+}
+
+/**
+ * Populates the modal with task data and shows it.
+ */
+function showEditModal(taskId) {
+    const task = allTasks[taskId];
+    if (!task) {
+        alert('Task not found.');
+        return;
+    }
+
+    // Populate modal fields
+    document.getElementById('editTaskId').value = taskId;
+    document.getElementById('editTaskName').value = task.name;
+    document.getElementById('editTaskDate').value = task.date;
+    document.getElementById('editTaskTime').value = task.time || '';
+
+    // Show the modal
+    document.getElementById('editModal').classList.remove('hidden');
+    document.getElementById('editTaskName').focus(); // Focus on the name field
+}
+
+/**
+ * Handler for clicking the Edit button.
+ */
+window.editTask = function(taskId) {
+    showEditModal(taskId);
+}
+
+/**
+ * Saves the edited task details back to Firebase.
+ */
+function saveEditedTask() {
+    const taskId = document.getElementById('editTaskId').value;
+    const name = document.getElementById('editTaskName').value.trim();
+    const date = document.getElementById('editTaskDate').value;
+    const time = document.getElementById('editTaskTime').value.trim();
+
+    if (!currentUserId || !taskId || !name || !date) {
+        alert('Invalid data for update.');
+        return;
+    }
+
+    database.ref(`users/${currentUserId}/tasks/${taskId}`).update({
+        name: name,
+        date: date, 
+        time: time || '',
+    })
+    .then(() => {
+        document.getElementById('editModal').classList.add('hidden');
+        console.log("Task successfully edited in Firebase.");
+    })
+    .catch(error => {
+        console.error("Error updating task:", error);
+        alert("Failed to update task: " + error.message);
+    });
+}
+
+// Share function 
+window.shareTask = function(taskId) {
+    const task = allTasks[taskId];
+    if (!task) return;
+    const text = `Check out my task: "${task.name}" (Due on ${formatDateForDisplay(task.date)})${task.time ? ' @ ' + task.time : ''}.`;
+    if (navigator.share) {
+        navigator.share({
+            title: 'My Daily Task',
+            text: text,
+        }).catch(error => console.error('Error sharing:', error));
+    } else {
+        prompt("Copy and paste this to share:", text);
+    }
+}
+
+
+/**
+ * Loads the user's task data from Firebase using an active listener.
+ */
+function loadTaskData() {
+    if (!currentUserId) {
+        console.warn("loadTaskData called with null currentUserId. Skipping DB read.");
+        return;
+    }
+
+    // Clear lists before loading data to ensure the 'Loading tasks...' is gone
+    document.getElementById('todayTaskList').innerHTML = '<li class="text-gray-500">Loading tasks...</li>';
+    document.getElementById('upcomingTaskList').innerHTML = '<li class="text-gray-500">Loading tasks...</li>';
+    document.getElementById('incompleteTaskList').innerHTML = '<li class="text-gray-500">Loading tasks...</li>';
+    document.getElementById('completedTaskList').innerHTML = '<li class="text-gray-500">Loading tasks...</li>';
+
+
+    const tasksRef = database.ref(`users/${currentUserId}/tasks`);
+    tasksRef.on('value', (snapshot) => {
+        allTasks = snapshot.val() || {};
+        console.log("Task data updated from Firebase. Tasks found:", Object.keys(allTasks).length);
+        
+        // ➡️ Run the cleanup *before* rendering the list
+        autoCleanupCompletedTasks(); 
+        renderTasks(); // Re-render the UI whenever data changes
+    }, (error) => {
+        console.error("Firebase Read Failed:", error);
+        alert('Failed to load tasks. Check your Firebase security rules and connection.');
+    });
+}
+
+
+// =================================================================
+// 3. UI RENDERING AND SEARCH LOGIC (MODIFIED)
+// =================================================================
+
+/**
+ * Creates the HTML list item for a task.
+ * @param {string} taskId - The Firebase task ID.
+ * @param {object} task - The task data object.
+ * @param {boolean} isToday - True if task is due today.
+ * @param {boolean} isUpcoming - True if task is due in the future.
+ * @param {boolean} isOverdue - True if task is overdue.
+ * @returns {HTMLLIElement} The rendered list item.
+ */
+function createTaskListItem(taskId, task, isToday, isUpcoming, isOverdue) {
+    const li = document.createElement('li');
+    li.className = 'task-list-item flex items-center justify-between p-4 border-b border-gray-100 last:border-b-0 rounded-lg shadow-sm bg-white hover:shadow-lg'; 
+    li.setAttribute('data-id', taskId);
+
+    const details = document.createElement('div');
+    details.className = 'flex-1 min-w-0';
+    
+    // Style classes
+    const taskNameClass = task.completed ? 'text-gray-700 font-semibold task-name' : 'text-gray-800 font-semibold';
+    li.classList.toggle('task-completed', task.completed);
+    
+    // Determine status badge and background color based on status and list context
+    let statusBadge = '';
+    let bgColor = 'bg-white';
+    
+    if (task.completed) {
+        // Completed items get a green background (No badge needed for completed list)
+        bgColor = 'bg-green-50';
+    } else if (isToday) {
+        // Today items get a specific background (No badge needed for today list)
+        bgColor = 'bg-indigo-50';
+    } else if (isOverdue) {
+        // Overdue items get a specific background (No badge needed for overdue list)
+        bgColor = 'bg-red-50'; 
+    } else if (isUpcoming) {
+        // Upcoming items only get a background color, no badge (as requested)
+        bgColor = 'bg-yellow-50';
+    }
+    
+    li.classList.add(bgColor);
+    
+    const dateText = formatDateForDisplay(task.date) + (task.time ? ' @ ' + task.time : '');
+
+    // Note: statusBadge is empty for all lists now, as requested, to avoid redundancy.
+    details.innerHTML = `
+        <div class="flex items-center justify-between">
+            <p class="${taskNameClass}">${task.name}</p>
+            ${statusBadge}
+        </div>
+        <p class="text-xs text-gray-500 mt-1">${dateText}</p>
+    `;
+
+    const controls = document.createElement('div');
+    controls.className = 'flex space-x-2 ml-4 flex-shrink-0';
+
+    // Check/Uncheck button
+    const checkBtn = document.createElement('button');
+    checkBtn.className = `control-btn w-9 h-9 rounded-full flex items-center justify-center text-white text-lg transition duration-200 shadow-md ${task.completed ? 'bg-green-600 hover:bg-green-700' : 'bg-indigo-400 hover:bg-indigo-500'}`;
+    checkBtn.innerHTML = `<i class="fas ${task.completed ? 'fa-undo' : 'fa-check-circle'}"></i>`; 
+    checkBtn.title = task.completed ? 'Mark as Incomplete' : 'Mark as Complete';
+    checkBtn.onclick = () => window.toggleTaskCompletion(taskId, !task.completed);
+    
+    // Edit button (always available)
+    const editBtn = document.createElement('button');
+    editBtn.className = 'control-btn w-9 h-9 rounded-full flex items-center justify-center text-blue-500 hover:bg-blue-100 transition duration-200 text-lg';
+    editBtn.innerHTML = `<i class="fas fa-edit"></i>`;
+    editBtn.title = 'Edit Task';
+    editBtn.onclick = () => window.editTask(taskId);
+
+    // Share button (always available)
+    const shareBtn = document.createElement('button');
+    shareBtn.className = 'control-btn w-9 h-9 rounded-full flex items-center justify-center text-indigo-500 hover:bg-indigo-100 transition duration-200 text-lg';
+    shareBtn.innerHTML = `<i class="fas fa-share-alt"></i>`;
+    shareBtn.title = 'Share Task';
+    shareBtn.onclick = () => window.shareTask(taskId);
+    
+    // Delete button (always available)
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'control-btn w-9 h-9 rounded-full flex items-center justify-center text-red-500 hover:bg-red-100 transition duration-200 text-lg';
+    deleteBtn.innerHTML = `<i class="fas fa-trash-alt"></i>`;
+    deleteBtn.title = 'Delete Task';
+    deleteBtn.onclick = () => window.deleteTask(taskId);
+    
+    controls.appendChild(checkBtn);
+    controls.appendChild(editBtn); 
+    controls.appendChild(shareBtn); 
+    controls.appendChild(deleteBtn);
+
+    li.appendChild(details);
+    li.appendChild(controls);
+
+    return li;
+}
+
+/**
+ * Renders the list of tasks to the UI based on their status and date, applying optional search filtering.
+ */
+function renderTasks() {
+    const todayList = document.getElementById('todayTaskList');
+    const upcomingList = document.getElementById('upcomingTaskList');
+    const completedList = document.getElementById('completedTaskList');
+    const incompleteList = document.getElementById('incompleteTaskList'); 
+    const todayDateDisplay = document.getElementById('todayDateDisplay');
+
+    const incompleteSearchTerm = document.getElementById('incompleteSearch').value.toLowerCase().trim();
+    const completedSearchTerm = document.getElementById('completedSearch').value.toLowerCase().trim();
+
+    todayList.innerHTML = '';
+    upcomingList.innerHTML = '';
+    completedList.innerHTML = '';
+    incompleteList.innerHTML = '';
+    
+    todayDateDisplay.textContent = formatDateForDisplay(TODAY_DATE_KEY);
+
+    // Sort tasks: Incomplete by due date, then time (Earliest due first). Completed by completion time (Newest completed first).
+    const sortedTaskIds = Object.keys(allTasks).sort((a, b) => {
+        const taskA = allTasks[a];
+        const taskB = allTasks[b];
+        
+        // Robust check for missing tasks during sort
+        if (!taskA || !taskB) return 0; 
+        
+        // 1. Sort completed tasks (Newest completed first)
+        if (taskA.completed && taskB.completed) {
+            return (taskB.timestamp || 0) - (taskA.timestamp || 0);
+        }
+        
+        // 2. Completed tasks go after incomplete ones
+        if (taskA.completed !== taskB.completed) {
+            return taskA.completed ? 1 : -1;
+        }
+
+        // 3. Sort incomplete tasks by due date, then time (Earliest due first)
+        const dateA = (taskA.date || '9999-12-31') + (taskA.time || '23:59'); 
+        const dateB = (taskB.date || '9999-12-31') + (taskB.time || '23:59');
+        return dateA.localeCompare(dateB);
+    });
+    
+    sortedTaskIds.forEach(taskId => {
+        const task = allTasks[taskId];
+
+        // CRITICAL FIX: Ensure the task object and its name property exist before reading
+        if (!task || !task.name) {
+            console.warn(`Skipping corrupted task entry: ${taskId}`);
+            return; // Skip to the next task ID
+        }
+        
+        const taskNameLower = task.name.toLowerCase();
+        
+        const isToday = task.date === TODAY_DATE_KEY;
+        const isUpcoming = task.date > TODAY_DATE_KEY;
+        const isOverdue = task.date < TODAY_DATE_KEY;
+
+
+        if (task.completed) {
+            // --- Completed Task Logic ---
+            if (!completedSearchTerm || taskNameLower.includes(completedSearchTerm)) {
+                completedList.appendChild(createTaskListItem(taskId, task, false, false, false));
+            }
+        } else {
+            // --- Incomplete Task Logic ---
+            if (isToday) {
+                // Task is due today
+                todayList.appendChild(createTaskListItem(taskId, task, true, false, false));
+            } else if (isUpcoming) {
+                // Task is due in the future
+                if (!incompleteSearchTerm || taskNameLower.includes(incompleteSearchTerm)) {
+                    upcomingList.appendChild(createTaskListItem(taskId, task, false, true, false));
+                }
+            } else if (isOverdue) {
+                // Overdue Tasks only (for the Incomplete List)
+                 if (!incompleteSearchTerm || taskNameLower.includes(incompleteSearchTerm)) {
+                    incompleteList.appendChild(createTaskListItem(taskId, task, false, false, true));
+                }
+            }
+        }
+    });
+
+    // Handle empty lists
+    if (todayList.children.length === 0) todayList.innerHTML = '<li class="text-gray-500 p-4 border border-gray-200 rounded-lg bg-gray-50">🎉 You have no tasks planned for today!</li>';
+    if (upcomingList.children.length === 0) upcomingList.innerHTML = `<li class="text-gray-500 p-4 border border-gray-200 rounded-lg bg-gray-50">🧘‍♀️ No upcoming tasks found. Time to relax!</li>`;
+    if (incompleteList.children.length === 0) incompleteList.innerHTML = `<li class="text-gray-500 p-4 border border-gray-200 rounded-lg bg-gray-50">${incompleteSearchTerm ? 'No overdue tasks match your search.' : 'Great! No overdue tasks found.'}</li>`;
+    if (completedList.children.length === 0) completedList.innerHTML = `<li class="text-gray-500 p-4 border border-gray-200 rounded-lg bg-gray-50">${completedSearchTerm ? 'No completed tasks match your search.' : '⏳ Complete a task to see it here.'}</li>`;
+}
+
+// Notification logic (kept for completeness)
+function requestNotificationPermission() {
+    if (!('Notification' in window)) return;
+    Notification.requestPermission().then(permission => {
+        if (permission === 'granted') console.log('Notification permission granted.');
+    });
+}
+
+// =================================================================
+// 4. AUTHENTICATION LOGIC
+// =================================================================
+
+/**
+ * Handles user state changes (login/logout).
+ */
+auth.onAuthStateChanged(user => {
+    if (user) {
+        currentUserId = user.uid;
+        document.getElementById('userName').textContent = user.displayName || 'User';
+        document.getElementById('userEmail').textContent = user.email || 'N/A';
+        document.getElementById('mobileUserName').textContent = user.displayName || 'User';
+        document.getElementById('mobileUserEmail').textContent = user.email || 'N/A';
+        document.getElementById('userPhoto').src = user.photoURL || 'https://via.placeholder.com/40';
+
+        loadTaskData();
+        requestNotificationPermission();
+
+    } else {
+        // --- CRITICAL DEBUG CHANGE ---
+        // Prevents unexpected redirects if login.html is missing.
+        console.log("No user logged in. Please log in to see tasks.");
+        
+        document.getElementById('userName').textContent = 'Guest';
+        document.getElementById('userEmail').textContent = 'Please Log In';
+        document.getElementById('mobileUserName').textContent = 'Guest';
+        document.getElementById('mobileUserEmail').textContent = 'Please Log In';
+
+        // Uncomment the lines below if you want the page to force a redirect to login.html when logged out:
+        // alert("You are not logged in. Redirecting to login page.");
+        // window.location.href = 'login.html';
+    }
+});
+
+/**
+ * Logs out the current user.
+ */
+window.logout = function() {
+    auth.signOut().then(() => {
+        // Redirect to login page after successful sign out
+        window.location.href = 'login.html'; 
+    }).catch(error => {
+        console.error("Logout error:", error);
+    });
+}
+
+
+// =================================================================
+// 5. MAIN APP FLOW & EVENT LISTENERS
+// =================================================================
+
+function setupEventListeners() {
+    // Set the default date for the form to today (ensure it runs after DOM content loads)
+    document.getElementById('taskDate').value = TODAY_DATE_KEY;
+
+    // Task Form Submission (Add New Task)
+    document.getElementById('taskForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const taskName = document.getElementById('taskName').value.trim();
+        const taskDate = document.getElementById('taskDate').value;
+        const taskTime = document.getElementById('taskTime').value.trim();
+
+        if (taskName && taskDate) {
+            addTaskToFirebase(taskName, taskDate, taskTime);
+        } else {
+            alert('Please enter a task name and a date.');
+        }
+    });
+
+    // Edit Task Form Submission (Save Edited Task)
+    document.getElementById('editTaskForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        saveEditedTask();
+    });
+    
+    // Search listeners (Debounced to improve performance)
+    let searchTimeout;
+    const debounceRender = () => {
+        clearTimeout(searchTimeout);
+        searchTimeout = setTimeout(renderTasks, 300);
+    };
+
+    document.getElementById('incompleteSearch').addEventListener('input', debounceRender);
+    document.getElementById('completedSearch').addEventListener('input', debounceRender);
+    
+    // Mobile Menu Toggle
+    const menuBtn = document.getElementById('menu-btn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    menuBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+    });
+
+}
+
+// Initialize event listeners when the DOM is ready
+document.addEventListener('DOMContentLoaded', setupEventListeners);
+    </script>
+</body>
+</html>

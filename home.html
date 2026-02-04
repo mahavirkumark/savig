@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Savig</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script> 
+    
+    <style>
+        /* Reusable Animations */
+        .fade-in { opacity: 0; transform: translateY(20px); animation: fadeInUp 0.8s forwards; }
+        .slide-left { opacity: 0; transform: translateX(-20px); animation: slideLeft 0.8s forwards; }
+        .slide-right { opacity: 0; transform: translateX(20px); animation: slideRight 0.8s forwards; }
+        .animate-card { animation: cardPop 0.5s ease-out both; }
+        
+        @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+        @keyframes slideLeft { to { opacity: 1; transform: translateX(0); } }
+        @keyframes slideRight { to { opacity: 1; transform: translateX(0); } }
+        @keyframes cardPop {
+            0% { transform: scale(0.9); opacity: 0; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Custom Styles for Professional Look */
+        nav a { transition: color 0.3s, transform 0.2s ease-out;}
+        nav a:hover { color: #1e40af; transform: translateY(-2px); }
+        body { min-height: 100vh; display: flex; flex-direction: column; }
+        .content-wrapper { flex-grow: 1; }
+
+        /* Mobile Menu correction */
+        #mobile-menu {
+             position: absolute; top: 4rem; left: 0; width: 100%; z-index: 20;
+             transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+             max-height: 0; overflow: hidden; opacity: 0;
+             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); 
+        }
+        #mobile-menu:not(.hidden) {
+            max-height: 80vh; overflow-y: auto; opacity: 1;
+        }
+        #mobile-menu a, #profile-toggle-btn {
+            display: flex; align-items: center; padding: 0.6rem 0.8rem; margin: 0.2rem 0;
+            border-radius: 0.375rem; text-align: left; width: 100%;
+        }
+        #mobile-menu a:hover, #profile-toggle-btn:hover { background-color: #f3f4f6; }
+        #mobile-menu a.active { background-color: #eff6ff; color: #1e40af; font-weight: 600; }
+
+        /* --- SIDEBAR STYLES (Desktop) --- */
+        .sidebar-desktop {
+            width: 320px; flex-shrink: 0; background-color: white; padding: 1.5rem 1rem;
+            border-radius: 0.5rem; box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1); 
+            align-self: flex-start; position: sticky; top: 6rem;
+            min-height: calc(100vh - 8rem); 
+        }
+        .sidebar-nav-internal a {
+            display: flex; align-items: center; padding: 0.8rem 0.6rem; margin-bottom: 0.5rem;
+            border-radius: 0.5rem; color: #4b5563; text-decoration: none; font-weight: 500;
+            font-size: 1.05rem; transition: all 0.2s;
+        }
+        .sidebar-nav-internal a:hover,
+        .sidebar-nav-internal a.active {
+            background-color: #eff6ff; color: #1e40af; transform: translateX(3px);
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+        }
+        .sidebar-nav-internal i { margin-right: 0.75rem; width: 1.25rem; text-align: center; }
+        
+        .dashboard-wrapper {
+            max-width: 1400px; width: 90%; margin-left: auto; margin-right: auto;
+            padding-left: 0; padding-right: 0;
+        }
+        .dashboard-main-content { flex-grow: 1; }
+
+        /* Profile Panel Styling */
+        #mobileProfilePanel {
+            transition: max-height 0.3s ease-out, opacity 0.3s ease-out;
+            max-height: 0; opacity: 0; overflow: hidden; margin-bottom: 0;
+        }
+        #mobileProfilePanel.show {
+            max-height: 200px; opacity: 1; margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-700 font-sans">
+    <link rel="manifest" href="/manifest.json">
+    <div class="content-wrapper">
+
+        <div class="hidden md:block fade-in">
+            <header class="bg-white shadow-md p-4 flex justify-between items-center sticky top-0 z-30 border-b border-gray-200">
+                <div class="flex items-center gap-1 slide-left">
+                    <div class="relative flex items-center justify-center">
+                        <i class="fas fa-shield text-blue-600" style="font-size:32px;"></i>
+                        <i class="fas fa-database text-white absolute" style="font-size: 16px; top: 50%; transform: translateY(-50%);"></i>
+                    </div>
+                    <span class="font-black text-gray-900 tracking-tighter mr-[200px]" style="font-size: 25px;">Savig</span>
+                </div>
+
+                <nav class="flex items-center gap-6 text-xl font-semibold text-gray-700">
+                    <a href="home.html" class="flex items-center gap-1 hover:text-blue-600 transition-colors">
+                        <i class="fas fa-house text-xl"></i> Home
+                    </a>
+                    <a href="income.html" class="flex items-center gap-1 hover:text-blue-600 transition-colors">
+                        <i class="fas fa-wallet text-xl"></i> Income
+                    </a>
+                    <a href="links.html" class="flex items-center gap-1 hover:text-blue-600 transition-colors">
+                        <i class="fas fa-link text-xl"></i> Links
+                    </a>
+                    <a href="calender.html" class="flex items-center gap-1 hover:text-blue-600 transition-colors">
+                        <i class="fas fa-calendar-days text-xl"></i> Calendar
+                    </a>
+                    <a href="birthday.html" class="flex items-center gap-1 hover:text-blue-600 transition-colors">
+                        <i class="fas fa-cake-candles text-xl"></i> Birthday
+                    </a>
+                    <a href="password.html" class="flex items-center gap-1 hover:text-blue-600 transition-colors">
+                        <i class="fas fa-lock text-xl"></i> Passwords
+                    </a>
+                </nav>
+
+                <div class="flex items-center gap-4 slide-left">
+                    <div class="text-right">
+                        <p id="desktopUserName" class="font-semibold text-gray-800 text-base">Dashboard User</p>
+                        <p id="desktopUserEmail" class="text-sm text-gray-500">user@example.com</p>
+                    </div>
+                    <img id="desktopUserPhoto" src="https://ui-avatars.com/api/?name=U&background=3b82f6&color=fff&size=100" alt="User Photo" class="w-12 h-12 rounded-full border border-gray-300"/>
+                    <button id="desktopLogout" class="bg-red-700 text-white px-4 py-2 rounded-full shadow-md hover:bg-red-800 text-sm transition duration-150">Logout</button>
+                </div>
+            </header>
+
+            <div class="dashboard-wrapper mt-7 flex gap-6 px-4">
+                <aside class="sidebar-desktop fade-in w-64">
+                    <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Core Data</h3>
+                    <nav class="sidebar-nav-internal flex flex-col gap-2">
+                        <a href="profile.html"><i class="fas fa-user-gear"></i> Profile Settings</a>
+                        <a href="essential.html"><i class="fas fa-shopping-basket"></i> Daily Essentials</a>
+                        <a href="asset.html"><i class="fas fa-dollar-sign mr-3 text-gray-500"></i> Manage Assets</a>
+                        <a href="place.html"><i class="fas fa-map-marker-alt mr-3 text-gray-500"></i> Tourist Places</a>
+
+                        <h4 class="text-xs font-semibold text-gray-400 mt-6 mb-2">Productivity</h4>
+                        <a href="daily.html"><i class="fas fa-list-check"></i> Daily Tasks</a>
+                        <a href="principle.html"><i class="fas fa-lightbulb"></i> Principle</a>
+                        <a href="contact.html"><i class="fas fa-address-book"></i> Contact</a>
+                        <a href="grocery.html"><i class="fas fa-shopping-cart"></i> Grocery List</a>
+                        <a href="adress.html"><i class="fas fa-map-location-dot"></i> Address </a>
+
+                        <h4 class="text-xs font-semibold text-gray-400 mt-6 mb-2">System</h4>
+                        <a href="shop.html"><i class="fas fa-store"></i> Stores</a>
+                        <a href="added.html"><i class="fas fa-gear"></i> App Settings</a>
+                        <a href="help.html"><i class="fas fa-circle-question"></i> Help & Support</a>
+                    </nav>
+                </aside>
+
+                <main class="dashboard-main-content p-8 bg-white rounded shadow fade-in flex-1">
+                    <h2 class="text-4xl font-extrabold text-gray-900 mb-4">Welcome to Your Personal Web Hub 💼</h2>
+                    <p class="text-lg text-gray-600 mb-8 border-b pb-4">
+                        Savig is your private, unified hub for everything that matters. We’ve brought your finances, security, and daily planning into a single, high-performance interface. 
+                    </p>
+
+                    <h3 class="text-2xl font-bold text-gray-800 mb-6 mt-6 border-b pb-2">Maximize Your Life and Career 🚀</h3>
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="animate-card p-6 bg-blue-50 border-t-4 border-blue-700 rounded-lg shadow-lg">
+                            <div class="flex items-center mb-4">
+                                <i class="fas fa-calendar-check text-3xl text-blue-600 mr-3"></i>
+                                <h4 class="text-xl font-semibold text-blue-800">Enhance Daily Life</h4>
+                            </div>
+                            <ul class="space-y-3 text-gray-700">
+                                <li class="flex items-start"><i class="fas fa-check-circle text-green-500 mr-2 mt-1"></i> <b>Effortless Organization:</b> Track birthdays, appointments, and personal links in one place.</li>
+                                <li class="flex items-start"><i class="fas fa-check-circle text-green-500 mr-2 mt-1"></i> <b>Digital Safety:</b> Securely store all your passwords and sensitive information using Firebase.</li>
+                                <li class="flex items-start"><i class="fas fa-check-circle text-green-500 mr-2 mt-1"></i> <b>Personal Finances:</b> Log your Income details privately to keep track of your financial goals.</li>
+                            </ul>
+                        </div>
+
+                        <div class="animate-card p-6 bg-green-50 border-t-4 border-green-700 rounded-lg shadow-lg">
+                            <div class="flex items-center mb-4">
+                                <i class="fas fa-chart-line text-3xl text-green-600 mr-3"></i>
+                                <h4 class="text-xl font-semibold text-green-800">Boost Professional Work</h4>
+                            </div>
+                            <ul class="space-y-3 text-gray-700">
+                                <li class="flex items-start"><i class="fas fa-check-circle text-blue-500 mr-2 mt-1"></i> <b>Focused Productivity:</b> Use Daily Tasks and Notes to capture ideas and capturing projects instantly.</li>
+                                <li class="flex items-start"><i class="fas fa-check-circle text-blue-500 mr-2 mt-1"></i> <b>Data Oversight:</b> Access Security Logs to monitor account activity and maintain privacy.</li>
+                                <li class="flex items-start"><i class="fas fa-check-circle text-blue-500 mr-2 mt-1"></i> <b>Information Retrieval:</b> Centralize business links and essential professional resources.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4 mt-8">Core Features Overview</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="p-4 bg-gray-100 border-l-4 border-gray-600 rounded-lg">
+                            <p class="font-bold text-gray-800 flex items-center mb-2"><i class="fas fa-key mr-2"></i> Confidential Vault</p>
+                            <p class="text-sm text-gray-700">Secure storage for Passwords, Financial Income, and Private Contact Details.</p>
+                        </div>
+                        <div class="p-4 bg-yellow-50 border-l-4 border-yellow-700 rounded-lg">
+                            <p class="font-bold text-yellow-800 flex items-center mb-2"><i class="fas fa-cogs mr-2"></i> Workflow Management</p>
+                            <p class="text-sm text-gray-700">Tools for managing Daily Tasks and personalized system behavior settings.</p>
+                        </div>
+                    </div>
+                </main>
+            </div>
+        </div>
+<div class="block md:hidden fade-in">
+    <header class="bg-white shadow-md sticky top-0 z-30 border-b border-gray-100">
+        <div class="flex justify-between items-center py-2 px-1">
+            <div class="flex items-center gap-1">
+                <div class="relative flex items-center justify-center">
+                    <i class="fas fa-shield text-blue-600" style="font-size:26px;"></i>
+                    <i class="fas fa-database text-white absolute" style="font-size: 11px; top: 50%; left: 50%; transform: translate(-50%, -50%);"></i>
+                </div>
+                <h1 class="font-black text-gray-900 tracking-tighter" style="font-size: 21px;">Savig</h1>
+            </div>
+
+            <button id="menu-btn" class="text-gray-700 hover:text-blue-700 focus:outline-none p-2 rounded-lg">
+                <i class="fas fa-bars text-xl"></i>
+            </button>
+        </div>
+        
+        </header>
+</div>
+
+                <nav id="mobile-menu" class="hidden bg-white px-6 pb-6 space-y-1 text-base font-normal text-gray-800">
+                    <h3 class="font-bold text-sm text-gray-700 mb-2 pt-2">MAIN NAVIGATION</h3>
+                    <a href="home.html" class="block py-2"><i class="fas fa-house mr-3"></i> Home</a>
+                    <a href="income.html" class="block py-2"><i class="fas fa-wallet mr-3"></i> Income</a>
+                    <a href="links.html" class="block py-2"><i class="fas fa-link mr-3"></i> Links</a>
+                    <a href="c.html" class="block py-2"><i class="fas fa-calendar-days mr-3"></i> Calendar</a>
+                    <a href="password.html" class="block py-2"><i class="fas fa-lock mr-3"></i> Passwords</a>
+            <button id="profile-toggle-btn" class="flex items-center gap-2 mt-4 w-full text-left font-medium text-gray-800 dark:text-gray-200 border-t border-gray-200 dark:border-gray-700 pt-4 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all rounded-lg px-2">
+    <i class="fas fa-user-circle text-2xl text-blue-600 dark:text-blue-400"></i>
+    <span class="font-bold tracking-tight">Profile Settings</span>
+    <i class="fas fa-chevron-down ml-auto transition-transform duration-300 text-gray-400" id="profileChevron"></i>
+</button>
+
+<div id="mobileProfilePanel" class="hidden mt-3 p-4 border border-gray-200 dark:border-gray-700 rounded-2xl bg-white dark:bg-slate-800/50 shadow-sm space-y-4">
+    <div class="flex items-center gap-4">
+        <div class="relative">
+            <img id="mobileUserPhoto" src="https://ui-avatars.com/api/?name=U&background=3b82f6&color=fff&size=100" alt="User Photo" class="w-12 h-12 rounded-full border-2 border-white dark:border-slate-700 shadow-sm"/>
+            <div class="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white dark:border-slate-800 rounded-full"></div>
+        </div>
+        
+        <div class="overflow-hidden">
+            <p id="mobileUserName" class="font-extrabold text-gray-900 dark:text-white truncate text-base">Loading...</p>
+            <p id="mobileUserEmail" class="text-xs text-gray-500 dark:text-gray-400 truncate">Loading...</p>
+        </div>
+    </div>
+    
+    <button onclick="logout()" class="flex items-center justify-center gap-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 px-3 py-2.5 rounded-xl hover:bg-red-100 dark:hover:bg-red-900/40 text-sm font-bold mt-2 w-full transition-colors border border-red-100 dark:border-red-900/30">
+        <i class="fas fa-sign-out-alt"></i>
+        Logout Session
+    </button>
+</div>
+
+                    <p class="font-bold text-sm text-gray-500 mb-0 pt-4 border-t border-gray-200 px-1">CORE DATA</p>
+                    <a href="profile.html" class="block py-2"><i class="fas fa-user-gear mr-3"></i> Profile Settings</a>
+                    <a href="essential.html" class="block py-2"><i class="fas fa-shopping-basket mr-3"></i> Daily Essential</a>
+                    <a href="contact.html" class="block py-2"><i class="fas fa-address-book mr-3"></i> Contact Details</a>
+                    <a href="grocery.html" class="block py-2"><i class="fas fa-shopping-cart mr-3"></i> Grocery List</a>
+                    <a href="addressmob.html" class="block py-2"><i class="fas fa-map-location-dot mr-3"></i> Address </a>
+                    
+                    <a href="asset.html" class="flex items-center p-3 text-base font-medium rounded-lg text-gray-700 hover:bg-gray-100 hover:text-indigo-600 transition duration-150">
+                        <i class="fas fa-dollar-sign mr-3 text-indigo-500"></i> Manage Assets
+                    </a>
+
+                    <a href="place.html" class="flex items-center p-3 text-base font-medium rounded-lg text-gray-700 hover:bg-gray-100 hover:text-indigo-600 transition duration-150">
+                        <i class="fas fa-map-marker-alt mr-3 text-indigo-500"></i> Tourist Places
+                    </a>
+                    
+                    <p class="font-bold text-sm text-gray-500 mb-0 pt-4 border-t border-gray-200 px-1">PRODUCTIVITY</p>
+                    <a href="daily.html" class="block py-2"><i class="fas fa-list-check mr-3"></i> Daily Tasks</a>
+                    <a href="principle.html" class="block py-2"><i class="fas fa-lightbulb mr-3"></i> Principle</a>
+
+                    <a href="shop.html" class="block py-2"><i class="fas fa-store mr-3"></i> Stores</a>
+                    <a href="added.html" class="block py-2"><i class="fas fa-gear mr-3"></i> App Settings</a>
+                    <a href="help.html" class="block py-2"><i class="fas fa-circle-question mr-3"></i> Help & Support</a>
+                </nav>
+            </header>
+
+         
+
+    <footer class="mt-auto bg-white text-gray-400 text-center p-6 border-t text-xs mt-10">
+        &copy; 2025 Savig.com | All rights reserved
+    </footer>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // 1. SELECT ELEMENTS
+    const profileToggle = document.getElementById('profile-toggle-btn');
+    const profilePanel = document.getElementById('mobileProfilePanel');
+    const profileChevron = document.getElementById('profileChevron');
+
+    // 2. TOGGLE ACTION
+    if (profileToggle && profilePanel) {
+        profileToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            // Show/Hide the panel
+            profilePanel.classList.toggle('hidden');
+            // Rotate the arrow icon
+            if (profileChevron) {
+                profileChevron.classList.toggle('rotate-180');
+            }
+        });
+    }
+
+    // 3. FILL DATA FROM FIREBASE
+    firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+            // Update Mobile IDs
+            const mName = document.getElementById('mobileUserName');
+            const mEmail = document.getElementById('mobileUserEmail');
+            const mPhoto = document.getElementById('mobileUserPhoto');
+
+            if (mName) mName.innerText = user.displayName || "User";
+            if (mEmail) mEmail.innerText = user.email;
+            if (mPhoto) mPhoto.src = user.photoURL || `https://ui-avatars.com/api/?name=${user.email}&background=3b82f6&color=fff`;
+            
+            // Also update Desktop IDs (since they are on the same page)
+            const dName = document.getElementById('desktopUserName');
+            const dEmail = document.getElementById('desktopUserEmail');
+            const dPhoto = document.getElementById('desktopUserPhoto');
+
+            if (dName) dName.innerText = user.displayName || "User";
+            if (dEmail) dEmail.innerText = user.email;
+            if (dPhoto) dPhoto.src = user.photoURL || mPhoto.src;
+        }
+    });
+});
+
+// 4. LOGOUT FUNCTION
+async function logout() {
+    try {
+        await firebase.auth().signOut();
+        window.location.replace("index.html");
+    } catch (err) {
+        console.error("Logout failed", err);
+    }
+}
+</script>
+    <script>
+        document.getElementById('menu-btn').onclick = function() {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        };
+        document.getElementById('profile-toggle-btn').onclick = function() {
+            var panel = document.getElementById('mobileProfilePanel');
+            panel.classList.toggle('hidden');
+            document.getElementById('profileChevron').classList.toggle('rotate-180');
+        };
+    </script>
+   <script>
+document.addEventListener('DOMContentLoaded', () => {
+    const menuBtn = document.getElementById('menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    const profileToggle = document.getElementById('profile-toggle-btn');
+    const profilePanel = document.getElementById('mobileProfilePanel');
+    const profileChevron = document.getElementById('profileChevron');
+
+    // 1. Toggle Main Hamburger Menu
+    if (menuBtn && mobileMenu) {
+        menuBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevents immediate closing
+            mobileMenu.classList.toggle('hidden');
+        });
+    }
+
+    // 2. Toggle Profile Panel inside Menu
+    if (profileToggle && profilePanel) {
+        profileToggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            profilePanel.classList.toggle('hidden');
+            if (profileChevron) {
+                profileChevron.classList.toggle('rotate-180');
+            }
+        });
+    }
+
+    // 3. Close menu if user clicks anywhere else on the screen
+    document.addEventListener('click', (e) => {
+        if (mobileMenu && !mobileMenu.contains(e.target) && e.target !== menuBtn) {
+            mobileMenu.classList.add('hidden');
+        }
+    });
+});
+</script>
+</body>
+<style>
+    /* Desktop Check */
+    @media only screen and (min-width: 768px) {
+        #universal-bottom-nav, .nav-spacer { display: none !important; }
+    }
+
+    :root {
+        --nav-bg: #ffffff;
+        --nav-text: #000000; /* Made pure black for higher contrast */
+        --nav-hover: #007AFF; 
+        --nav-height: 65px;
+    }
+
+    /* --- INSTANT REDIRECT FIX --- */
+    .nav-link {
+        /* Set transition to 0s to remove all delay when clicking */
+        transition: none !important; 
+        -webkit-tap-highlight-color: transparent;
+        cursor: pointer;
+    }
+
+    /* Remove the movement (translateY/scale) that makes it feel slow */
+    .nav-link:hover i, .nav-link:active {
+        transform: none !important; 
+        color: var(--nav-hover) !important;
+    }
+
+    /* Keep icons and text bold and dark */
+    .nav-link i { 
+        font-size: 18px; 
+        display: block; 
+        margin-bottom: 3px; 
+        font-weight: 900 !important; /* Bolder icons */
+    }
+    
+    .nav-link div { 
+        font-size: 10px; 
+        font-weight: 800 !important; /* Bolder text */
+    }
+
+    /* Optimization for Dark Mode */
+    [data-theme="dark"] {
+        --nav-bg: #1f2937;
+        --nav-text: #ffffff;
+    }
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+
+:root {
+    --transition-speed: 0.3s;
+}
+
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    transition: background-color var(--transition-speed), color var(--transition-speed);
+}
+
+/* --- Glassmorphism Effect for Header/Cards --- */
+header, .dashboard-main-content, .animate-card {
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* --- Dark Mode Overrides --- */
+.dark body {
+    background-color: #0f172a; /* Deep Navy Background */
+    color: #f1f5f9;
+}
+
+.dark header {
+    background-color: rgba(15, 23, 42, 0.8) !important;
+    border-color: #1e293b !important;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+}
+
+.dark .dashboard-main-content, 
+.dark aside,
+.dark #mobile-menu {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+    color: #f1f5f9;
+}
+
+/* --- Interactive Elements --- */
+.sidebar-nav-internal a {
+    transition: all 0.2s ease;
+    border-radius: 12px;
+}
+
+.dark .sidebar-nav-internal a:hover {
+    background-color: #334155;
+    color: #38bdf8; /* Sky Blue accent */
+}
+
+/* --- Custom Card Styling --- */
+.animate-card {
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
+}
+
+.animate-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.dark .animate-card {
+    background: linear-gradient(145deg, #1e293b, #0f172a);
+    border: 1px solid #334155;
+}
+</style>
+
+<nav id="universal-bottom-nav" style="position: fixed; bottom: 0; left: 0; width: 100%; height: var(--nav-height); background-color: var(--nav-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #eee; box-shadow: 0 -5px 15px rgba(0,0,0,0.05); z-index: 999999; font-family: sans-serif;">
+
+    <a href="home.html" class="nav-link" style="text-decoration: none; color: var(--nav-text); text-align: center; flex: 1; -webkit-tap-highlight-color: transparent;">
+        <i class="fa-solid fa-house" style="font-size: 18px; display: block; margin-bottom: 3px;"></i>
+        <div style="font-size: 10px; font-weight: 600;">Home</div>
+    </a>
+
+    <a href="addressmob.html" class="nav-link" style="text-decoration: none; color: var(--nav-text); text-align: center; flex: 1; -webkit-tap-highlight-color: transparent;">
+        <i class="fa-solid fa-location-dot" style="font-size: 18px; display: block; margin-bottom: 3px;"></i>
+        <div style="font-size: 10px; font-weight: 600;">Address</div>
+    </a>
+
+    <a href="password.html" class="nav-link" style="text-decoration: none; color: var(--nav-text); text-align: center; flex: 1; -webkit-tap-highlight-color: transparent;">
+        <i class="fa-solid fa-key" style="font-size: 18px; display: block; margin-bottom: 3px;"></i>
+        <div style="font-size: 10px; font-weight: 600;">Passwords</div>
+    </a>
+
+    <a href="grocery.html" class="nav-link" style="text-decoration: none; color: var(--nav-text); text-align: center; flex: 1; -webkit-tap-highlight-color: transparent;">
+        <i class="fa-solid fa-cart-shopping" style="font-size: 18px; display: block; margin-bottom: 3px;"></i>
+        <div style="font-size: 10px; font-weight: 600;">Grocery</div>
+    </a>
+
+    <a href="contact.html" class="nav-link" style="text-decoration: none; color: var(--nav-text); text-align: center; flex: 1; -webkit-tap-highlight-color: transparent;">
+        <i class="fa-solid fa-envelope" style="font-size: 18px; display: block; margin-bottom: 3px;"></i>
+        <div style="font-size: 10px; font-weight: 600;">Contact</div>
+    </a>
+
+</nav>
+
+<div class="nav-spacer" style="height: 75px; width: 100%;"></div>
+
+<script type="module">
+// =================================================================
+// 1. CONFIGURATION AND INITIALIZATION
+// =================================================================
+
+// --- Firebase Configuration (REPLACE WITH YOUR OWN CONFIG) ---
+const firebaseConfig = {
+    apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc",
+    authDomain: "sk12-58e9e.firebaseapp.com",
+    projectId: "sk12-58e9e",
+    storageBucket: "sk12-58e9e.appspot.com",
+    messagingSenderId: "470207874652",
+    appId: "1:470207874652:web:67ba1cf3629b7e5b144899"
+};
+if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+}
+const auth = firebase.auth();
+const database = firebase.database(); 
+
+// Global state variables
+let currentUserId = null;
+let allBirthdays = {}; // Still useful if you display data on the page
+let appSchedulerIntervalId = null; // Keeping this for the logout cleanup
+
+// --- REMOVE ALL NOTIFICATION CONSTANTS (Not needed for email) ---
+
+// =================================================================
+// 2. 🎂 BIRTHDAY LOGIC (SIMPLIFIED) 🎂
+// =================================================================
+
+// The client-side notification/scheduler functions are now REMOVED
+// The server (Cloud Function) handles all scheduling and email sending.
+
+// =================================================================
+// 3. APPLICATION LOGIC (Data and UI)
+// =================================================================
+
+/**
+ * Loads the user's birthday data from Firebase for UI display only.
+ */
+function loadBirthdayData() {
+    if (!currentUserId) return;
+
+    const birthdaysRef = database.ref(`users/${currentUserId}/birthdays`);
+    
+    // The 'value' listener keeps local data updated but does NOT trigger notifications.
+    birthdaysRef.on('value', (snapshot) => {
+        allBirthdays = snapshot.val() || {};
+        console.log("Birthday data updated from Firebase.");
+        
+        // You would update your HTML list of birthdays here.
+    }, (error) => {
+        console.error("Firebase Birthday Read Failed:", error);
+    });
+}
+
+
+function updateUI(user) {
+    const userName = user.displayName || 'Dashboard User';
+    const userEmail = user.email || 'user@example.com';
+    let initial = (user.email && user.email.length > 0) ? user.email[0].toUpperCase() : 'U';
+    
+    const photoPlaceholder = `https://ui-avatars.com/api/?name=${initial}&background=3b82f6&color=fff&size=100`; 
+    const userPhoto = user.photoURL || photoPlaceholder; 
+
+    document.querySelectorAll('#desktopUserName, #mobileUserName').forEach(el => el.textContent = userName);
+    document.querySelectorAll('#desktopUserEmail, #mobileUserEmail').forEach(el => el.textContent = userEmail);
+    document.querySelectorAll('#desktopUserPhoto, #mobileUserPhoto').forEach(el => el.src = userPhoto); 
+    
+    currentUserId = user.uid;
+}
+
+window.logout = function() {
+    if(appSchedulerIntervalId) {
+        clearInterval(appSchedulerIntervalId);
+    }
+    auth.signOut().then(() => { 
+        // CHANGE THIS LINE:
+        window.location.replace('index.html'); 
+    }).catch(error => { 
+        console.error('Sign out failed:', error);
+        alert('Sign out failed: ' + error.message); 
+    });
+}
+
+// --- DOM ELEMENTS & EVENT LISTENERS (Kept as is for compatibility) ---
+const menuBtn = document.getElementById('menu-btn');
+const mobileMenu = document.getElementById('mobile-menu');
+const profileToggleBtn = document.getElementById('profile-toggle-btn');
+const mobileProfilePanel = document.getElementById('mobileProfilePanel');
+const profileChevron = document.getElementById('profileChevron');
+const desktopLogoutBtn = document.getElementById('desktopLogout');
+
+if (menuBtn && mobileMenu) {
+    menuBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+    });
+}
+if (profileToggleBtn && mobileProfilePanel && profileChevron) {
+    profileToggleBtn.addEventListener('click', () => {
+        const isShown = mobileProfilePanel.classList.toggle('show');
+        if (isShown) {
+            profileChevron.classList.add('rotate-180');
+        } else {
+            profileChevron.classList.remove('rotate-180');
+        }
+    });
+}
+if (desktopLogoutBtn) {
+    desktopLogoutBtn.addEventListener('click', window.logout);
+}
+
+
+// =================================================================
+// 4. AUTH STATE MANAGEMENT (The App Entry Point)
+// =================================================================
+
+auth.onAuthStateChanged(user => {
+    if (user) {
+        console.log("User logged in. Initializing app.");
+        
+        updateUI(user);
+        
+        // Load birthday data for UI only.
+        loadBirthdayData();
+
+        // The scheduler function is removed here. The server handles it.
+    } else {
+        // Redirect to login page if no user is signed in
+     window.location.replace('index.html');
+        console.log("No user signed in. Displaying placeholder UI.");
+    }
+});
+</script>
+    
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('theme-toggle-btn');
+    const icon = document.getElementById('theme-icon');
+    
+    // 1. Load saved theme immediately on page load
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    icon.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+
+    // 2. Click Event
+    btn.addEventListener('click', () => {
+        let currentTheme = document.documentElement.getAttribute('data-theme');
+        let newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+        // Apply new theme
+        document.documentElement.setAttribute('data-theme', newTheme);
+        
+        // Save to LocalStorage (works across all pages on your site)
+        localStorage.setItem('theme', newTheme);
+        
+        // Update Icon
+        icon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+    });
+});
+</script>
+     <button id="theme-toggle-btn">
+    <span id="theme-icon">🌙</span>
+</button>
+<style>
+    /* --- 1. THEME VARIABLE DEFINITIONS --- */
+    :root {
+        --bg-body: #f9fafb;
+        --bg-card: #ffffff;
+        --text-main: #1f2937;   /* Deep Gray 800 */
+        --text-bold: #000000;   /* Pure Black */
+        --border: #e5e7eb;
+        
+        /* BOTTOM NAV COLORS (LIGHT) */
+        --nav-bg: #ffffff;
+        --nav-text: #000000;    /* Pure Black for text and icons */
+        --nav-height: 65px;
+    }
+
+    [data-theme="dark"] {
+        --bg-body: #0f172a;     /* Deep Navy/Black */
+        --bg-card: #1e293b;     /* Slate 800 */
+        --text-main: #cbd5e1;   /* Slate 300 */
+        --text-bold: #f8fafc;   /* Slate 50 */
+        --border: #334155;      /* Slate 700 */
+        
+        /* BOTTOM NAV COLORS (DARK) */
+        --nav-bg: #0f172a;
+        --nav-text: #ffffff;    /* Pure White */
+    }
+
+    /* --- 2. GLOBAL OVERRIDES --- */
+    body { background-color: var(--bg-body) !important; color: var(--text-main) !important; transition: background 0.3s; }
+    
+    /* Ensure all text classes inside containers adapt */
+    h1, h2, h3, h4, .font-bold, .font-semibold, 
+    .text-gray-900, .text-gray-800, .text-blue-800, .text-green-800, .text-yellow-800 { 
+        color: var(--text-bold) !important; 
+    }
+
+    p, li, span, .text-gray-700, .text-gray-600 { 
+        color: var(--text-main) !important; 
+    }
+
+    /* Component Surfaces */
+    .bg-white, header, aside, main, #mobile-menu, footer {
+        background-color: var(--bg-card) !important;
+        border-color: var(--border) !important;
+    }
+
+    /* --- 3. SIDEBAR & CORE FEATURES FIXES --- */
+    [data-theme="dark"] .sidebar-desktop, [data-theme="dark"] aside {
+        background-color: var(--bg-card) !important;
+    }
+    
+    /* Muted Sidebar links in dark mode */
+    [data-theme="dark"] .sidebar-nav-internal a { color: #94a3b8 !important; }
+    [data-theme="dark"] .sidebar-nav-internal a:hover,
+    [data-theme="dark"] .sidebar-nav-internal a.active {
+        background-color: #334155 !important;
+        color: #60a5fa !important;
+    }
+
+    /* Core Features Overview Boxes */
+    [data-theme="dark"] .bg-gray-100, 
+    [data-theme="dark"] .bg-yellow-50,
+    [data-theme="dark"] .bg-blue-50,
+    [data-theme="dark"] .bg-green-50 {
+        background-color: #334155 !important;
+        border-color: var(--border) !important;
+    }
+
+    /* Brighter borders for boxes in dark mode */
+    [data-theme="dark"] .border-l-4, [data-theme="dark"] .border-t-4 {
+        border-color: #4f46e5 !important; 
+    }
+
+    /* --- 4. BOTTOM NAV (DARKER FONTS & ICONS) --- */
+    #universal-bottom-nav {
+        background-color: var(--nav-bg) !important;
+        border-top: 1px solid var(--border) !important;
+        height: var(--nav-height);
+    }
+
+    /* This targets the icon specifically */
+    .nav-link i { 
+        color: var(--nav-text) !important; 
+        font-weight: 900 !important; /* Makes icons look thicker/bolder */
+        font-size: 20px !important;  /* Slightly larger for visibility */
+        transition: transform 0.2s;
+    }
+
+    /* This targets the text label specifically */
+    .nav-link div { 
+        color: var(--nav-text) !important; 
+        font-weight: 900 !important; /* Thickest weight for labels */
+        font-size: 11px !important;
+        margin-top: 2px;
+    }
+
+    /* --- 5. THEME TOGGLE (50px ABOVE NAV) --- */
+    #theme-toggle-btn {
+        position: fixed;
+        bottom: 25px;
+        right: 25px;
+        z-index: 1000;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        border: none;
+        background: #2563eb; /* Blue in Light Mode */
+        color: white;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.4rem;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    #theme-toggle-btn:active { transform: scale(0.9); }
+</style>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

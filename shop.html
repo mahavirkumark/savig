@@ -1,0 +1,1370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Personal Website - Shop Inventory Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        /* Custom styles for appearance and animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .card {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+            border-radius: 0.75rem; 
+            transition: transform 0.3s ease-in-out;
+        }
+        .card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        }
+        
+        /* INCREASED SIZE for action buttons */
+        .action-btn {
+            font-size: 1.3rem; 
+            padding: 0.7rem; 
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%; 
+            line-height: 1;
+            flex-shrink: 0;
+            transition: background-color 0.2s;
+        }
+        .action-btn i {
+            font-size: 1.3rem;
+        }
+
+        /* Nav Link Styling for desktop */
+        .nav-link {
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 300ms;
+            color: #4b5563; 
+        }
+        .nav-link:hover {
+            color: #3b82f6; 
+            transform: translateY(-2px);
+        }
+
+        /* SCROLLBAR ADDITION */
+        #inventoryDisplay {
+            max-height: 55vh; /* Set a max height for the container */
+            overflow-y: auto; /* Add vertical scrollbar */
+            padding-right: 15px; /* Prevent content under the scrollbar */
+        }
+        
+        /* Shop Management Header */
+        .shop-header {
+            font-size: 25px; /* Specified font size */
+            color: #1f2937; /* Dark gray text */
+            font-weight: 700; /* Bold */
+        }
+        
+        /* Item List Header Styling */
+        .item-list-header {
+            font-size: 0.875rem; /* text-sm */
+            font-weight: 700; /* font-bold */
+            color: #6b7280; /* text-gray-500 */
+            border-bottom: 1px solid #e5e7eb; /* border-b */
+            padding-bottom: 0.25rem; /* pb-1 */
+            margin-bottom: 0.5rem; /* mb-2 */
+            margin-left: 0.75rem; /* ml-3 */
+            display: flex; /* Ensure flex layout */
+            justify-content: space-between;
+        }
+        
+
+        /* Modal specific styles */
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.5);
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.95);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .modal-open .modal-content {
+            transform: scale(1);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+
+    <nav class="bg-white shadow-lg fixed w-full z-50 top-0">
+        <div class="container mx-auto flex justify-between items-center p-4 md:px-8">
+            
+            <div class="flex items-center gap-2 text-xl font-bold text-gray-800 flex-shrink-0">
+                <i class="fas fa-user-circle" style="font-size: 28px; color: #4f46e5;"></i>
+                <span style="font-size: 22px;">My Personal Website</span>
+            </div>
+            
+            <div class="hidden lg:flex space-x-6 font-medium flex-grow justify-center">
+                <a href="home.html" class="nav-link"><i class="fas fa-house"></i> Home</a>
+               
+                <a href="birthday.html" class="nav-link"><i class="fas fa-birthday-cake"></i> Birthday</a>
+                <a href="password.html" class="nav-link"><i class="fas fa-key"></i> Passwords</a>
+                <a href="income.html" class="nav-link"><i class="fas fa-wallet"></i> Income</a>
+                <a href="links.html" class="nav-link"><i class="fas fa-link"></i> Links</a>
+                <a href="calendar.html" class="nav-link"><i class="fas fa-calendar-alt"></i> Calendar</a>
+            </div>
+            
+            <div class="hidden md:flex items-center gap-4 flex-shrink-0 ml-4">
+                <div class="text-right">
+                    <p id="userName" class="font-bold text-gray-900">Loading...</p>
+                    <p id="userEmail" class="text-sm text-gray-500">Loading...</p>
+                </div>
+                <img id="userPhoto" src="https://via.placeholder.com/40" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #4f46e5;">
+                <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-full hover:bg-red-600 transition duration-300">Logout</button>
+            </div>
+
+            <button id="menu-btn" class="lg:hidden text-gray-700 text-2xl"><i class="fas fa-bars"></i></button>
+        </div>
+
+        <div id="mobileMenu" class="hidden lg:hidden flex flex-col px-4 pb-4 space-y-2 text-sm text-gray-700 font-medium bg-gray-50">
+            <a href="home.html" class="mobile-nav-link"><i class="fas fa-house"></i> Home</a>
+           
+            <a href="birthday.html" class="mobile-nav-link"><i class="fas fa-birthday-cake"></i> Birthday</a>
+            <a href="password.html" class="mobile-nav-link"><i class="fas fa-key"></i> Passwords</a>
+            <a href="income.html" class="mobile-nav-link"><i class="fas fa-wallet"></i> Income</a>
+            <a href="links.html" class="mobile-nav-link"><i class="fas fa-link"></i> Links</a>
+            <a href="calendar.html" class="mobile-nav-link"><i class="fas fa-calendar-alt"></i> Calendar</a>
+            <div class="border-t border-gray-300 mt-2 pt-2">
+                <p id="mobileUserName" class="font-bold text-gray-900">Loading...</p>
+                <p id="mobileUserEmail" class="text-xs text-gray-500">Loading...</p>
+                <button onclick="logout()" class="bg-red-500 text-white px-3 py-2 rounded-full hover:bg-red-600 mt-2 w-full">Logout</button>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="w-full pt-2 bg-white mt-2 sm:mt-2 z-40 shadow-sm border-b border-gray-200">
+        <div class="container mx-auto px-4 md:px-8">
+            <span class="shop-header text-left block">🛍️ Shop Management</span>
+        </div>
+    </div>
+
+    <main class="container mx-auto p-4 md:p-8 flex-grow mt-4">
+        <h1 class="text-3xl font-extrabold text-gray-900 mb-6 border-b-2 border-indigo-400 pb-2 animate-fadeIn"></h1>
+        
+        <div class="flex flex-col lg:flex-row gap-8">
+            
+            <section class="lg:w-1/3 space-y-6">
+                
+                <div class="flex justify-center bg-white p-1 rounded-lg shadow">
+                    <button id="tabSingle" onclick="showForm('single')" class="flex-1 py-2 px-4 text-center font-bold rounded-lg transition duration-300 bg-indigo-500 text-white">
+                        <i class="fas fa-plus-circle"></i> Single Item
+                    </button>
+                    <button id="tabBulk" onclick="showForm('bulk')" class="flex-1 py-2 px-4 text-center font-bold rounded-lg transition duration-300 text-gray-600 hover:bg-gray-100">
+                        <i class="fas fa-paste"></i> Bulk Entry
+                    </button>
+                </div>
+
+                <div id="formSingle" class="p-6 bg-white card animate-fadeIn">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Single Item Entry</h2>
+                    <form id="shopItemForm" class="space-y-4">
+                        <input type="hidden" id="modalShopKey" name="modalShopKey" value="">
+                        <input type="hidden" id="modalShopName" name="modalShopName" value="">
+
+
+                        <div>
+                            <label for="shopName" class="block text-sm font-medium text-gray-700">Shop Name <span class="text-red-500">*</span></label>
+                            <input type="text" id="shopName" name="shopName" required
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                placeholder="e.g., Corner Grocer">
+                        </div>
+
+                        <div>
+                            <label for="itemName" class="block text-sm font-medium text-gray-700">Item Name <span class="text-red-500">*</span></label>
+                            <input type="text" id="itemName" name="itemName" required
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                placeholder="e.g., Apple, Detergent">
+                        </div>
+
+                        <div class="flex gap-4">
+                            <div class="w-1/2">
+                                <label for="unit" class="block text-sm font-medium text-gray-700">Quantity (Per...)</label>
+                                <input 
+                                    type="text" 
+                                    id="unit" 
+                                    name="unit" 
+                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                    placeholder="e.g., 1kg, 2L, 500g, piece" 
+                                    value="Unit"
+                                >
+                            </div>
+                            <div class="w-1/2">
+                                <label for="price" class="block text-sm font-medium text-gray-700">Price (₹)</label>
+                                <div class="relative mt-1">
+                                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 font-bold">₹</span>
+                                    <input type="number" id="price" name="price" step="0.01"
+                                        class="block w-full border border-gray-300 rounded-md shadow-sm p-2 pl-8 focus:ring-indigo-500 focus:border-indigo-500"
+                                        placeholder="0.00">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="review" class="block text-sm font-medium text-gray-700">Review/Notes</label>
+                            <textarea id="review" name="review" rows="2"
+                                        class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                        placeholder="Notes on sale price, quality, etc."></textarea>
+                        </div>
+
+                        <button type="submit" id="addItemButton"
+                                class="w-full flex items-center justify-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-lg text-lg font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 transform hover:scale-105">
+                            <i class="fas fa-save"></i> Save Single Item
+                        </button>
+                    </form>
+                </div>
+                
+                <div id="formBulk" class="p-6 bg-white card animate-fadeIn hidden">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Bulk Entry Mode</h2>
+                    <form id="bulkItemForm" class="space-y-4">
+                        <div>
+                            <label for="bulkShopName" class="block text-sm font-medium text-gray-700">Shop Name <span class="text-red-500">*</span></label>
+                            <input type="text" id="bulkShopName" required
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                placeholder="e.g., Reliance Smart">
+                        </div>
+
+                        <div>
+                            <label for="bulkData" class="block text-sm font-medium text-gray-700">Paste/Enter Multiple Items</label>
+                            <textarea id="bulkData" rows="6" required
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                placeholder="Format: Item Name, Quantity/Unit, Price, Review (one per line)&#10;&#10;Example:&#10;Onions, kg, 45, Good quality&#10;Toothpaste (Colgate), Unit, 120, Buy 1 Get 1 free&#10;Biscuits (Parle G), Packet, 25, Always cheap">
+                            </textarea>
+                            <p class="text-xs text-gray-500 mt-1">Use commas (,) to separate fields. Quantity/Unit can be 'kg', 'L', 'Unit', etc. Price and Review are optional.</p>
+                        </div>
+
+                        <button type="submit" id="addBulkButton"
+                                class="w-full flex items-center justify-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-lg text-lg font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 transform hover:scale-105">
+                            <i class="fas fa-upload"></i> Save All Items
+                        </button>
+                    </form>
+                </div>
+            </section>
+            
+            <section class="lg:w-2/3 p-6 bg-white card animate-fadeIn" style="animation-delay: 0.2s;">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4 border-b pb-2">Shops & Inventory</h2>
+                
+                <div class="flex justify-between items-center mb-6 gap-4">
+                    <div class="flex items-center border border-gray-300 rounded-lg bg-gray-50 focus-within:ring-2 focus-within:ring-indigo-500 transition duration-300 w-full">
+                        <i class="fas fa-search text-gray-400 p-3"></i>
+                        <input type="text" id="shopSearch" onkeyup="filterShops()"
+                            class="w-full bg-transparent p-2 outline-none"
+                            placeholder="Search (Supports English, Marathi, Hindi transliteration)...">
+                    </div>
+                </div>
+
+                <div id="inventoryDisplay" class="space-y-6">
+                    <p class="text-gray-500 text-center py-4" id="loadingMessage">Loading inventory...</p>
+                    <p class="text-gray-500 text-center py-4 hidden" id="emptyMessage">No shops added yet. Use the form on the left to start!</p>
+                </div>
+            </section>
+        </div>
+        
+        <div id="addItemModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 modal-content">
+                <div class="flex justify-between items-center border-b pb-3 mb-4">
+                    <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2"><i class="fas fa-cart-plus text-indigo-500"></i> Add Item to <span id="modalShopTitle" class="text-indigo-600">Shop</span></h2>
+                    <button onclick="closeModal('addItemModal')" class="text-gray-400 hover:text-gray-600 text-3xl">&times;</button>
+                </div>
+                <form id="modalItemForm" class="space-y-4">
+                    <input type="hidden" id="modalFormShopKey" name="modalFormShopKey" value="">
+                    <input type="hidden" id="modalFormShopName" name="modalFormShopName" value="">
+                    
+                    <div class="bg-indigo-50 p-3 rounded-lg border border-indigo-200">
+                        <label for="modalItemName" class="block text-sm font-medium text-gray-700">Item Name <span class="text-red-500">*</span></label>
+                        <input type="text" id="modalItemName" name="modalItemName" required
+                            class="mt-1 block w-full border border-indigo-300 rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500"
+                            placeholder="e.g., Apple, Detergent">
+                    </div>
+
+                    <div class="flex gap-4">
+                        <div class="w-1/2">
+                            <label for="modalUnit" class="block text-sm font-medium text-gray-700">Quantity (Per...)</label>
+                            <input 
+                                type="text" 
+                                id="modalUnit" 
+                                name="modalUnit" 
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                placeholder="e.g., 1kg, 2L, 500g, piece" 
+                                value="Unit"
+                            >
+                        </div>
+                        <div class="w-1/2">
+                            <label for="modalPrice" class="block text-sm font-medium text-gray-700">Price (₹)</label>
+                            <div class="relative mt-1">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 font-bold">₹</span>
+                                <input type="number" id="modalPrice" name="modalPrice" step="0.01"
+                                    class="block w-full border border-gray-300 rounded-md shadow-sm p-2 pl-8 focus:ring-indigo-500 focus:border-indigo-500"
+                                    placeholder="0.00">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="modalReview" class="block text-sm font-medium text-gray-700">Review/Notes</label>
+                        <textarea id="modalReview" name="modalReview" rows="2"
+                                     class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-indigo-500 focus:border-indigo-500"
+                                     placeholder="Notes on sale price, quality, etc."></textarea>
+                    </div>
+
+                    <button type="submit" id="modalAddItemButton"
+                            class="w-full flex items-center justify-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-lg text-lg font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 transform hover:scale-105">
+                        <i class="fas fa-save"></i> Save Item to Shop
+                    </button>
+                </form>
+            </div>
+        </div>
+        <div id="editReviewModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-6 modal-content">
+                <div class="flex justify-between items-center border-b pb-3 mb-4">
+                    <h2 class="text-2xl font-bold text-gray-800 flex items-center gap-2"><i class="fas fa-comment-dots text-purple-500"></i> Update Review for <span id="reviewModalItemNameTitle" class="text-purple-600"></span></h2>
+                    <button onclick="closeModal('editReviewModal')" class="text-gray-400 hover:text-gray-600 text-3xl">&times;</button>
+                </div>
+                <form id="editReviewForm" class="space-y-4">
+                    <input type="hidden" id="reviewShopKey" value="">
+                    <input type="hidden" id="reviewItemKey" value="">
+                    
+                    <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                        <label for="reviewShopName" class="block text-sm font-medium text-gray-700">Shop</label>
+                        <input type="text" id="reviewShopName" readonly
+                            class="mt-1 block w-full bg-gray-100 border border-gray-300 rounded-md shadow-sm p-2">
+                    </div>
+
+                    <div>
+                        <label for="editReviewText" class="block text-sm font-medium text-gray-700">Review/Notes</label>
+                        <textarea id="editReviewText" name="editReviewText" rows="3"
+                                     class="mt-1 block w-full border border-purple-300 rounded-md shadow-sm p-2 focus:ring-purple-500 focus:border-purple-500"
+                                     placeholder="Enter your notes here."></textarea>
+                    </div>
+
+                    <button type="submit" id="editReviewSaveButton"
+                            class="w-full flex items-center justify-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-lg text-lg font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-150 transform hover:scale-105">
+                        <i class="fas fa-save"></i> Save Review
+                    </button>
+                </form>
+            </div>
+        </div>
+        </main>
+<script>
+    // Placeholder for JavaScript functions (logout, showForm, filterShops, openModal, closeModal, etc.)
+    function logout() { console.log('Logout clicked'); }
+    function showForm(form) {
+        document.getElementById('formSingle').classList.add('hidden');
+        document.getElementById('formBulk').classList.add('hidden');
+        document.getElementById('tabSingle').classList.remove('bg-indigo-500', 'text-white');
+        document.getElementById('tabSingle').classList.add('text-gray-600', 'hover:bg-gray-100');
+        document.getElementById('tabBulk').classList.remove('bg-green-500', 'text-white');
+        document.getElementById('tabBulk').classList.add('text-gray-600', 'hover:bg-gray-100');
+
+        if (form === 'single') {
+            document.getElementById('formSingle').classList.remove('hidden');
+            document.getElementById('tabSingle').classList.add('bg-indigo-500', 'text-white');
+            document.getElementById('tabSingle').classList.remove('text-gray-600', 'hover:bg-gray-100');
+        } else {
+            document.getElementById('formBulk').classList.remove('hidden');
+            document.getElementById('tabBulk').classList.add('bg-green-500', 'text-white');
+            document.getElementById('tabBulk').classList.remove('text-gray-600', 'hover:bg-gray-100');
+        }
+    }
+    function filterShops() { console.log('Filter shops called'); }
+    function openModal(id, shopKey, shopName) {
+        const modal = document.getElementById(id);
+        modal.classList.remove('hidden');
+        modal.classList.add('modal-open');
+        if (id === 'addItemModal') {
+            document.getElementById('modalShopTitle').textContent = shopName;
+            document.getElementById('modalFormShopKey').value = shopKey;
+            document.getElementById('modalFormShopName').value = shopName;
+            document.getElementById('modalItemName').focus();
+        }
+    }
+    function closeModal(id) {
+        const modal = document.getElementById(id);
+        modal.classList.add('hidden');
+        modal.classList.remove('modal-open');
+    }
+
+    // Mobile menu toggle
+    document.getElementById('menu-btn').addEventListener('click', function() {
+        const mobileMenu = document.getElementById('mobileMenu');
+        mobileMenu.classList.toggle('hidden');
+    });
+</script>
+</body>
+</html>
+
+    <footer class="mt-auto bg-white text-gray-600 text-center p-4 border-t text-sm border-t border-gray-200">
+        &copy; 2025 Personal Website | All rights reserved
+    </footer>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.23/jspdf.plugin.autotable.min.js"></script>
+    
+    <script>
+        
+      
+        const firebaseConfig = {
+            apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc", 
+            authDomain: "sk12-58e9e.firebaseapp.com",
+            projectId: "sk12-58e9e",
+            databaseURL: `https://sk12-58e9e-default-rtdb.firebaseio.com/`, 
+            storageBucket: "sk12-58e9e.appspot.com",
+            messagingSenderId: "470207874652",
+            appId: "1:470207874652:web:67ba1cf3629b7e5b144899"
+        };
+        
+        // Initialize Firebase
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const db = firebase.database();
+        const auth = firebase.auth();
+        let userId = null; 
+        const itemListeners = {}; 
+
+        // Multilingual Search Mapping
+        const transliterationMap = {
+            'onion': 'कांदा', 'potato': 'बटाटा', 'tomato': 'टमाटर', 'milk': 'दूध', 'sugar': 'चीनी', 
+            'salt': 'मीठ', 'rice': 'चावल', 'oil': 'तेल', 'atta': 'आटा', 'bread': 'पाव', 
+            'apple': 'सफरचंद', 'banana': 'केळी', 'tea': 'चहा', 'coffee': 'काॅफी', 'detergent': 'डिटर्जंट', 
+        };
+        
+        // --- Form Tab Switching Logic ---
+        window.showForm = function(mode) {
+            const singleForm = document.getElementById('formSingle');
+            const bulkForm = document.getElementById('formBulk');
+            const tabSingle = document.getElementById('tabSingle');
+            const tabBulk = document.getElementById('tabBulk');
+            
+            // Ensure Shop Name is editable when switching back to single mode
+            document.getElementById('shopName').removeAttribute('readonly'); 
+            document.getElementById('shopName').classList.remove('bg-gray-100');
+
+
+            if (mode === 'bulk') {
+                singleForm.classList.add('hidden');
+                bulkForm.classList.remove('hidden');
+                tabSingle.classList.remove('bg-indigo-500', 'text-white');
+                tabBulk.classList.add('bg-indigo-500', 'text-white');
+                tabSingle.classList.add('text-gray-600', 'hover:bg-gray-100');
+                tabBulk.classList.remove('text-gray-600', 'hover:bg-gray-100');
+            } else {
+                singleForm.classList.remove('hidden');
+                bulkForm.classList.add('hidden');
+                tabBulk.classList.remove('bg-indigo-500', 'text-white');
+                tabSingle.classList.add('bg-indigo-500', 'text-white');
+                tabBulk.classList.add('text-gray-600', 'hover:bg-gray-100');
+                tabSingle.classList.remove('text-gray-600', 'hover:bg-gray-100');
+                
+                // Clear any readonly status set by addToCart
+                const shopNameInput = document.getElementById('shopName');
+                shopNameInput.removeAttribute('readonly');
+                shopNameInput.classList.remove('bg-gray-100');
+            }
+        };
+
+
+
+        function createItemHTML(shopKey, itemKey, item) {
+            const priceDisplay = item.price ? `₹${parseFloat(item.price).toFixed(2)}` : 'N/A';
+            const quantityDisplay = item.unit || 'Unit';
+            const reviewDisplay = item.review ? `<p class="text-xs text-gray-500 italic mt-1 truncate">Note: ${item.review}</p>` : '';
+            
+            // Action buttons - EDIT REMOVED, REVIEW ADDED
+            const actionButtonsHTML = `
+                <button onclick="openEditReviewModal('${shopKey}', '${itemKey}')" title="Add/Edit Review" class="action-btn text-purple-500 hover:bg-purple-100 transition"><i class="fas fa-comment-dots"></i></button>
+                <button onclick="shareItem('${item.shopName}', '${item.itemName}', '${item.price}', '${item.unit}')" title="Share Item" class="action-btn text-green-500 hover:bg-green-100 transition"><i class="fas fa-share-alt"></i></button>
+                <button onclick="deleteItem('${shopKey}', '${itemKey}')" title="Delete Item" class="action-btn text-red-500 hover:bg-red-100 transition"><i class="fas fa-trash-alt"></i></button>
+            `;
+
+            return `
+                <div id="item-${itemKey}" class="flex items-center p-3 bg-gray-50 rounded-lg border border-gray-200 hover:shadow-sm transition duration-200 relative">
+                    <div class="flex-grow grid grid-cols-3 gap-1 items-center text-sm md:text-base">
+                        <p class="item-name font-semibold text-gray-900 truncate">${item.itemName}</p>
+                        <p class="text-gray-600 text-center border-l border-r border-gray-300">${quantityDisplay}</p>
+                        <p class="font-bold text-indigo-600 text-right">${priceDisplay}</p>
+                    </div>
+                    <div class="flex space-x-2 ml-2 flex-shrink-0">
+                        ${actionButtonsHTML}
+                    </div>
+                    <div class="absolute inset-x-0 bottom-0 px-3 pb-1 pt-0.5 flex justify-between">
+                        ${reviewDisplay}
+                    </div>
+                </div>
+            `;
+        }
+
+        function createShopHTML(shopKey, shopName) {
+            const shopActionButtons = `
+                <button onclick="shareShopData('${shopKey}', '${shopName}')" title="Share Full Shop List" class="action-btn p-2 bg-green-100 text-green-600 rounded-full hover:bg-green-200 transition">
+                    <i class="fas fa-share-alt"></i>
+                </button>
+                <button onclick="downloadShopData('${shopKey}', '${shopName}')" title="Download PDF Report" class="action-btn p-2 bg-gray-200 text-gray-700 rounded-full hover:bg-gray-300 transition">
+                    <i class="fas fa-file-pdf"></i>
+                </button>
+                <button onclick="openModal('${shopKey}', '${shopName}')" title="Add Item to ${shopName}" class="p-2 text-sm bg-indigo-100 text-indigo-600 rounded-full hover:bg-indigo-200 transition">
+                    <i class="fas fa-cart-plus"></i>
+                </button>
+            `;
+
+            return `
+                <div id="shop-${shopKey}" data-shop-name="${shopName}" class="shop-card bg-white p-4 rounded-xl shadow-xl border-t-4 border-indigo-500 animate-fadeIn">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-extrabold text-gray-900 flex items-center gap-3"><i class="fas fa-store text-indigo-600"></i> ${shopName}</h3>
+                        <div class="flex space-x-2">
+                            ${shopActionButtons}
+                        </div>
+                    </div>
+                    <div class="item-list-header flex justify-between text-sm font-bold text-gray-500 border-b pb-1 mb-2 ml-3">
+                        <p class="w-1/3">ITEM NAME</p>
+                        <p class="w-1/3 text-center">QUANTITY</p>
+                        <p class="w-1/3 text-right pr-6">PRICE (₹)</p> 
+                    </div>
+                    <div id="items-for-${shopKey}" class="space-y-3">
+                        <p class="text-gray-400 text-center py-2 text-sm" id="shop-empty-${shopKey}">No items in this shop.</p>
+                    </div>
+                </div>
+            `;
+        }
+
+        // --- MODAL LOGIC (Updated to remove old edit modal reference) ---
+window.openModal = function(shopKey, shopName) {
+    const modal = document.getElementById('addItemModal');
+    document.getElementById('modalShopTitle').textContent = shopName;
+    
+    document.getElementById('modalFormShopKey').value = shopKey;
+    document.getElementById('modalFormShopName').value = shopName;
+    
+    modal.classList.remove('hidden');
+    document.body.classList.add('modal-open'); 
+};
+
+window.closeModal = function(modalId) {
+    const modal = document.getElementById(modalId);
+    modal.classList.add('hidden');
+    document.body.classList.remove('modal-open');
+    if (modalId === 'addItemModal') {
+        document.getElementById('modalItemForm').reset(); 
+    } else if (modalId === 'editReviewModal') {
+        document.getElementById('editReviewForm').reset(); 
+    }
+};
+
+// --- NEW: Open Edit Review Modal ---
+window.openEditReviewModal = function(shopKey, itemKey) {
+    if (!userId) { alert("Please log in."); return; }
+    
+    db.ref('users/' + userId + '/shops/' + shopKey + '/items/' + itemKey).once('value')
+        .then(snapshot => {
+            const item = snapshot.val();
+            if (!item) { alert("Item not found!"); return; }
+
+            const modal = document.getElementById('editReviewModal');
+            
+            // Populate hidden fields
+            document.getElementById('reviewShopKey').value = shopKey;
+            document.getElementById('reviewItemKey').value = itemKey;
+            
+            // Populate display and form fields
+            document.getElementById('reviewModalItemNameTitle').textContent = item.itemName;
+            document.getElementById('reviewShopName').value = item.shopName;
+            document.getElementById('editReviewText').value = item.review || '';
+
+            modal.classList.remove('hidden');
+            document.body.classList.add('modal-open'); 
+        })
+        .catch(error => {
+            alert("Failed to load item for review editing: " + error.message);
+        });
+};
+
+// --- FILTERING Logic (Existing) ---
+
+function normalizeSearchTerm(term) {
+    let normalized = term.toLowerCase().trim();
+    for (const english in transliterationMap) {
+        if (normalized.includes(english)) {
+            normalized += `|${transliterationMap[english].toLowerCase()}`;
+        }
+    }
+    return normalized;
+}
+
+window.filterShops = function() {
+    const searchTerm = normalizeSearchTerm(document.getElementById('shopSearch').value);
+    const shopCards = document.querySelectorAll('.shop-card');
+
+    shopCards.forEach(card => {
+        const shopName = card.getAttribute('data-shop-name').toLowerCase();
+        const shopItemsContainer = card.querySelector('.space-y-3');
+        const itemElements = shopItemsContainer.querySelectorAll('.flex-grow .item-name');
+        
+        let shopMatch = shopName.includes(searchTerm);
+        let itemMatch = false;
+
+        itemElements.forEach(itemEl => {
+            const itemName = itemEl.textContent.toLowerCase();
+            const itemCard = itemEl.closest('[id^="item-"]');
+            
+            if (itemName.includes(searchTerm) || shopMatch) {
+                itemCard.style.display = 'flex';
+                itemMatch = true;
+            } else {
+                itemCard.style.display = 'none';
+            }
+        });
+
+        if (shopMatch || itemMatch) {
+            card.style.display = 'block';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+};
+
+
+// --- DELETE/SHARE/EDIT/DOWNLOAD Logic (Existing) ---
+window.deleteItem = function(shopKey, itemKey) {
+    if (confirm("Are you sure you want to delete this single item?")) {
+        db.ref('users/' + userId + '/shops/' + shopKey + '/items/' + itemKey).remove()
+            .catch(error => alert("Failed to delete item: " + error.message));
+    }
+};
+
+window.shareShopData = function(shopKey, shopName) {
+    db.ref('users/' + userId + '/shops/' + shopKey + '/items').once('value')
+        .then(snapshot => {
+            if (!snapshot.exists()) { alert(`No items to share for ${shopName}.`); return; }
+            const items = snapshot.val();
+            let shareText = `🛒 ${shopName} Inventory List:\n`;
+            
+            const sortedItems = Object.values(items).sort((a, b) => a.itemName.localeCompare(b.itemName));
+            
+            sortedItems.forEach(item => {
+                const priceUnit = item.price ? `(₹${item.price} / ${item.unit || 'Unit'})` : '';
+                shareText += `• ${item.itemName} ${priceUnit}\n`;
+            });
+            
+            if (navigator.share) {
+                navigator.share({ title: `Inventory List: ${shopName}`, text: shareText })
+                .catch(error => console.log('Error sharing', error));
+            } else {
+                navigator.clipboard.writeText(shareText)
+                    .then(() => alert(`Full list for ${shopName} copied to clipboard!`))
+                    .catch(err => console.error('Could not copy text: ', err));
+            }
+        })
+        .catch(error => alert("Failed to fetch shop data for sharing: " + error.message));
+};
+
+window.shareItem = function(shopName, itemName, price, unit) {
+    const priceText = price ? `Price: ₹${price} / ${unit}` : 'Price not specified.';
+    const shareText = `Shop: ${shopName}\nItem: ${itemName}\n${priceText}`;
+    if (navigator.share) {
+        navigator.share({ title: 'Inventory Item', text: shareText })
+        .catch(error => console.log('Error sharing', error));
+    } else {
+        navigator.clipboard.writeText(shareText)
+            .then(() => alert('Item details copied to clipboard!'))
+            .catch(err => console.error('Could not copy text: ', err));
+    }
+};
+
+
+// **PDF DOWNLOAD FUNCTION (Existing)**
+window.downloadShopData = function(shopKey, shopName) {
+    
+    const jsPDFConstructor = window.jsPDF || (window.jspdf && window.jspdf.jsPDF);
+    
+    if (!jsPDFConstructor) {
+        alert("PDF library failed to load. Please refresh the page.");
+        return;
+    }
+    
+    const doc = new jsPDFConstructor();
+
+    // Devanagari Regex used for cleaning headers/filenames where standard fonts fail
+    const DevanagariRegex = /[\u0900-\u097F]/g;
+    const englishShopName = shopName.replace(DevanagariRegex, '').trim();
+    const finalShopName = englishShopName.length > 0 ? englishShopName : "Shop List";
+    
+    db.ref('users/' + userId + '/shops/' + shopKey + '/items').once('value')
+        .then(snapshot => {
+            if (!snapshot.exists()) {
+                alert(`No items to download for ${shopName}.`);
+                return;
+            }
+            const items = snapshot.val();
+            const sortedItems = Object.values(items).sort((a, b) => a.itemName.localeCompare(b.itemName));
+
+            // 1. PDF Header (Only the shop name)
+            doc.setFontSize(25);
+            doc.setFont('helvetica', 'bold');
+            doc.text(`${finalShopName}`, 14, 20); 
+
+            // 2. Add sub-info
+            doc.setFontSize(14);
+            doc.setFont('helvetica', 'normal');
+            doc.text(`List generated on: ${new Date().toLocaleDateString()}`, 14, 28); 
+            
+            // 3. Prepare table data
+            const tableColumn = ["Sr No.", "Item Name", "Quantity", "Price"]; 
+            const tableRows = [];
+            let srNo = 1;
+
+            sortedItems.forEach(item => {
+                const priceDisplay = item.price ? parseFloat(item.price).toFixed(2) : 'N/A';
+                const quantityDisplay = item.unit || 'Unit';
+                
+                // ITEM NAME: NO BRACKETS (and strip Devanagari for font compatibility)
+                const englishItemName = item.itemName.replace(DevanagariRegex, '').trim();
+
+                tableRows.push([
+                    srNo++,
+                    englishItemName, 
+                    quantityDisplay,
+                    priceDisplay,
+                ]);
+            });
+
+            // 4. Generate table using autoTable plugin
+            doc.autoTable({
+                head: [tableColumn],
+                body: tableRows,
+                startY: 35, 
+                theme: 'striped',
+                headStyles: { 
+                    fillColor: [51, 102, 204], 
+                    fontStyle: 'bold', 
+                    halign: 'center',
+                    font: 'helvetica', 
+                }, 
+                styles: { 
+                    fontSize: 10, 
+                    cellPadding: 2, 
+                    overflow: 'linebreak',
+                    font: 'helvetica',
+                },
+                columnStyles: {
+                    0: { cellWidth: 15, halign: 'center' }, // Sr No.
+                    1: { cellWidth: 80, halign: 'left' }, // Item Name
+                    2: { cellWidth: 35, halign: 'center' }, // Quantity
+                    3: { cellWidth: 35, halign: 'right', headStyles: { halign: 'right' } }, // Price header aligned right
+                }
+            });
+
+            // 5. Save the PDF file
+            doc.save(`${finalShopName.replace(/[^a-zA-Z0-9]/g, '_')}_Inventory.pdf`);
+            
+
+        })
+        .catch(error => alert("Failed to generate PDF: " + error.message));
+};
+
+
+// --- Firebase CRUD Operations (Save/Update) ---
+
+function saveItem(shopName, itemName, price, unit, review) {
+    if (!userId) { alert("Please log in to save data."); return; }
+    if (!shopName || !itemName) { alert("Shop Name and Item Name are compulsory."); return; }
+
+    document.getElementById('addItemButton').disabled = true;
+    document.getElementById('addItemButton').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+    const sanitizedShopName = shopName.toLowerCase().replace(/[^a-z0-9\u0900-\u097F]/g, '_'); // Allow Devanagari in key if needed
+    const shopRef = db.ref('users/' + userId + '/shops/' + sanitizedShopName);
+    const itemRef = shopRef.child('items').push();
+
+    const itemData = {
+        shopName: shopName, 
+        itemName: itemName,
+        price: price ? parseFloat(price) : null, 
+        unit: unit || 'Unit',
+        review: review || null, 
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+    };
+
+    return itemRef.set(itemData)
+        .then(() => { 
+            document.getElementById('shopItemForm').reset(); 
+            // Unlock shop name field after successful save
+            document.getElementById('shopName').removeAttribute('readonly'); 
+            document.getElementById('shopName').classList.remove('bg-gray-100');
+        })
+        .catch(error => { throw new Error("Failed to save item: " + error.message); })
+        .finally(() => {
+            document.getElementById('addItemButton').disabled = false;
+            document.getElementById('addItemButton').innerHTML = '<i class="fas fa-save"></i> Save Single Item';
+        });
+}
+
+// Form Submission Listener for Single Item (Main Page)
+document.getElementById('shopItemForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const shopName = document.getElementById('shopName').value.trim();
+    const itemName = document.getElementById('itemName').value.trim();
+    const price = document.getElementById('price').value.trim();
+    const unit = document.getElementById('unit').value.trim();
+    const review = document.getElementById('review').value.trim();
+    
+    saveItem(shopName, itemName, price, unit, review)
+        .then(() => alert('Item saved successfully!'))
+        .catch(error => alert(error.message));
+});
+
+// Form Submission Listener for Modal Item
+document.getElementById('modalItemForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const shopName = document.getElementById('modalFormShopName').value;
+    const shopKey = document.getElementById('modalFormShopKey').value;
+    const itemName = document.getElementById('modalItemName').value.trim();
+    const price = document.getElementById('modalPrice').value.trim();
+    const unit = document.getElementById('modalUnit').value.trim();
+    const review = document.getElementById('modalReview').value.trim(); 
+    
+    if (!userId) { alert("Please log in to save data."); return; }
+    if (!shopName || !itemName) { alert("Item Name is compulsory."); return; }
+
+    document.getElementById('modalAddItemButton').disabled = true;
+    document.getElementById('modalAddItemButton').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+    const shopItemsRef = db.ref('users/' + userId + '/shops/' + shopKey + '/items');
+    const itemRef = shopItemsRef.push();
+
+    const itemData = {
+        shopName: shopName, 
+        itemName: itemName,
+        price: price ? parseFloat(price) : null, 
+        unit: unit || 'Unit',
+        review: review || null,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+    };
+
+    itemRef.set(itemData)
+        .then(() => { 
+            alert(`Item saved successfully to ${shopName}!`);
+            closeModal('addItemModal'); 
+        })
+        .catch(error => { 
+            alert("Failed to save item: " + error.message); 
+        })
+        .finally(() => {
+            document.getElementById('modalAddItemButton').disabled = false;
+            document.getElementById('modalAddItemButton').innerHTML = '<i class="fas fa-save"></i> Save Item to Shop';
+        });
+});
+
+// --- NEW: Form Submission Listener for Edit Review Modal ---
+document.getElementById('editReviewForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const shopKey = document.getElementById('reviewShopKey').value;
+    const itemKey = document.getElementById('reviewItemKey').value;
+    const reviewText = document.getElementById('editReviewText').value.trim();
+    
+    if (!userId || !shopKey || !itemKey) { alert("Error: Missing item or shop reference."); return; }
+
+    document.getElementById('editReviewSaveButton').disabled = true;
+    document.getElementById('editReviewSaveButton').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Updating...';
+    
+    const itemRef = db.ref('users/' + userId + '/shops/' + shopKey + '/items/' + itemKey);
+
+    // Only update the 'review' field
+    itemRef.update({
+        review: reviewText || null,
+    })
+    .then(() => { 
+        closeModal('editReviewModal'); 
+    })
+    .catch(error => { 
+        alert("Failed to update review: " + error.message); 
+    })
+    .finally(() => {
+        document.getElementById('editReviewSaveButton').disabled = false;
+        document.getElementById('editReviewSaveButton').innerHTML = '<i class="fas fa-save"></i> Save Review';
+    });
+});
+
+
+// --- Bulk Entry Logic (Existing) ---
+function parseBulkLine(line, shopName) {
+    const parts = line.split(',').map(p => p.trim());
+    
+    if (parts[0].length === 0) { return null; }
+
+    const itemName = parts[0];
+    // Allow for optional quantity/unit, price, and review
+    const unit = parts[1] || 'Unit'; 
+    const priceRaw = parts[2] ? parts[2].replace(/[^0-9.]/g, '') : '';
+    const price = priceRaw ? parseFloat(priceRaw) : null;
+    const review = parts[3] || null;
+
+    if (!itemName) return null;
+
+    return {
+        shopName: shopName, itemName: itemName, price: price, 
+        unit: unit, review: review, timestamp: firebase.database.ServerValue.TIMESTAMP
+    };
+}
+
+document.getElementById('bulkItemForm').addEventListener('submit', function(e) {
+    e.preventDefault();
+    if (!userId) { alert("Please log in to save data."); return; }
+    const shopName = document.getElementById('bulkShopName').value.trim();
+    const rawData = document.getElementById('bulkData').value.trim();
+    if (!shopName || !rawData) { alert("Please enter the Shop Name and paste/type the item data."); return; }
+
+    const lines = rawData.split('\n').filter(line => line.trim().length > 0);
+    const validItems = [];
+    let failedCount = 0;
+
+    lines.forEach(line => {
+        const item = parseBulkLine(line, shopName);
+        if (item) { validItems.push(item); } else { failedCount++; }
+    });
+
+    if (validItems.length === 0) {
+        alert(`No valid items found to save. Please check the format. (${failedCount} lines ignored)`);
+        return;
+    }
+
+    document.getElementById('addBulkButton').disabled = true;
+    document.getElementById('addBulkButton').innerHTML = `<i class="fas fa-spinner fa-spin"></i> Saving ${validItems.length} items...`;
+
+    const sanitizedShopName = shopName.toLowerCase().replace(/[^a-z0-9\u0900-\u097F]/g, '_');
+    const shopItemsRef = db.ref('users/' + userId + '/shops/' + sanitizedShopName + '/items');
+    
+    const updates = {};
+    validItems.forEach(item => { updates[shopItemsRef.push().key] = item; });
+    
+    shopItemsRef.update(updates)
+        .then(() => {
+           
+            document.getElementById('bulkItemForm').reset();
+        })
+        .catch(error => {
+            console.error("Error saving bulk items: ", error);
+            alert("Failed to save all items. Check console for details.");
+        })
+        .finally(() => {
+            document.getElementById('addBulkButton').disabled = false;
+            document.getElementById('addBulkButton').innerHTML = '<i class="fas fa-upload"></i> Save All Items';
+        });
+});
+
+
+// --- Realtime Listeners and Display (Existing) ---
+
+function setupRealtimeItemListeners(shopKey) {
+    if (itemListeners[shopKey]) return; 
+    
+    const itemsRef = db.ref('users/' + userId + '/shops/' + shopKey + '/items');
+    const itemsContainer = document.getElementById(`items-for-${shopKey}`);
+    const shopEmptyMessage = document.getElementById(`shop-empty-${shopKey}`);
+    
+    let itemCount = 0;
+
+    itemsRef.on('child_added', snapshot => {
+        const itemKey = snapshot.key;
+        const item = snapshot.val();
+        
+        // Check if item already exists to prevent duplicates on initial load
+        if (!document.getElementById(`item-${itemKey}`)) {
+            const itemHTML = createItemHTML(shopKey, itemKey, item);
+            itemsContainer.insertAdjacentHTML('beforeend', itemHTML);
+            itemCount++;
+            if (shopEmptyMessage) shopEmptyMessage.classList.add('hidden');
+            updateShopCount(); 
+        }
+    }, error => console.error(`Error adding item for ${shopKey}:`, error));
+
+    itemsRef.on('child_changed', snapshot => {
+        const itemKey = snapshot.key;
+        const item = snapshot.val();
+        const oldItemEl = document.getElementById(`item-${itemKey}`);
+        if (oldItemEl) {
+            // Replace the old HTML with the new HTML to update all fields (including the review note)
+            const newItemHTML = createItemHTML(shopKey, itemKey, item);
+            const tempDiv = document.createElement('div');
+            tempDiv.innerHTML = newItemHTML.trim();
+            oldItemEl.parentNode.replaceChild(tempDiv.firstChild, oldItemEl);
+        }
+    }, error => console.error(`Error changing item for ${shopKey}:`, error));
+    
+    itemsRef.on('child_removed', snapshot => {
+        const itemKey = snapshot.key;
+        const itemEl = document.getElementById(`item-${itemKey}`);
+        if (itemEl) {
+            itemEl.remove();
+            itemCount--;
+            // The actual count should be derived from the DOM elements for robustness
+            const currentItems = itemsContainer.querySelectorAll('[id^="item-"]').length;
+            
+            if (currentItems === 0 && shopEmptyMessage) {
+                shopEmptyMessage.classList.remove('hidden');
+                checkIfShopIsEmpty(shopKey); 
+            }
+            updateShopCount(); 
+        }
+    }, error => console.error(`Error removing item for ${shopKey}:`, error));
+
+    itemListeners[shopKey] = itemsRef; 
+}
+
+function checkIfShopIsEmpty(shopKey) {
+    const shopRef = db.ref('users/' + userId + '/shops/' + shopKey);
+    shopRef.once('value').then(snapshot => {
+        const shopData = snapshot.val();
+        if (shopData && (!shopData.items || Object.keys(shopData.items).length === 0)) {
+            // Only remove the shop node if it truly has no items
+            db.ref('users/' + userId + '/shops/' + shopKey).remove()
+                .then(() => {
+                    console.log(`Empty shop ${shopKey} removed from DB.`);
+                })
+                .catch(err => console.error("Failed to remove empty shop:", err));
+        }
+    });
+}
+
+
+function setupRealtimeListener(uid) {
+    const inventoryDisplay = document.getElementById('inventoryDisplay');
+    const loadingMessage = document.getElementById('loadingMessage');
+    const emptyMessage = document.getElementById('emptyMessage');
+    
+    loadingMessage.classList.remove('hidden');
+    emptyMessage.classList.add('hidden');
+    // Clear existing listeners
+    for (const key in itemListeners) {
+        if (itemListeners[key]) itemListeners[key].off();
+        delete itemListeners[key];
+    }
+    inventoryDisplay.innerHTML = ''; 
+
+    const shopsRef = db.ref('users/' + uid + '/shops');
+    let initialLoadComplete = false;
+
+    // Wait for initial load to determine if the list is empty
+    shopsRef.once('value', snapshot => {
+        loadingMessage.classList.add('hidden');
+        if (!snapshot.exists() || snapshot.numChildren() === 0) {
+            emptyMessage.classList.remove('hidden');
+        }
+        initialLoadComplete = true;
+    }, error => {
+        console.error("Initial shop load failed:", error);
+        loadingMessage.textContent = 'Error loading data.';
+    });
+    
+    const updateShopCount = () => {
+        const shopCount = inventoryDisplay.querySelectorAll('.shop-card').length;
+        if (initialLoadComplete) {
+            if (shopCount === 0) {
+                emptyMessage.classList.remove('hidden');
+            } else {
+                emptyMessage.classList.add('hidden');
+            }
+        }
+    }
+    window.updateShopCount = updateShopCount; 
+
+    shopsRef.on('child_added', snapshot => {
+        const shopKey = snapshot.key;
+        const shopData = snapshot.val();
+        
+        // Derive a clean shop name for the display header
+        const firstItem = shopData.items ? Object.values(shopData.items)[0] : null;
+        const shopName = firstItem && firstItem.shopName 
+            ? firstItem.shopName 
+            : shopKey.split('_').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' '); 
+
+        if (!document.getElementById(`shop-${shopKey}`)) {
+            const shopCard = createShopHTML(shopKey, shopName);
+            inventoryDisplay.insertAdjacentHTML('beforeend', shopCard);
+            setupRealtimeItemListeners(shopKey); 
+        }
+        updateShopCount();
+    }, error => console.error("Error adding shop:", error));
+
+    shopsRef.on('child_removed', snapshot => {
+        const shopKey = snapshot.key;
+        const shopCard = document.getElementById(`shop-${shopKey}`);
+        if (shopCard) {
+            shopCard.remove();
+            if (itemListeners[shopKey]) {
+                itemListeners[shopKey].off();
+                delete itemListeners[shopKey];
+            }
+        }
+        updateShopCount();
+    });
+    
+    
+    shopsRef.on('child_changed', snapshot => {
+        const shopKey = snapshot.key;
+        const shopData = snapshot.val();
+        const shopCard = document.getElementById(`shop-${shopKey}`);
+        
+        if (shopCard) {
+            const firstItem = shopData.items ? Object.values(shopData.items)[0] : null;
+            const newShopName = firstItem && firstItem.shopName ? firstItem.shopName : shopKey;
+            
+            // Update the shop header text and data attribute
+            shopCard.querySelector('h3').innerHTML = `<i class="fas fa-store text-indigo-600"></i> ${newShopName}`;
+            shopCard.setAttribute('data-shop-name', newShopName);
+        }
+    });
+}
+
+// --- NEW: Placeholder for Unit Fields ---
+document.addEventListener('DOMContentLoaded', () => {
+    const placeholderText = 'e.g., 1kg, 2L, 500g, 1 piece';
+
+    // 1. Main Form Unit field (ID: unit)
+    const mainUnitInput = document.getElementById('unit');
+    if (mainUnitInput) {
+        mainUnitInput.setAttribute('placeholder', placeholderText);
+    }
+
+    // 2. Modal Form Unit field (ID: modalUnit)
+    const modalUnitInput = document.getElementById('modalUnit');
+    if (modalUnitInput) {
+        modalUnitInput.setAttribute('placeholder', placeholderText);
+    }
+});
+
+
+       
+        auth.onAuthStateChanged(user => {
+            const defaultPhoto = "https://via.placeholder.com/40";
+            const loginRedirect = "login.html"; 
+
+            if (user) {
+                userId = user.uid;
+                
+                const displayName = user.displayName || "Inventory Manager";
+                const email = user.email || "No Email";
+                const photoURL = user.photoURL || defaultPhoto;
+
+                document.getElementById('userName').textContent = displayName;
+                document.getElementById('userEmail').textContent = email;
+                document.getElementById('userPhoto').src = photoURL;
+                document.getElementById('mobileUserName').textContent = displayName;
+                document.getElementById('mobileUserEmail').textContent = email;
+
+                setupRealtimeListener(userId);
+
+            } else {
+                // Fallback for testing without Firebase Auth
+                // NOTE: If you run this without auth, CRUD operations will fail.
+                userId = 'test_user_id'; 
+                document.getElementById('userName').textContent = "Test User";
+                document.getElementById('userEmail').textContent = "test@example.com";
+                setupRealtimeListener(userId); 
+                
+               
+            }
+        });
+
+        window.logout = function() {
+            auth.signOut().then(() => {
+                 // Redirect to login page or a logged-out state
+                 window.location.href = "index.html"; 
+            }).catch(error => {
+                console.error("Logout failed:", error);
+                alert("Logout failed. Please try again.");
+            });
+        };
+        
+        document.getElementById('menu-btn').addEventListener('click', function() {
+            const mobileMenu = document.getElementById('mobileMenu');
+            mobileMenu.classList.toggle('hidden');
+        });
+    </script>
+
+<style>
+
+.card {
+    border-radius: 0.5rem; 
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06); 
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fadeIn {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Navbar Links (Desktop) */
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    border-radius: 0.5rem;
+    color: #4b5563;
+    transition: all 0.2s ease-in-out;
+}
+
+.nav-link:hover {
+    color: #4f46e5;
+    background-color: #eef2ff;
+}
+
+/* Mobile Navigation Links */
+.mobile-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    color: #4b5563;
+    font-weight: 500;
+    transition: background-color 0.2s;
+}
+
+.mobile-nav-link:hover {
+    background-color: #e0e7ff;
+    color: #4f46e5;
+}
+
+/* Modal Overlay Styles */
+.modal-overlay {
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(2px);
+}
+
+.modal-content {
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* ===================================================================
+   Mobile/Tablet Responsive Overrides (max-width: 1023px)
+   =================================================================== */
+@media (max-width: 1023px) {
+    /* --- Global Layout and Typography --- */
+
+    /* Ensure both flex items in the main area take full width */
+    .flex.flex-col.lg\:flex-row > section {
+        width: 100% !important; /* Override lg:w-1/3 and lg:w-2/3 */
+    }
+
+    /* Adjust Main Logo/Title */
+    .flex.items-center.gap-2.text-xl.font-bold {
+        /* This container is responsible for overall size */
+        font-size: 1.25rem; /* text-xl */
+    }
+    
+    .flex.items-center.gap-2.text-xl.font-bold span {
+        /* *** INCREASED WEBSITE NAME FONT SIZE (from 18px to 20px) *** */
+        font-size: 20px !important; 
+    }
+    /* ----------------------------------------------------------------- */
+
+    /* Remaining Layout and Padding Adjustments */
+    .container { padding-left: 1rem !important; padding-right: 1rem !important; }
+    main.container { padding: 1rem !important; }
+    .p-6.bg-white.card { padding: 1rem !important; }
+    main { margin-top: calc(3rem + 2rem); }
+    .hidden.md\:flex.items-center.gap-4 { display: none !important; }
+    .text-3xl.font-extrabold { font-size: 2rem !important; margin-bottom: 1rem; padding-bottom: 0.5rem; }
+    .text-2xl.font-semibold { font-size: 1.25rem !important; }
+    .shop-header { font-size: 1rem; padding-top: 0.25rem; padding-bottom: 0.25rem; }
+    button, input, textarea { padding: 0.6rem !important; }
+    
+    /* --- Inventory Display Adjustments (Dynamic HTML) --- */
+
+    /* Shop Card and Shop Action Buttons */
+    .shop-card { padding: 0.75rem !important; }
+    .shop-card .text-xl.font-extrabold { font-size: 1.125rem; gap: 0.5rem !important; }
+    .shop-card .flex.space-x-2 { space-x: 0.5rem !important; }
+    .shop-card .flex.space-x-2 button { padding: 0.4rem !important; font-size: 0.875rem; width: 32px; height: 32px; }
+
+    /* Item List Header: Uses custom grid to prioritize item name */
+    .item-list-header {
+        padding-bottom: 0.25rem !important;
+        margin-bottom: 0.5rem !important;
+        font-size: 0.65rem !important;
+        padding-left: 0.5rem;
+        padding-right: 2rem; 
+        display: grid;
+        grid-template-columns: 55% 20% 25%;
+    }
+
+    /* Individual Item Row */
+    .flex.items-center.p-3.bg-gray-50 { padding: 0.5rem !important; min-height: 55px; align-items: flex-start; }
+    #item- .flex-grow.grid.grid-cols-3 { font-size: 0.875rem; display: grid; grid-template-columns: 55% 20% 25%; gap: 0; }
+    .item-name { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+
+    /* Item Action Buttons container and hidden buttons */
+    #item- .flex.space-x-2.ml-2.flex-shrink-0 { margin-left: 0.5rem !important; gap: 0.15rem; position: absolute; right: 0.5rem; top: 0.5rem; }
+    .action-btn.text-green-500, /* Share button */
+    .action-btn.text-red-500 { display: none !important; } /* Delete button */
+
+    /* Remaining Item Action Button (Review) */
+    .action-btn { padding: 0.3rem !important; font-size: 0.65rem !important; width: 25px; height: 25px; }
+
+    /* Adjust Review/Notes Display padding */
+    #item- .absolute.inset-x-0.bottom-0 {
+        bottom: 0px !important; 
+        padding-top: 0 !important;
+        padding-bottom: 0.2rem !important;
+        padding-left: 0.5rem !important;
+        padding-right: 2.5rem; 
+    }
+
+    #item- .text-xs.text-gray-500.italic { font-size: 0.6rem !important; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%; display: block; }
+}
+</style>
+<script>
+    // 1. Get the menu button and the mobile menu container using their IDs
+    const menuBtn = document.getElementById('menu-btn');
+    const mobileMenu = document.getElementById('mobileMenu');
+
+    if (menuBtn && mobileMenu) {
+        // 2. Add the click event listener
+        menuBtn.addEventListener('click', () => {
+            // Toggle the 'hidden' class to show/hide the menu
+            mobileMenu.classList.toggle('hidden');
+            
+            // 3. Optional: Change the icon for visual feedback
+            const icon = menuBtn.querySelector('i');
+            if (icon) {
+                if (mobileMenu.classList.contains('hidden')) {
+                    // Menu is closed: show bars icon
+                    icon.classList.remove('fa-times');
+                    icon.classList.add('fa-bars');
+                } else {
+                    // Menu is open: show X icon
+                    icon.classList.remove('fa-bars');
+                    icon.classList.add('fa-times');
+                }
+            }
+        });
+    }
+
+    
+</script>
+</html>

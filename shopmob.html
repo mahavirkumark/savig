@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Personal Website - Shop Inventory Management</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    
+    <style>
+        /* Custom styles for appearance and animation */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn {
+            animation: fadeIn 0.5s ease-out;
+        }
+        
+        .card {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+            border-radius: 0.75rem; 
+            transition: transform 0.3s ease-in-out;
+        }
+        .card:hover {
+            /* Laptop/Desktop Only: Keep hover effect */
+            transform: translateY(-3px); 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+        }
+        /* Mobile/Tablet Tweak: Remove hover effect on small screens */
+        @media (max-width: 1023px) {
+            .card:hover {
+                transform: none; 
+                box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
+            }
+        }
+        
+        /* INCREASED SIZE for action buttons - BETTER FOR TOUCH */
+        .action-btn {
+            font-size: 1.2rem; /* Reduced slightly for better fit in mobile rows */
+            padding: 0.6rem; /* Slightly reduced padding */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%; 
+            line-height: 1;
+            flex-shrink: 0;
+            transition: background-color 0.2s;
+            /* Added min-width/height for guaranteed touch target */
+            min-width: 44px;
+            min-height: 44px;
+        }
+        .action-btn i {
+            font-size: 1.2rem;
+        }
+
+        /* Mobile/Tablet Nav Link Styling */
+        .mobile-nav-link {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 8px;
+            gap: 10px;
+            font-size: 16px;
+            color: #1f2937;
+            transition: background-color 0.2s;
+        }
+        .mobile-nav-link:hover {
+            background-color: #eef2ff; /* Light indigo hover */
+        }
+        /* Nav Link Styling for desktop (lg screen and up) */
+        .nav-link {
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 300ms;
+            color: #4b5563; 
+        }
+        .nav-link:hover {
+            color: #3b82f6; 
+            transform: translateY(-2px);
+        }
+
+        /* SCROLLBAR ADDITION */
+        #inventoryDisplay {
+            max-height: 60vh; /* Reduced max height slightly for more mobile space */
+            overflow-y: auto; 
+            padding-right: 15px;
+        }
+        
+        /* Shop Management Header - Tweak size for mobile */
+        .shop-header {
+            font-size: 20px; /* Smaller size for mobile */
+            color: #1f2937; 
+            font-weight: 700; 
+        }
+        @media (min-width: 768px) {
+            .shop-header {
+                font-size: 25px; /* Original size on tablet/desktop */
+            }
+        }
+        
+        /* Item List Header Styling - Ensure it flexes nicely */
+        .item-list-header {
+            font-size: 0.875rem; 
+            font-weight: 700; 
+            color: #6b7280; 
+            border-bottom: 1px solid #e5e7eb; 
+            padding-bottom: 0.25rem; 
+            margin-bottom: 0.5rem; 
+            margin-left: 0.75rem; 
+            display: flex; 
+            justify-content: space-between;
+        }
+        
+        /* Modal specific styles */
+        .modal-overlay {
+            background-color: rgba(0, 0, 0, 0.6); /* Slightly darker overlay for mobile focus */
+            transition: opacity 0.3s ease;
+        }
+        .modal-content {
+            max-height: 95vh; /* Allow more height on mobile */
+            overflow-y: auto;
+            transform: scale(0.95);
+            transition: transform 0.3s ease, opacity 0.3s ease;
+            margin: 10px; /* Added margin for mobile to not hit edges */
+        }
+        .modal-open .modal-content {
+            transform: scale(1);
+        }
+
+        /* Shop Item Container Styling for better list-item feel */
+        .shop-item-container {
+            display: grid;
+            grid-template-columns: 1fr 4fr 1.5fr; /* Name | Details | Actions */
+            align-items: center;
+            gap: 0.5rem; /* Gap between columns */
+        }
+        @media (min-width: 768px) {
+            .shop-item-container {
+                grid-template-columns: 2fr 1fr 1fr 0.5fr; /* More space for price/unit on tablet/desktop */
+            }
+        }
+
+        /* Mobile specific style for the Item Name/Details column */
+        .item-details-mobile {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+
+    <nav class="bg-white shadow-lg fixed w-full z-50 top-0">
+        <div class="container mx-auto flex justify-between items-center p-4 md:px-8">
+            
+            <div class="flex items-center gap-2 text-xl font-bold text-gray-800 flex-shrink-0">
+                <i class="fas fa-user-circle" style="font-size: 28px; color: #4f46e5;"></i>
+                <span style="font-size: 22px;">My Personal Website</span>
+            </div>
+            
+            <div class="hidden lg:flex space-x-6 font-medium flex-grow justify-center">
+                <a href="home.html" class="nav-link"><i class="fas fa-house"></i> Home</a>
+                <a href="birthday.html" class="nav-link"><i class="fas fa-birthday-cake"></i> Birthday</a>
+                <a href="password.html" class="nav-link"><i class="fas fa-key"></i> Passwords</a>
+                <a href="income.html" class="nav-link"><i class="fas fa-wallet"></i> Income</a>
+                <a href="links.html" class="nav-link"><i class="fas fa-link"></i> Links</a>
+                <a href="calendar.html" class="nav-link"><i class="fas fa-calendar-alt"></i> Calendar</a>
+            </div>
+            
+            <div class="hidden md:flex items-center gap-4 flex-shrink-0 ml-4">
+                <div class="text-right">
+                    <p id="userName" class="font-bold text-gray-900">Loading...</p>
+                    <p id="userEmail" class="text-sm text-gray-500">Loading...</p>
+                </div>
+                <img id="userPhoto" src="https://via.placeholder.com/40" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #4f46e5;">
+                <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-full hover:bg-red-600 transition duration-300">Logout</button>
+            </div>
+
+            <button id="menu-btn" class="lg:hidden text-gray-700 text-2xl"><i class="fas fa-bars"></i></button>
+        </div>
+
+        <div id="mobileMenu" class="hidden lg:hidden flex flex-col px-4 pb-4 space-y-2 text-sm text-gray-700 font-medium bg-gray-50">
+            <a href="home.html" class="mobile-nav-link"><i class="fas fa-house w-5"></i> Home</a>
+            <a href="birthday.html" class="mobile-nav-link"><i class="fas fa-birthday-cake w-5"></i> Birthday</a>
+            <a href="password.html" class="mobile-nav-link"><i class="fas fa-key w-5"></i> Passwords</a>
+            <a href="income.html" class="mobile-nav-link"><i class="fas fa-wallet w-5"></i> Income</a>
+            <a href="links.html" class="mobile-nav-link"><i class="fas fa-link w-5"></i> Links</a>
+            <a href="calendar.html" class="mobile-nav-link"><i class="fas fa-calendar-alt w-5"></i> Calendar</a>
+            <div class="border-t border-gray-300 mt-2 pt-2 md:hidden"> <p id="mobileUserName" class="font-bold text-gray-900">Loading...</p>
+                <p id="mobileUserEmail" class="text-xs text-gray-500">Loading...</p>
+                <button onclick="logout()" class="bg-red-500 text-white px-3 py-2 rounded-full hover:bg-red-600 mt-2 w-full">Logout</button>
+            </div>
+        </div>
+    </nav>
+    
+    <div class="w-full pt-2 pb-2 bg-white mt-16 sm:mt-16 z-40 shadow border-b border-gray-200 fixed top-0">
+        <div class="container mx-auto px-4 md:px-8">
+            <span class="shop-header text-left block">🛍️ Shop Management</span>
+        </div>
+    </div>
+
+    <main class="container mx-auto p-4 md:p-8 flex-grow pt-28 sm:pt-28 lg:pt-24"> 
+        
+        <div class="flex flex-col lg:flex-row gap-8"> 
+            
+            <section class="w-full lg:w-1/3 space-y-6">
+                
+                <div class="flex justify-center bg-white p-1 rounded-lg shadow-md">
+                    <button id="tabSingle" onclick="showForm('single')" class="flex-1 py-3 px-4 text-center text-base font-bold rounded-lg transition duration-300 bg-indigo-500 text-white">
+                        <i class="fas fa-plus-circle"></i> Single Item
+                    </button>
+                    <button id="tabBulk" onclick="showForm('bulk')" class="flex-1 py-3 px-4 text-center text-base font-bold rounded-lg transition duration-300 text-gray-600 hover:bg-gray-100">
+                        <i class="fas fa-paste"></i> Bulk Entry
+                    </button>
+                </div>
+
+                <div id="formSingle" class="p-4 sm:p-6 bg-white card animate-fadeIn">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Single Item Entry</h2>
+                    <form id="shopItemForm" class="space-y-4">
+                        <input type="hidden" id="modalShopKey" name="modalShopKey" value="">
+                        <input type="hidden" id="modalShopName" name="modalShopName" value="">
+
+                        <div>
+                            <label for="shopName" class="block text-sm font-medium text-gray-700">Shop Name <span class="text-red-500">*</span></label>
+                            <input type="text" id="shopName" name="shopName" required
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500"
+                                placeholder="e.g., Corner Grocer">
+                        </div>
+
+                        <div>
+                            <label for="itemName" class="block text-sm font-medium text-gray-700">Item Name <span class="text-red-500">*</span></label>
+                            <input type="text" id="itemName" name="itemName" required
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500"
+                                placeholder="e.g., Apple, Detergent">
+                        </div>
+
+                        <div class="flex gap-4">
+                            <div class="w-1/2">
+                                <label for="unit" class="block text-sm font-medium text-gray-700">Quantity (Per...)</label>
+                                <input 
+                                    type="text" 
+                                    id="unit" 
+                                    name="unit" 
+                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500"
+                                    placeholder="e.g., 1kg, 2L, 500g, piece" 
+                                    value="Unit"
+                                >
+                            </div>
+                            <div class="w-1/2">
+                                <label for="price" class="block text-sm font-medium text-gray-700">Price (₹)</label>
+                                <div class="relative mt-1">
+                                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 font-bold">₹</span>
+                                    <input type="number" id="price" name="price" step="0.01"
+                                        class="block w-full border border-gray-300 rounded-md shadow-sm p-3 pl-8 focus:ring-indigo-500 focus:border-indigo-500"
+                                        placeholder="0.00">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div>
+                            <label for="review" class="block text-sm font-medium text-gray-700">Review/Notes</label>
+                            <textarea id="review" name="review" rows="2"
+                                    class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500"
+                                    placeholder="Notes on sale price, quality, etc."></textarea>
+                        </div>
+
+                        <button type="submit" id="addItemButton"
+                                class="w-full flex items-center justify-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-lg text-lg font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 transform hover:scale-105">
+                            <i class="fas fa-save"></i> Save Single Item
+                        </button>
+                    </form>
+                </div>
+                
+                <div id="formBulk" class="p-4 sm:p-6 bg-white card animate-fadeIn hidden">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4 border-b pb-2">Bulk Entry Mode</h2>
+                    <form id="bulkItemForm" class="space-y-4">
+                        <div>
+                            <label for="bulkShopName" class="block text-sm font-medium text-gray-700">Shop Name <span class="text-red-500">*</span></label>
+                            <input type="text" id="bulkShopName" required
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500"
+                                placeholder="e.g., Reliance Smart">
+                        </div>
+
+                        <div>
+                            <label for="bulkData" class="block text-sm font-medium text-gray-700">Paste/Enter Multiple Items</label>
+                            <textarea id="bulkData" rows="6" required
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500"
+                                placeholder="Format: Item Name, Quantity/Unit, Price, Review (one per line)&#10;&#10;Example:&#10;Onions, kg, 45, Good quality&#10;Toothpaste (Colgate), Unit, 120, Buy 1 Get 1 free&#10;Biscuits (Parle G), Packet, 25, Always cheap">
+                            </textarea>
+                            <p class="text-xs text-gray-500 mt-1">Use commas (,) to separate fields. Quantity/Unit can be 'kg', 'L', 'Unit', etc. Price and Review are optional.</p>
+                        </div>
+
+                        <button type="submit" id="addBulkButton"
+                                class="w-full flex items-center justify-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-lg text-lg font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition duration-150 transform hover:scale-105">
+                            <i class="fas fa-upload"></i> Save All Items
+                        </button>
+                    </form>
+                </div>
+            </section>
+            
+            <section class="w-full lg:w-2/3 p-4 sm:p-6 bg-white card animate-fadeIn" style="animation-delay: 0.2s;">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4 border-b pb-2">Shops & Inventory</h2>
+                
+                <div class="flex justify-between items-center mb-6 gap-4">
+                    <div class="flex items-center border border-gray-300 rounded-lg bg-gray-50 focus-within:ring-2 focus-within:ring-indigo-500 transition duration-300 w-full">
+                        <i class="fas fa-search text-gray-400 p-3"></i>
+                        <input type="text" id="shopSearch" onkeyup="filterShops()"
+                            class="w-full bg-transparent p-2 outline-none"
+                            placeholder="Search (Supports English, Marathi, Hindi transliteration)...">
+                    </div>
+                </div>
+
+                <div id="inventoryDisplay" class="space-y-6">
+                    <p class="text-gray-500 text-center py-4" id="loadingMessage">Loading inventory...</p>
+                    <p class="text-gray-500 text-center py-4 hidden" id="emptyMessage">No shops added yet. Use the form on the left to start!</p>
+                </div>
+            </section>
+        </div>
+        
+        <div id="addItemModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-4 sm:p-6 modal-content">
+                <div class="flex justify-between items-center border-b pb-3 mb-4">
+                    <h2 class="text-xl sm:text-2xl font-bold text-gray-800 flex items-center gap-2"><i class="fas fa-cart-plus text-indigo-500"></i> Add Item to <span id="modalShopTitle" class="text-indigo-600">Shop</span></h2>
+                    <button onclick="closeModal('addItemModal')" class="text-gray-400 hover:text-gray-600 text-3xl">&times;</button>
+                </div>
+                <form id="modalItemForm" class="space-y-4">
+                    <input type="hidden" id="modalFormShopKey" name="modalFormShopKey" value="">
+                    <input type="hidden" id="modalFormShopName" name="modalFormShopName" value="">
+                    
+                    <div class="bg-indigo-50 p-3 rounded-lg border border-indigo-200">
+                        <label for="modalItemName" class="block text-sm font-medium text-gray-700">Item Name <span class="text-red-500">*</span></label>
+                        <input type="text" id="modalItemName" name="modalItemName" required
+                            class="mt-1 block w-full border border-indigo-300 rounded-md shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500"
+                            placeholder="e.g., Apple, Detergent">
+                    </div>
+
+                    <div class="flex gap-4">
+                        <div class="w-1/2">
+                            <label for="modalUnit" class="block text-sm font-medium text-gray-700">Quantity (Per...)</label>
+                            <input 
+                                type="text" 
+                                id="modalUnit" 
+                                name="modalUnit" 
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500"
+                                placeholder="e.g., 1kg, 2L, 500g, piece" 
+                                value="Unit"
+                            >
+                        </div>
+                        <div class="w-1/2">
+                            <label for="modalPrice" class="block text-sm font-medium text-gray-700">Price (₹)</label>
+                            <div class="relative mt-1">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 font-bold">₹</span>
+                                <input type="number" id="modalPrice" name="modalPrice" step="0.01"
+                                    class="block w-full border border-gray-300 rounded-md shadow-sm p-3 pl-8 focus:ring-indigo-500 focus:border-indigo-500"
+                                    placeholder="0.00">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label for="modalReview" class="block text-sm font-medium text-gray-700">Review/Notes</label>
+                        <textarea id="modalReview" name="modalReview" rows="2"
+                                class="mt-1 block w-full border border-gray-300 rounded-md shadow-sm p-3 focus:ring-indigo-500 focus:border-indigo-500"
+                                placeholder="Notes on sale price, quality, etc."></textarea>
+                    </div>
+
+                    <button type="submit" id="modalAddItemButton"
+                            class="w-full flex items-center justify-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-lg text-lg font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-150 transform hover:scale-105">
+                        <i class="fas fa-save"></i> Save Item to Shop
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div id="editReviewModal" class="hidden fixed inset-0 z-50 flex items-center justify-center modal-overlay">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-lg p-4 sm:p-6 modal-content">
+                <div class="flex justify-between items-center border-b pb-3 mb-4">
+                    <h2 class="text-xl sm:text-2xl font-bold text-gray-800 flex items-center gap-2"><i class="fas fa-comment-dots text-purple-500"></i> Update Review for <span id="reviewModalItemNameTitle" class="text-purple-600"></span></h2>
+                    <button onclick="closeModal('editReviewModal')" class="text-gray-400 hover:text-gray-600 text-3xl">&times;</button>
+                </div>
+                <form id="editReviewForm" class="space-y-4">
+                    <input type="hidden" id="reviewShopKey" value="">
+                    <input type="hidden" id="reviewItemKey" value="">
+                    
+                    <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                        <label for="reviewShopName" class="block text-sm font-medium text-gray-700">Shop</label>
+                        <input type="text" id="reviewShopName" readonly
+                            class="mt-1 block w-full bg-gray-100 border border-gray-300 rounded-md shadow-sm p-3">
+                    </div>
+
+                    <div>
+                        <label for="editReviewText" class="block text-sm font-medium text-gray-700">Review/Notes</label>
+                        <textarea id="editReviewText" name="editReviewText" rows="3"
+                                class="mt-1 block w-full border border-purple-300 rounded-md shadow-sm p-3 focus:ring-purple-500 focus:border-purple-500"
+                                placeholder="Enter your notes here."></textarea>
+                    </div>
+
+                    <button type="submit" id="editReviewSaveButton"
+                            class="w-full flex items-center justify-center gap-2 py-3 px-4 border border-transparent rounded-lg shadow-lg text-lg font-medium text-white bg-purple-600 hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 transition duration-150 transform hover:scale-105">
+                        <i class="fas fa-save"></i> Save Review
+                    </button>
+                </form>
+            </div>
+        </div>
+    </main>
+<script>
+    // Placeholder for JavaScript functions (logout, showForm, filterShops, openModal, closeModal, etc.)
+    function logout() { console.log('Logout clicked'); }
+    function showForm(form) {
+        document.getElementById('formSingle').classList.add('hidden');
+        document.getElementById('formBulk').classList.add('hidden');
+        document.getElementById('tabSingle').classList.remove('bg-indigo-500', 'text-white');
+        document.getElementById('tabSingle').classList.add('text-gray-600', 'hover:bg-gray-100');
+        document.getElementById('tabBulk').classList.remove('bg-green-500', 'text-white');
+        document.getElementById('tabBulk').classList.add('text-gray-600', 'hover:bg-gray-100');
+
+        if (form === 'single') {
+            document.getElementById('formSingle').classList.remove('hidden');
+            document.getElementById('tabSingle').classList.add('bg-indigo-500', 'text-white');
+            document.getElementById('tabSingle').classList.remove('text-gray-600', 'hover:bg-gray-100');
+             document.getElementById('tabBulk').classList.remove('bg-green-500', 'text-white'); // Fix bulk tab color on switch
+        } else {
+            document.getElementById('formBulk').classList.remove('hidden');
+            document.getElementById('tabBulk').classList.add('bg-green-500', 'text-white');
+            document.getElementById('tabBulk').classList.remove('text-gray-600', 'hover:bg-gray-100');
+             document.getElementById('tabSingle').classList.remove('bg-indigo-500', 'text-white'); // Fix single tab color on switch
+             document.getElementById('tabSingle').classList.add('text-gray-600', 'hover:bg-gray-100');
+        }
+    }
+    function filterShops() { console.log('Filter shops called'); }
+    function openModal(id, shopKey, shopName, itemName) {
+        const modal = document.getElementById(id);
+        modal.classList.remove('hidden');
+        modal.classList.add('modal-open');
+        if (id === 'addItemModal') {
+            document.getElementById('modalShopTitle').textContent = shopName;
+            document.getElementById('modalFormShopKey').value = shopKey;
+            document.getElementById('modalFormShopName').value = shopName;
+            document.getElementById('modalItemName').focus();
+        } else if (id === 'editReviewModal') {
+             // Example function call adjustment: openModal('editReviewModal', 'shop-key-1', 'item-key-A', 'Apples');
+             document.getElementById('reviewShopKey').value = shopKey;
+             document.getElementById('reviewItemKey').value = itemName; // Assuming item key is item name for simplicity
+             document.getElementById('reviewModalItemNameTitle').textContent = itemName;
+             // Placeholder for fetching shop name (if not passed) and review text
+             document.getElementById('reviewShopName').value = shopName || 'Loading...';
+             document.getElementById('editReviewText').value = 'Previous review text...'; // Replace with actual fetched review
+        }
+    }
+    function closeModal(id) {
+        const modal = document.getElementById(id);
+        modal.classList.add('hidden');
+        modal.classList.remove('modal-open');
+    }
+
+    // Mobile menu toggle
+    document.getElementById('menu-btn').addEventListener('click', function() {
+        const mobileMenu = document.getElementById('mobileMenu');
+        mobileMenu.classList.toggle('hidden');
+    });
+
+    // Initial form display setup
+    document.addEventListener('DOMContentLoaded', () => {
+        showForm('single');
+         // Simulate loading user info
+        document.getElementById('userName').textContent = 'Jane Doe';
+        document.getElementById('userEmail').textContent = 'jane@example.com';
+        document.getElementById('mobileUserName').textContent = 'Jane Doe';
+        document.getElementById('mobileUserEmail').textContent = 'jane@example.com';
+        // Simulate inventory data (for testing layout)
+        displayInventoryData([
+             { key: 'shop1', name: 'Corner Grocer', items: [{ name: 'Onions', unit: '1kg', price: 35, review: 'Big and fresh' }, { name: 'Detergent Powder', unit: '1L', price: 210, review: 'Good deal' }] },
+             { key: 'shop2', name: 'Reliance Smart', items: [{ name: 'Toothpaste (Colgate)', unit: 'Unit', price: 120, review: 'B1G1 Offer' }, { name: 'Milk', unit: '500ml', price: 27, review: 'Good quality' }] }
+        ]);
+        document.getElementById('loadingMessage').classList.add('hidden');
+    });
+
+    // Helper function to simulate inventory display (must be implemented)
+    function displayInventoryData(shops) {
+        const display = document.getElementById('inventoryDisplay');
+        display.innerHTML = '';
+        if (shops.length === 0) {
+            document.getElementById('emptyMessage').classList.remove('hidden');
+            return;
+        }
+
+        shops.forEach(shop => {
+            const shopDiv = document.createElement('div');
+            shopDiv.className = 'shop-card bg-white border border-gray-200 rounded-xl overflow-hidden shadow-md animate-fadeIn';
+            shopDiv.setAttribute('data-shop-name', shop.name.toLowerCase());
+            shopDiv.innerHTML = `
+                <div class="p-4 bg-indigo-50 flex justify-between items-center">
+                    <h3 class="text-xl font-bold text-indigo-700 flex items-center gap-2">
+                        <i class="fas fa-store"></i> ${shop.name}
+                    </h3>
+                    <button onclick="openModal('addItemModal', '${shop.key}', '${shop.name}')" 
+                        class="action-btn bg-indigo-500 text-white hover:bg-indigo-600 transition duration-150 ml-4"
+                        title="Add Item to ${shop.name}">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+                <div class="px-4 py-2">
+                     <div class="item-list-header text-gray-500">
+                        <span class="w-1/4 md:w-2/5">Item Name</span>
+                        <span class="w-1/4 text-center hidden md:block">Quantity</span>
+                        <span class="w-1/4 text-center hidden md:block">Price</span>
+                        <span class="w-1/4 text-right">Actions</span>
+                    </div>
+                    <div class="shop-items-list space-y-2 py-2">
+                        ${shop.items.map(item => `
+                            <div class="shop-item-row p-3 bg-white hover:bg-gray-50 border-b last:border-b-0 rounded-lg transition duration-150 flex items-center justify-between" data-item-name="${item.name.toLowerCase()}">
+                                <div class="item-details-mobile w-full">
+                                    <div class="flex items-center justify-between w-full">
+                                        <div class="font-semibold text-gray-800 text-base flex-1">${item.name}</div>
+                                        <div class="text-xs text-gray-500 font-medium md:hidden text-right">
+                                            ${item.unit} | ₹${item.price ? item.price.toFixed(2) : 'N/A'}
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="hidden md:flex flex-1 items-center space-x-4">
+                                        <span class="text-gray-600 text-sm w-1/4 text-center">${item.unit}</span>
+                                        <span class="text-green-600 font-bold w-1/4 text-center">₹${item.price ? item.price.toFixed(2) : 'N/A'}</span>
+                                        <span class="flex-1 text-sm text-gray-500">${item.review ? item.review : 'No review'}</span>
+                                    </div>
+
+                                    <div class="flex flex-col md:hidden text-sm mt-1">
+                                        <span class="text-gray-500 italic text-xs">${item.review ? item.review : 'No review'}</span>
+                                    </div>
+
+                                </div>
+                                
+                                <div class="flex space-x-2 flex-shrink-0 ml-4">
+                                    <button onclick="openModal('editReviewModal', '${shop.key}', '${item.name}', '${item.name}')"
+                                        class="action-btn bg-purple-100 text-purple-600 hover:bg-purple-200"
+                                        title="Edit Review">
+                                        <i class="fas fa-comment-dots"></i>
+                                    </button>
+                                    <button onclick="deleteItem('${shop.key}', '${item.name}')" 
+                                        class="action-btn bg-red-100 text-red-600 hover:bg-red-200"
+                                        title="Delete Item">
+                                        <i class="fas fa-trash-alt"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+            display.appendChild(shopDiv);
+        });
+    }
+
+    // Placeholder delete function
+    function deleteItem(shopKey, itemName) {
+        if (confirm(`Are you sure you want to delete ${itemName} from shop ${shopKey}?`)) {
+            console.log(`Deleting item ${itemName} from shop ${shopKey}`);
+            // Actual delete logic here
+        }
+    }
+</script>
+</body>
+</html>

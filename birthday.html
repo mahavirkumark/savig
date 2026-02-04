@@ -1,0 +1,978 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Personal Website - Birthday Saver & Contacts</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <script src="notification-manager.js"></script> 
+    
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            background-color: #f3f4f6; 
+            margin: 0;
+        }
+        nav a { 
+            text-decoration: none; 
+            color: black; 
+            padding: 5px; 
+            transition: color 0.3s ease-in-out; 
+        }
+        nav a:hover { 
+            text-decoration: none; 
+            color: #4f46e5;
+        }
+
+        /* Adjusted width for equal distribution in the new single row structure */
+        @media (min-width: 1024px) { /* lg breakpoint */
+            .bday-card-lg {
+                width: calc(50% - 12px); /* Half width minus half the gap (1.5rem gap / 2 = 12px) */
+            }
+        }
+
+        /* Styling for the list items to fit two in a row */
+        .grid-col-2-container {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px; 
+        }
+        .grid-col-2-container li {
+            padding: 0; 
+        }
+        .grid-col-2-item {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            padding: 12px;
+            background-color: #f9fafb; 
+            border-radius: 0.5rem; 
+            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05); 
+            height: 100%; 
+        }
+        
+        /* Custom adjustment for reduced space below nav (margin bottom nav by 5px) */
+        .nav-increased-padding {
+            padding-top: 5px; 
+            padding-bottom: 5px; 
+        }
+        
+        /* Custom adjustment for main content padding (reduced space below nav) */
+        .main-reduced-padding {
+            /* Adjusted to 90px to accommodate fixed nav height + 5px margin */
+            padding-top: 90px; 
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 font-sans antialiased">
+
+    <nav class="bg-white shadow-lg fixed w-full z-50" style="margin-bottom: 5px;">
+        <div class="container mx-auto flex justify-between items-center nav-increased-padding md:px-8">
+            <div class="flex items-center gap-2 text-xl font-bold text-gray-800">
+                <i class="fas fa-user-circle text-indigo-500" style="font-size: 28px;"></i>
+                <span style="font-size: 22px;">My Personal Website</span>
+            </div>
+            <div class="hidden md:flex space-x-6 text-gray-600 font-medium">
+                <a href="home.html" class="flex items-center gap-2 hover:text-indigo-500 transition duration-300" style="font-size: 18px;"><i class="fas fa-house"></i> Home</a>
+             
+                <a href="password.html" class="flex items-center gap-2 hover:text-indigo-500 transition duration-300" style="font-size: 18px;"><i class="fas fa-key"></i> Passwords</a>
+                <a href="income.html" class="flex items-center gap-2 hover:text-indigo-500 transition duration-300" style="font-size: 18px;"><i class="fas fa-wallet"></i> Income</a>
+                <a href="links.html" class="flex items-center gap-2 hover:text-indigo-500 transition duration-300" style="font-size: 18px;"><i class="fas fa-link"></i> Links</a>
+                <a href="calender.html" class="flex items-center gap-2 hover:text-indigo-500 transition duration-300" style="font-size: 18px;"><i class="fas fa-calendar-alt"></i> Calendar</a>
+            </div>
+            <div class="hidden md:flex items-center gap-4">
+                <div class="text-right">
+                    <p id="userName" class="font-bold text-gray-900">Loading...</p>
+                    <p id="userEmail" class="text-sm text-gray-500">Loading...</p>
+                </div>
+                <img id="userPhoto" src="https://via.placeholder.com/40" class="w-10 h-10 rounded-full border-2 border-indigo-500">
+                <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-full hover:bg-red-600 transition duration-300">Logout</button>
+            </div>
+            <button id="menu-btn" class="md:hidden text-gray-700 text-2xl"><i class="fas fa-bars"></i></button>
+        </div>
+        <div id="mobileMenu" class="hidden md:hidden flex flex-col px-4 pb-4 space-y-2 text-sm text-gray-700 font-medium bg-gray-50">
+            <a href="home.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200"><i class="fas fa-house"></i> Home</a>
+      
+            <a href="password.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200"><i class="fas fa-key"></i> Passwords</a>
+            <a href="income.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200"><i class="fas fa-wallet"></i> Income</a>
+            <a href="links.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200"><i class="fas fa-link"></i> Links</a>
+            <a href="calender.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200"><i class="fas fa-calendar-alt"></i> Calendar</a>
+            <div class="border-t border-gray-300 mt-2 pt-2">
+                <p id="mobileUserName" class="font-bold text-gray-900">Loading...</p>
+                <p id="mobileUserEmail" class="text-xs text-gray-500">Loading...</p>
+                <button onclick="logout()" class="bg-red-500 text-white px-3 py-2 rounded-full hover:bg-red-600 mt-2 w-full">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <main class="main-reduced-padding p-4 md:p-8">
+        <div class="container mx-auto">
+            <h1 class="text-sm  text-center text-white-10 mb-6">🎉 Birthday Saver & Contacts 🎉</h1>
+            
+            <div class="flex flex-wrap lg:flex-nowrap justify-center gap-6 mb-5" style="margin-top: 10px;">
+                
+                <div class="bg-white p-6 rounded-xl shadow-lg w-full sm:w-full lg:w-1/2 transform hover:scale-105 transition duration-300 bday-card-lg">
+                    <h2 class="text-2xl font-semibold text-center text-gray-700 mb-4 flex items-center justify-center gap-2"><i class="fas fa-gift text-red-500"></i> Today's Birthdays</h2>
+                    <ul id="today-list" class="grid-col-2-container">
+                        <li class="text-gray-500 text-center col-span-2">No birthdays today.</li>
+                    </ul>
+                </div>
+                
+                <div class="bg-white p-6 rounded-xl shadow-lg w-full sm:w-full lg:w-1/2 transform hover:scale-105 transition duration-300 bday-card-lg">
+                    <h2 class="text-2xl font-semibold text-center text-gray-700 mb-4 flex items-center justify-center gap-2"><i class="fas fa-calendar-alt text-purple-500"></i> Upcoming Birthdays</h2>
+                    <ul id="upcoming-birthdays-list" class="grid-col-2-container">
+                        <li class="text-center text-gray-500 p-4 col-span-2">Loading upcoming birthdays...</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="flex flex-col md:flex-row gap-8">
+                <div class="bg-white p-6 rounded-xl shadow-lg md:w-1/3 h-fit">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-6">Add a Birthday</h2>
+                    <form id="add-birthday-form" class="space-y-5">
+                        <div>
+                            <input type="text" id="name" required placeholder="Name" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2">
+                        </div>
+                        <div>
+                            <input type="text" id="mobile" placeholder="Mobile Number (Optional)" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2">
+                        </div>
+                        <div>
+                            <input type="date" id="birthdate" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2">
+                            <p class="text-xs text-gray-500 mt-1">Enter a full date to save the birth year, or only month/day if age is provided.</p>
+                        </div>
+                        <div>
+                            <input type="number" id="age" placeholder="Current Age (Optional - Required if date is partial)" class="mt-1 block w-full rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 p-2">
+                        </div>
+                        <div id="notes-container" class="space-y-4 hidden">
+                            <h3 class="text-lg font-semibold text-gray-700 pt-2 border-t border-gray-200 mt-4">Notes (Optional)</h3>
+                            <div id="notes-fields">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <input type="text" placeholder="Note Title (e.g., Gift Idea)" class="w-1/3 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 note-title">
+                                    <input type="text" placeholder="Note Content (e.g., A new book)" class="w-2/3 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 note-content">
+                                </div>
+                            </div>
+                            <button type="button" id="add-note-btn" class="text-indigo-500 text-sm font-medium hover:text-indigo-700 transition duration-150 ease-in-out">
+                                <i class="fas fa-plus-circle mr-1"></i> Add Another Note
+                            </button>
+                        </div>
+                        <button type="button" id="toggle-notes-btn" class="w-full text-indigo-600 font-semibold py-3 px-4 rounded-lg bg-indigo-50 hover:bg-indigo-100 transition duration-150 ease-in-out">
+                            <i class="fas fa-plus mr-2"></i> Add Notes
+                        </button>
+                        <button type="submit" class="w-full bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-indigo-700 transition duration-150 ease-in-out">
+                            <i class="fas fa-save mr-2"></i> Save Birthday
+                        </button>
+                    </form>
+                </div>
+
+                <div class="md:w-2/3 space-y-8">
+                    <div class="bg-white p-6 rounded-xl shadow-lg">
+                        <h2 class="text-2xl font-bold text-gray-800 mb-4">All Contacts & Birthdays</h2>
+                        <div class="relative mb-4">
+                            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                                <i class="fas fa-search text-gray-400"></i>
+                            </div>
+                            <input type="text" id="searchInput" placeholder="Search by name, number..." class="w-full pl-10 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                        </div>
+                        <ul id="all-items-list" class="space-y-3 max-h-96 overflow-y-auto">
+                            <li class="text-center text-gray-500 p-4">Loading contacts and birthdays...</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="edit-modal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden flex justify-center items-center p-4 z-50">
+        <div class="bg-white p-6 rounded-xl shadow-lg w-full max-w-md overflow-y-auto max-h-[90vh] relative">
+            <div class="flex justify-between items-center pb-3 border-b border-gray-200 mb-4">
+                <h3 class="text-2xl font-bold" id="edit-modal-title">Edit Birthday</h3>
+                <button id="close-modal-btn" class="text-gray-500 hover:text-gray-700 text-xl">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="edit-birthday-form" class="space-y-4">
+                <input type="hidden" id="edit-id">
+                <div>
+                    <label for="edit-name" class="block text-sm font-medium text-gray-700">Name (Mandatory):</label>
+                    <input type="text" id="edit-name" required class="mt-1 block w-full rounded-lg border-gray-300 p-2">
+                </div>
+                <div>
+                    <label for="edit-mobile" class="block text-sm font-medium text-gray-700">Mobile No (Multiple separated by comma):</label>
+                    <input type="text" id="edit-mobile" placeholder="e.g., +91 98765 43210, +91 12345 67890" class="mt-1 block w-full rounded-lg border-gray-300 p-2">
+                </div>
+                <div>
+                    <label for="edit-birthdate" class="block text-sm font-medium text-gray-700">Full Date (YYYY-MM-DD):</label>
+                    <input type="date" id="edit-birthdate" class="mt-1 block w-full rounded-lg border-gray-300 p-2">
+                </div>
+                <div>
+                    <label for="edit-age" class="block text-sm font-medium text-gray-700">Current Age:</label>
+                    <input type="number" id="edit-age" class="mt-1 block w-full rounded-lg border-gray-300 p-2">
+                </div>
+                <div id="edit-notes-container" class="space-y-4">
+                    </div>
+                <button type="button" id="edit-add-note-btn" class="text-indigo-500 text-sm font-medium hover:text-indigo-700 transition duration-150 ease-in-out">
+                    <i class="fas fa-plus-circle mr-1"></i> Add Another Note
+                </button>
+                <button type="submit" class="w-full bg-indigo-600 text-white font-semibold py-3 px-4 rounded-lg hover:bg-indigo-700">Save Changes</button>
+            </form>
+        </div>
+    </div>
+<script>
+    // --- Firebase Configuration (REPLACE WITH YOUR OWN CONFIG) ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc",
+        authDomain: "sk12-58e9e.firebaseapp.com",
+        projectId: "sk12-58e9e",
+        storageBucket: "sk12-58e9e.appspot.com",
+        messagingSenderId: "470207874652",
+        appId: "1:470207874652:web:67ba1cf3629b7e5b144899"
+    };
+
+    // Initialize Firebase
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+    const database = firebase.database();
+    const auth = firebase.auth();
+
+    // --- Global Variables ---
+    let currentUserId = null;
+    let allBirthdays = {};
+    let allContacts = {};
+    let initialLoadComplete = false; 
+
+    const vcardContacts = [
+        { id: 'vc1', name: 'Samsung Helpline', phone: '+91 1800 407 267 864' },
+        { id: 'vc2', name: 'ATHARAV DOLAS😎', phone: '+91 98608 92299' },
+        { id: 'vc3', name: 'Hardik', phone: '+91 75585 15739' },
+        { id: 'vc4', name: 'Symphony Phone Number', phone: '+91 95109 76161' },
+        { id: 'vc5', name: 'Ganesh', phone: '+91 83080 66627' },
+        { id: 'vc6', name: 'Harsh', phone: '+91 87881 48821' },
+        { id: 'vc7', name: 'omlonkar447', phone: '+91 74473 81139' },
+        { id: 'vc8', name: 'AADITYA AMAR', phone: '+91 94037 45013' },
+        { id: 'vc9', name: 'Vilas Kulkarni', phone: '+91 98222 33913' },
+        { id: 'vc10', name: 'Swati Kulkarni', phone: '+91 88886 42200' },
+        { id: 'vc11', name: 'Jaya Raut', phone: '+91 96738 86002' },
+        { id: 'vc12', name: 'Adwaiyata', phone: '+91 98508 12323' },
+        { id: 'vc13', name: 'Abhishek', phone: '+91 98819 83721' },
+        { id: 'vc14', name: 'Kalyani Khangan', phone: '+91 77220 02989' },
+        { id: 'vc15', name: 'Jyoti', phone: '+91 94061 58783' },
+        { id: 'vc16', name: 'Anand', phone: '+91 99750 29539' },
+        { id: 'vc17', name: 'Amit Mainde Papad Wala', phone: '+91 89832 60793' },
+    ];
+
+
+    // --- DOM Elements ---
+    const menuBtn = document.getElementById('menu-btn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const addBirthdayForm = document.getElementById('add-birthday-form');
+    const allItemsList = document.getElementById('all-items-list');
+    const searchInput = document.getElementById('searchInput');
+    const editModal = document.getElementById('edit-modal');
+    const closeBtn = document.getElementById('close-modal-btn');
+    const editForm = document.getElementById('edit-birthday-form');
+    const notesContainer = document.getElementById('notes-container');
+    const toggleNotesBtn = document.getElementById('toggle-notes-btn');
+    const notesFields = document.getElementById('notes-fields');
+    const addNoteBtn = document.getElementById('add-note-btn');
+    const editNotesContainer = document.getElementById('edit-notes-container');
+    const editAddNoteBtn = document.getElementById('edit-add-note-btn');
+    const editNameInput = document.getElementById('edit-name');
+    const editMobileInput = document.getElementById('edit-mobile');
+    const editDateInput = document.getElementById('edit-birthdate');
+    const editAgeInput = document.getElementById('edit-age');
+    const editIdInput = document.getElementById('edit-id');
+    
+    const newDateInput = document.getElementById('birthdate'); 
+    const newAgeInput = document.getElementById('age'); 
+
+    // --- Core Helper Functions (Used for page rendering only) ---
+
+    function calculateAge(birthdate) {
+        if (!birthdate || birthdate.length !== 10) return null; 
+
+        const today = new Date();
+        const [birthYear, birthMonth, birthDay] = birthdate.split('-').map(Number);
+        
+        if (isNaN(birthYear) || isNaN(birthMonth) || isNaN(birthDay)) return null;
+
+        let age = today.getFullYear() - birthYear;
+        const m = today.getMonth() + 1 - birthMonth; 
+        
+        if (m < 0 || (m === 0 && today.getDate() < birthDay)) {
+            age--;
+        }
+        return age;
+    }
+
+    function updateDateFromAge(dateInput, ageInput) {
+        const age = parseInt(ageInput.value);
+        const dateInputValue = dateInput.value;
+        const today = new Date();
+        const currentYear = today.getFullYear();
+
+        if (!isNaN(age) && age > 0) {
+            let monthDay = dateInputValue.substring(5);
+            if (monthDay.length !== 5 || !monthDay.includes('-')) return;
+
+            const [birthMonth, birthDay] = monthDay.split('-').map(Number);
+            const currentMonth = today.getMonth() + 1;
+            const currentDay = today.getDate();
+
+            let calculatedBirthYear;
+
+            const bdayOccurredThisYear = (currentMonth > birthMonth) ||
+                                         (currentMonth === birthMonth && currentDay >= birthDay);
+
+            if (bdayOccurredThisYear) {
+                calculatedBirthYear = currentYear - age;
+            } else {
+                calculatedBirthYear = currentYear - age - 1;
+            }
+
+            dateInput.value = `${calculatedBirthYear}-${monthDay}`;
+        }
+        else if (dateInputValue && dateInputValue.length === 10) {
+             const calculatedAge = calculateAge(dateInputValue);
+             if (calculatedAge !== null) {
+                ageInput.value = calculatedAge;
+             }
+        }
+    }
+    
+    function getNextBirthdayDate(birthdate) {
+        if (!birthdate || birthdate.length !== 10) return null;
+        
+        const today = new Date();
+        const [year, month, day] = birthdate.split('-').map(Number);
+        
+        let nextBirthday = new Date(today.getFullYear(), month - 1, day);
+        
+        if (nextBirthday < today && (nextBirthday.getMonth() !== today.getMonth() || nextBirthday.getDate() !== today.getDate())) {
+            nextBirthday.setFullYear(today.getFullYear() + 1);
+        }
+        return nextBirthday;
+    }
+    
+    function getUpcomingBirthdays(birthdays) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0); 
+
+        const upcoming = Object.values(birthdays).filter(item => {
+            if (!item.birthdate || item.birthdate.length !== 10) return false;
+            
+            const nextBday = getNextBirthdayDate(item.birthdate);
+            if (!nextBday) return false;
+            
+            const diffTime = nextBday.getTime() - today.getTime();
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            
+            return diffDays > 0 && diffDays <= 5; 
+        }).sort((a, b) => {
+            return getNextBirthdayDate(a.birthdate) - getNextBirthdayDate(b.birthdate);
+        });
+        return upcoming;
+    }
+
+    function getTodayAndTomorrowBirthdays(birthdays) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        
+        const todayBirthdays = Object.values(birthdays).filter(item => {
+            if (!item.birthdate || item.birthdate.length !== 10) return false;
+            
+            const [year, month, day] = item.birthdate.split('-').map(Number);
+            
+            return today.getMonth() === (month - 1) && today.getDate() === day;
+        });
+        
+        return { todayBirthdays }; 
+    }
+
+    function renderBirthdayList(listId, items) {
+        const list = document.getElementById(listId);
+        list.innerHTML = ''; 
+
+        if (items.length === 0) {
+            list.innerHTML = `<li class="text-gray-500 text-center col-span-2">${listId === 'today-list' ? 'No birthdays today.' : 'No upcoming birthdays in the next 5 days.'}</li>`;
+            return;
+        }
+
+        items.forEach(item => {
+            const li = document.createElement('li');
+            
+            // NOTE: We rely on the external calculateNextAge from notification-manager.js here
+            const nextAge = item.birthdate && item.birthdate.length === 10 && typeof calculateNextAge === 'function' ? calculateNextAge(item.birthdate) : null;
+            const ageDisplay = nextAge !== null ? `(turning ${nextAge})` : ''; 
+            
+            const nextBday = getNextBirthdayDate(item.birthdate);
+            let dateString = 'Unknown Date';
+            if (nextBday) {
+                const diffTime = nextBday.getTime() - new Date().setHours(0, 0, 0, 0);
+                const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                
+                if(diffDays === 0) {
+                     dateString = 'Today';
+                } else if (diffDays === 1) {
+                    dateString = 'Tomorrow';
+                } else {
+                    dateString = nextBday.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+                }
+            }
+            
+            li.innerHTML = `
+                <div class="grid-col-2-item">
+                    <div class="flex items-center gap-3">
+                        <i class="fas fa-gift text-lg text-indigo-500 flex-shrink-0"></i>
+                        <div>
+                            <p class="font-bold text-gray-900 leading-snug">${item.name} <span class="text-indigo-600 font-semibold text-sm">${ageDisplay}</span></p>
+                            <p class="text-xs text-gray-600">${dateString}</p>
+                        </div>
+                    </div>
+                </div>
+            `;
+            list.appendChild(li);
+        });
+    }
+        
+    function renderAllItems(searchTerm = '') {
+        const list = document.getElementById('all-items-list');
+        list.innerHTML = '';
+        
+        let combinedItemsMap = new Map();
+        
+        vcardContacts.forEach(contact => {
+            const item = { ...contact, contactId: contact.id, isContact: true, isBirthday: false, mobile: contact.phone };
+            combinedItemsMap.set(contact.name.toLowerCase(), item);
+        });
+
+        for (const key in allContacts) {
+            const contact = allContacts[key];
+            const item = { ...contact, contactId: key, isContact: true, isBirthday: false, mobile: contact.phone || contact.mobile };
+            combinedItemsMap.set(contact.name.toLowerCase(), item);
+        }
+
+        for (const key in allBirthdays) {
+            const birthday = allBirthdays[key];
+            const existingItem = combinedItemsMap.get(birthday.name.toLowerCase());
+            
+            const numbers = [];
+            if (birthday.mobile) {
+                birthday.mobile.split(',').forEach(num => {
+                    const trimmedNum = num.trim();
+                    if (trimmedNum) numbers.push(trimmedNum);
+                });
+            }
+            if (existingItem && existingItem.mobile) {
+                existingItem.mobile.split(',').forEach(num => {
+                    const trimmedNum = num.trim();
+                    if (trimmedNum) numbers.push(trimmedNum);
+                });
+            }
+            
+            const uniqueNumbers = [...new Set(numbers)].join(', ');
+
+            if (existingItem) {
+                existingItem.birthdate = birthday.birthdate;
+                existingItem.age = birthday.age; 
+                existingItem.notes = birthday.notes;
+                existingItem.isBirthday = true;
+                existingItem.birthdayId = key;
+                existingItem.mobile = uniqueNumbers;
+                
+            } else {
+                const item = { ...birthday, birthdayId: key, isContact: false, isBirthday: true, mobile: uniqueNumbers };
+                combinedItemsMap.set(birthday.name.toLowerCase(), item);
+            }
+        }
+
+        const filteredItems = Array.from(combinedItemsMap.values()).filter(item => 
+            (item.name && item.name.toLowerCase().includes(searchTerm)) ||
+            (item.mobile && item.mobile.toLowerCase().includes(searchTerm))
+        );
+        
+        if (filteredItems.length === 0) {
+            list.innerHTML = `<li class="text-center text-gray-500 p-4">No contacts or birthdays found.</li>`;
+            return;
+        }
+        
+        filteredItems.sort((a, b) => a.name.localeCompare(b.name));
+
+        filteredItems.forEach(item => {
+            const li = document.createElement('li');
+            li.className = 'flex items-center justify-between p-4 bg-gray-50 rounded-lg shadow-sm';
+            li.setAttribute('data-name', item.name);
+            if (item.contactId) li.setAttribute('data-contact-id', item.contactId);
+            if (item.birthdayId) li.setAttribute('data-birthday-id', item.birthdayId);
+            if (item.mobile) li.setAttribute('data-mobile', item.mobile);
+            
+            let iconHtml = '';
+            if(item.isContact) {
+                iconHtml += `<i class="fas fa-address-card text-purple-500 text-2xl"></i>`;
+            }
+            if(item.isBirthday) {
+                iconHtml += `<i class="fas fa-birthday-cake text-red-500 text-2xl"></i>`;
+            }
+
+            let ageDisplay = '';
+            let bdayDateDisplay = ''; 
+            let currentAgeDisplay = '';
+            let shareButtonsHtml = '';
+
+            if (item.isBirthday) {
+                if (item.birthdate && item.birthdate.length === 10) {
+                    const savedDate = new Date(item.birthdate + 'T00:00:00');
+                    bdayDateDisplay = savedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+                }
+                
+                // ONLY calculate/display age info if the 'age' property is explicitly saved (not empty/0)
+                if (item.age && item.age > 0) {
+                    if (item.birthdate && item.birthdate.length === 10) {
+                         const currentAge = calculateAge(item.birthdate);
+                         // Use external calculateNextAge
+                         const nextAge = typeof calculateNextAge === 'function' ? calculateNextAge(item.birthdate) : null; 
+                         const nextBday = getNextBirthdayDate(item.birthdate);
+                         
+                         if (currentAge !== null) {
+                             currentAgeDisplay = `(Currently ${currentAge} years old)`;
+                         }
+                         if (nextAge !== null) {
+                             ageDisplay = `Turning ${nextAge} on ${nextBday.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}`;
+                         }
+                    } else {
+                        currentAgeDisplay = `(Saved Age: ${item.age} years old)`;
+                        bdayDateDisplay = 'Date required for full calculations';
+                    }
+                }
+
+                 shareButtonsHtml += `<button class="share-birthday-btn bg-green-500 text-white px-3 py-2 rounded-full hover:bg-green-600 transition duration-300 text-sm ml-2"><i class="fas fa-share-alt"></i></button>`;
+            }
+            
+            let actionsHtml = '';
+            if (item.isBirthday) {
+                actionsHtml = `
+                    <button class="edit-btn bg-yellow-500 text-white px-3 py-2 rounded-full hover:bg-yellow-600 transition duration-300 text-sm"><i class="fas fa-edit"></i></button>
+                `;
+            } else {
+                actionsHtml = `
+                    <button class="add-birthday-btn bg-indigo-500 text-white px-3 py-2 rounded-full hover:bg-indigo-600 transition duration-300 text-sm">
+                        <i class="fas fa-plus"></i> Add Birthday
+                    </button>
+                `;
+            }
+            
+            if(item.mobile) { 
+                shareButtonsHtml += `<button class="share-contact-btn bg-blue-500 text-white px-3 py-2 rounded-full hover:bg-blue-600 transition duration-300 text-sm ml-2"><i class="fas fa-mobile-alt"></i></button>`;
+            }
+
+
+            itemHtml = `
+                <div class="flex items-start gap-4 flex-grow">
+                    <div class="flex-shrink-0 flex items-center gap-2">
+                        ${iconHtml}
+                    </div>
+                    <div class="flex-grow">
+                        <p class="font-bold text-gray-900">${item.name}</p>
+                        ${item.mobile ? `<p class="text-sm text-gray-600"><i class="fas fa-mobile-alt mr-1"></i> ${item.mobile}</p>` : ''}
+                        ${item.isBirthday ? `
+                            ${bdayDateDisplay ? `
+                            <p class="text-sm text-gray-600">
+                                <i class="fas fa-calendar-alt mr-1"></i> 
+                                DOB: ${bdayDateDisplay} 
+                                <span class="font-semibold text-gray-700">${currentAgeDisplay}</span>
+                            </p>
+                            ` : ''}
+                            ${ageDisplay ? `<p class="text-sm text-indigo-700 font-semibold"><i class="fas fa-birthday-cake mr-1"></i> ${ageDisplay}</p>` : ''}
+                            ${item.notes && item.notes.length > 0 ? `
+                                <div class="mt-2 text-sm text-gray-500">
+                                    ${item.notes.map(note => `<p><i class="fas fa-sticky-note mr-1"></i> <strong>${note.title}:</strong> ${note.content}</p>`).join('')}
+                                </div>
+                            ` : ''}
+                        ` : ''}
+                    </div>
+                </div>
+                <div class="flex-shrink-0 flex items-center gap-2">
+                    ${actionsHtml}
+                    <button class="delete-btn bg-red-500 text-white px-3 py-2 rounded-full hover:bg-red-600 transition duration-300 text-sm"><i class="fas fa-trash-alt"></i></button>
+                    ${shareButtonsHtml}
+                </div>
+            `;
+            li.innerHTML = itemHtml;
+            list.appendChild(li);
+        });
+    }
+
+    // --- Note Helper Function ---
+
+    function addNoteField(container, title = '', content = '') {
+        const noteDiv = document.createElement('div');
+        noteDiv.className = 'flex items-center gap-2 mb-2';
+        noteDiv.innerHTML = `
+            <input type="text" value="${title.replace(/"/g, '&quot;')}" placeholder="Note Title" class="w-1/3 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 note-title">
+            <input type="text" value="${content.replace(/"/g, '&quot;')}" placeholder="Note Content" class="w-2/3 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 note-content">
+            <button type="button" class="text-red-500 hover:text-red-700 remove-note-btn flex-shrink-0"><i class="fas fa-times-circle"></i></button>
+        `;
+        container.appendChild(noteDiv);
+        noteDiv.querySelector('.remove-note-btn').addEventListener('click', () => {
+            noteDiv.remove();
+        });
+    }
+
+    // --- Event Listeners and Functions (Continuation) ---
+    
+    if(newAgeInput && newDateInput) {
+        newAgeInput.addEventListener('input', () => updateDateFromAge(newDateInput, newAgeInput));
+        newDateInput.addEventListener('input', () => updateDateFromAge(newDateInput, newAgeInput));
+    }
+        
+    editAgeInput.addEventListener('input', () => updateDateFromAge(editDateInput, editAgeInput));
+    editDateInput.addEventListener('input', () => updateDateFromAge(editDateInput, editAgeInput));
+
+    menuBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+    });
+
+    toggleNotesBtn.addEventListener('click', () => {
+        notesContainer.classList.toggle('hidden');
+        if (notesContainer.classList.contains('hidden')) {
+            toggleNotesBtn.innerHTML = '<i class="fas fa-plus mr-2"></i> Add Notes';
+        } else {
+            toggleNotesBtn.innerHTML = '<i class="fas fa-minus mr-2"></i> Hide Notes';
+        }
+    });
+
+    addNoteBtn.addEventListener('click', () => {
+        addNoteField(notesFields);
+    });
+
+    editAddNoteBtn.addEventListener('click', () => {
+        addNoteField(editNotesContainer);
+    });
+
+    addBirthdayForm.addEventListener('submit', handleAddBirthday);
+    editForm.addEventListener('submit', handleEditBirthday);
+    closeBtn.addEventListener('click', () => editModal.classList.add('hidden'));
+    
+    editModal.addEventListener('click', (e) => {
+        if (e.target === editModal) {
+            editModal.classList.add('hidden');
+        }
+    });
+
+
+    allItemsList.addEventListener('click', (e) => {
+        const btn = e.target.closest('button');
+        if (!btn) return;
+        
+        const listItem = e.target.closest('li');
+        const birthdayId = listItem.dataset.birthdayId;
+        const contactId = listItem.dataset.contactId;
+        const name = listItem.dataset.name;
+
+        if (btn.classList.contains('delete-btn')) {
+             if (confirm(`Are you sure you want to delete ${name}? This action cannot be undone.`)) {
+                if (birthdayId) {
+                    deleteBirthday(birthdayId);
+                }
+                if (contactId && !birthdayId) { 
+                    deleteContact(contactId);
+                }
+            }
+        } else if (btn.classList.contains('edit-btn')) {
+            if(birthdayId) {
+                openEditModal(birthdayId);
+            }
+        } else if (btn.classList.contains('add-birthday-btn')) {
+            document.getElementById('name').value = name;
+            document.getElementById('mobile').value = listItem.dataset.mobile || '';
+            document.getElementById('birthdate').value = '';
+            document.getElementById('age').value = '';
+            document.getElementById('name').focus(); 
+        } else if (btn.classList.contains('share-contact-btn')) {
+             const contact = allContacts[contactId] || vcardContacts.find(c => c.id === contactId);
+            if (contact) {
+                shareContact(contact);
+            } else {
+                shareContact({ name: name, mobile: listItem.dataset.mobile });
+            }
+        } else if (btn.classList.contains('share-birthday-btn')) {
+            const birthday = allBirthdays[birthdayId];
+            if (birthday) {
+                shareBirthday(birthday);
+            } else {
+                console.error("No birthday details to share for this entry.");
+            }
+        }
+    });
+
+    searchInput.addEventListener('input', (e) => {
+        const searchTerm = e.target.value.toLowerCase();
+        renderAllItems(searchTerm);
+    });
+
+
+    // --- Firebase Functions ---
+        
+    function handleAddBirthday(e) {
+        e.preventDefault();
+        const name = document.getElementById('name').value.trim();
+        const mobile = document.getElementById('mobile').value.trim();
+        const birthdateToSave = newDateInput.value; 
+        const ageToSave = newAgeInput.value;
+        const notes = Array.from(notesFields.querySelectorAll('div')).map(div => ({
+            title: div.querySelector('.note-title').value.trim(),
+            content: div.querySelector('.note-content').value.trim(),
+        })).filter(note => note.title || note.content);
+
+        if (!name) {
+            alert("Please ensure the Name is entered. This field is mandatory.");
+            return;
+        }
+        
+        const finalAge = parseInt(ageToSave) || "";
+
+        const newBirthday = { 
+            name, 
+            mobile, 
+            birthdate: birthdateToSave || "", 
+            age: finalAge, 
+            notes 
+        };
+        
+        if (currentUserId) {
+            const newBdayRef = database.ref(`users/${currentUserId}/birthdays`).push();
+            newBdayRef.set(newBirthday).then(() => {
+                addBirthdayForm.reset();
+                notesContainer.classList.add('hidden');
+                notesFields.innerHTML = `<div class="flex items-center gap-2 mb-2"><input type="text" placeholder="Note Title (e.g., Gift Idea)" class="w-1/3 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 note-title"><input type="text" placeholder="Note Content (e.g., A new book)" class="w-2/3 p-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 note-content"></div>`;
+                toggleNotesBtn.innerHTML = '<i class="fas fa-plus mr-2"></i> Add Notes';
+            }).catch(error => {
+                console.error("Error adding birthday: ", error);
+            });
+        } else {
+            alert("Please log in to save birthdays.");
+        }
+    }
+
+    function openEditModal(id) {
+        const itemToEdit = allBirthdays[id];
+        if (!itemToEdit) return;
+
+        const numbers = [];
+        if (itemToEdit.mobile) {
+            itemToEdit.mobile.split(',').forEach(num => {
+                const trimmedNum = num.trim();
+                if (trimmedNum) numbers.push(trimmedNum);
+            });
+        }
+        if (itemToEdit.phone) {
+            itemToEdit.phone.split(',').forEach(num => {
+                const trimmedNum = num.trim();
+                if (trimmedNum) numbers.push(trimmedNum);
+            });
+        }
+        
+        const consolidatedMobile = [...new Set(numbers)].join(', ');
+
+        editIdInput.value = id;
+        editNameInput.value = itemToEdit.name || '';
+        
+        editMobileInput.value = consolidatedMobile; 
+        
+        editDateInput.value = itemToEdit.birthdate && itemToEdit.birthdate.length === 10 ? itemToEdit.birthdate : '';
+        editAgeInput.value = itemToEdit.age && itemToEdit.age > 0 ? itemToEdit.age : '';
+        
+        editNotesContainer.innerHTML = '';
+        if (itemToEdit.notes && itemToEdit.notes.length > 0) {
+            itemToEdit.notes.forEach(note => {
+                addNoteField(editNotesContainer, note.title, note.content);
+            });
+        } else {
+            addNoteField(editNotesContainer); 
+        }
+        
+        updateDateFromAge(editDateInput, editAgeInput);
+        
+        editModal.classList.remove('hidden');
+    }
+
+    function handleEditBirthday(e) {
+        e.preventDefault();
+        const id = editIdInput.value;
+        const name = editNameInput.value.trim();
+        const mobile = editMobileInput.value.trim(); 
+        
+        updateDateFromAge(editDateInput, editAgeInput);
+
+        const birthdateToSave = editDateInput.value; 
+        const ageToSave = editAgeInput.value;
+
+        const notes = Array.from(editNotesContainer.querySelectorAll('div')).map(div => ({
+            title: div.querySelector('.note-title').value.trim(),
+            content: div.querySelector('.note-content').value.trim(),
+        })).filter(note => note.title || note.content);
+
+        if (!name) {
+            alert("Please ensure the Name is entered. This field is mandatory.");
+            return;
+        }
+        
+        const finalAge = parseInt(ageToSave) || "";
+
+        const updatedBirthday = { 
+            name, 
+            mobile: mobile, 
+            birthdate: birthdateToSave || "", 
+            age: finalAge, 
+            notes 
+        };
+
+        if (currentUserId && id) {
+            database.ref(`users/${currentUserId}/birthdays/${id}`).set(updatedBirthday)
+                .then(() => {
+                    editModal.classList.add('hidden');
+                })
+                .catch(error => {
+                    console.error("Error updating birthday: ", error);
+                });
+        }
+    }
+
+    function deleteBirthday(id) {
+        if (currentUserId) {
+            database.ref(`users/${currentUserId}/birthdays/${id}`).remove()
+                .catch(error => {
+                    console.error("Error removing birthday: ", error);
+                });
+        }
+    }
+        
+    function deleteContact(id) {
+        if (currentUserId) {
+            database.ref(`users/${currentUserId}/contacts/${id}`).remove()
+                .catch(error => {
+                    console.error("Error removing contact: ", error);
+                });
+        }
+    }
+
+    function shareBirthday(birthday) {
+        let shareText = `Birthday Info: ${birthday.name}!`;
+        
+        if(birthday.birthdate && birthday.birthdate.length === 10) {
+            const savedDate = new Date(birthday.birthdate + 'T00:00:00');
+            shareText += `\nBirth Date: ${savedDate.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}`;
+            
+            const currentAge = calculateAge(birthday.birthdate);
+            if (currentAge !== null) {
+                shareText += ` (Currently ${currentAge} years old)`;
+            }
+        } else if (birthday.age) {
+            shareText += `\nThey are approximately ${birthday.age} years old (Full date unknown).`;
+        }
+        
+        if (birthday.mobile) {
+            shareText += `\nMobile: ${birthday.mobile}`;
+        }
+        
+        if (navigator.share) {
+            navigator.share({
+                title: `Birthday Reminder: ${birthday.name}`,
+                text: shareText
+            }).catch(error => console.error('Error sharing:', error));
+        } else {
+            alert('Birthday details (copied to clipboard if supported):\n\n' + shareText);
+            navigator.clipboard.writeText(shareText).catch(err => console.error('Could not copy text: ', err));
+        }
+    }
+        
+    function shareContact(contact) {
+        let shareText = `Contact: ${contact.name}`;
+        if(contact.mobile) {
+            shareText += `\nMobile No: ${contact.mobile}`;
+        }
+
+        if (navigator.share) {
+            navigator.share({
+                title: `Contact: ${contact.name}`,
+                text: shareText
+            }).catch(error => console.error('Error sharing:', error));
+        } else {
+            alert('Contact details (copied to clipboard if supported):\n\n' + shareText);
+            navigator.clipboard.writeText(shareText).catch(err => console.error('Could not copy text: ', err));
+        }
+    }
+
+    // --- Data Retrieval and Display ---
+    function initializeData() {
+        if (currentUserId) {
+            const birthdaysRef = database.ref(`users/${currentUserId}/birthdays`);
+            
+            birthdaysRef.on('value', (snapshot) => {
+                allBirthdays = snapshot.val() || {};
+                renderDashboardLists();
+                renderAllItems(searchInput.value);
+                
+                // Call notification functions on initial data load
+                if (!initialLoadComplete) {
+                    // NOTE: requestNotificationPermission and checkAndNotify are now in the external JS
+                    if (typeof requestNotificationPermission === 'function') {
+                        requestNotificationPermission();
+                        checkAndNotify();
+                    } else {
+                         console.error("Notification functions not loaded. Check notification-manager.js file path.");
+                    }
+                    initialLoadComplete = true; 
+                }
+            });
+            
+            function renderDashboardLists() {
+                const { todayBirthdays } = getTodayAndTomorrowBirthdays(allBirthdays);
+                const upcomingBirthdays = getUpcomingBirthdays(allBirthdays);
+                document.getElementById('today-list').innerHTML = ''; 
+                document.getElementById('upcoming-birthdays-list').innerHTML = '';
+                renderBirthdayList('today-list', todayBirthdays);
+                renderBirthdayList('upcoming-birthdays-list', upcomingBirthdays);
+            }
+            
+            const contactsRef = database.ref(`users/${currentUserId}/contacts`);
+            contactsRef.on('value', (snapshot) => {
+                allContacts = snapshot.val() || {};
+                renderAllItems(searchInput.value);
+            });
+        }
+    }
+        
+    // --- Auth State Listener ---
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            currentUserId = user.uid;
+            document.getElementById('userName').textContent = user.displayName || 'Guest';
+            document.getElementById('userEmail').textContent = user.email || 'guest@example.com';
+            document.getElementById('userPhoto').src = user.photoURL || 'https://via.placeholder.com/40';
+            document.getElementById('mobileUserName').textContent = user.displayName || 'Guest';
+            document.getElementById('mobileUserEmail').textContent = user.email || 'guest@example.com';
+            
+            initializeData();
+            
+        } else {
+            window.location.href = 'index.html';
+        }
+    });
+        
+    // Logout function
+    function logout() {
+        auth.signOut().then(() => {
+            window.location.href = 'index.html';
+        }).catch(error => {
+            console.error('Sign out error', error);
+        });
+    }
+</script>
+</body>
+</html>

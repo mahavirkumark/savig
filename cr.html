@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendar</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<style>
+html, body {
+    overflow-x: hidden;
+    background:#f8fafc;
+    font-family: 'Times New Roman';
+}
+.calendar-grid {
+    display:grid;
+    grid-template-columns: repeat(7,1fr);
+    gap:10px;
+}
+.calendar-cell {
+    background:#fff;
+    border:1px solid #e5e7eb;
+    border-radius:8px;
+    padding:8px;
+    height:150px;
+    display:flex;
+    flex-direction:column;
+    cursor:pointer;
+}
+.calendar-cell.today {
+    border:2px solid #4f46e5;
+    background:#eef2ff;
+}
+.task {
+    background:#e0e7ff;
+    padding:4px 6px;
+    border-radius:4px;
+    font-size:12px;
+    margin-top:4px;
+}
+@media(max-width:767px){
+    .calendar-grid{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+
+<body>
+
+<!-- HEADER -->
+<div class="fixed top-0 w-full bg-white shadow z-50 p-3 flex justify-between">
+    <button onclick="changeMonth(-1)">←</button>
+    <h2 id="monthYear" class="font-bold"></h2>
+    <button onclick="changeMonth(1)">→</button>
+</div>
+
+<div class="pt-20 max-w-6xl mx-auto px-3">
+    <div class="calendar-grid" id="calendar"></div>
+</div>
+
+<!-- MODAL -->
+<div id="taskModal" class="fixed inset-0 bg-black/50 hidden items-center justify-center">
+    <div class="bg-white p-5 rounded-xl w-11/12 max-w-md">
+        <h3 id="modalDate" class="font-bold mb-3"></h3>
+        <input id="taskTitle" class="w-full border p-2 mb-2" placeholder="Title">
+        <textarea id="taskDesc" class="w-full border p-2 mb-2" placeholder="Description"></textarea>
+        <div class="flex gap-2">
+            <button onclick="saveTask()" class="bg-indigo-600 text-white px-4 py-2 rounded">Save</button>
+            <button onclick="closeModal()" class="bg-gray-400 text-white px-4 py-2 rounded">Close</button>
+        </div>
+        <div id="taskList" class="mt-4"></div>
+    </div>
+</div>
+
+<script>
+/* 🔥 FIREBASE CONFIG */
+firebase.initializeApp({
+ apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc",
+ authDomain: "sk12-58e9e.firebaseapp.com",
+ databaseURL: "https://sk12-58e9e-default-rtdb.firebaseio.com",
+ projectId: "sk12-58e9e",
+});
+const auth = firebase.auth();
+const db = firebase.database();
+
+/* 🔧 GLOBALS */
+let currentUser;
+let currentDate = new Date();
+let selectedDate = "";
+let editId = null;
+
+/* 🔐 AUTH */
+auth.onAuthStateChanged(u=>{
+    if(!u) location.href="index.html";
+    currentUser = u;
+    renderCalendar();
+});
+
+/* 📆 CALENDAR */
+function changeMonth(v){
+    currentDate.setMonth(currentDate.getMonth()+v);
+    renderCalendar();
+}
+
+function renderCalendar(){
+    const cal = document.getElementById("calendar");
+    cal.innerHTML = "";
+    const y = currentDate.getFullYear();
+    const m = currentDate.getMonth();
+    document.getElementById("monthYear").innerText =
+        currentDate.toLocaleString("en",{month:"long",year:"numeric"});
+
+    const firstDay = new Date(y,m,1).getDay();
+    const days = new Date(y,m+1,0).getDate();
+
+    for(let i=0;i<(firstDay===0?6:firstDay-1);i++){
+        cal.appendChild(document.createElement("div"));
+    }
+
+    for(let d=1; d<=days; d++){
+        const iso = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        const cell = document.createElement("div");
+        cell.className = "calendar-cell";
+        cell.innerHTML = `<strong>${d}</strong>`;
+        if(new Date().toDateString() === new Date(y,m,d).toDateString())
+            cell.classList.add("today");
+
+        cell.onclick = ()=>openModal(iso);
+
+        db.ref(`calendarData/${currentUser.uid}/${iso}`).once("value",s=>{
+            s.forEach(t=>{
+                const div = document.createElement("div");
+                div.className="task";
+                div.innerText=t.val().title;
+                cell.appendChild(div);
+            });
+        });
+        cal.appendChild(cell);
+    }
+}
+
+/* 📝 MODAL */
+function openModal(date){
+    selectedDate = date;
+    editId = null;
+    modalDate.innerText = "Tasks for "+date;
+    taskTitle.value = "";
+    taskDesc.value = "";
+    taskList.innerHTML = "";
+    taskModal.classList.remove("hidden");
+    loadTasks();
+}
+function closeModal(){
+    taskModal.classList.add("hidden");
+}
+
+function loadTasks(){
+    db.ref(`calendarData/${currentUser.uid}/${selectedDate}`)
+    .on("value",s=>{
+        taskList.innerHTML="";
+        s.forEach(c=>{
+            const d = c.val();
+            taskList.innerHTML += `
+            <div class="border p-2 mt-2 rounded">
+                <strong>${d.title}</strong>
+                <p>${d.desc||""}</p>
+                <div class="flex gap-2 mt-1">
+                    <button onclick="editTask('${c.key}','${d.title}','${d.desc||""}')" class="text-blue-600">Edit</button>
+                    <button onclick="deleteTask('${c.key}')" class="text-red-600">Delete</button>
+                </div>
+            </div>`;
+        });
+    });
+}
+
+function saveTask(){
+    const data = {
+        title: taskTitle.value,
+        desc: taskDesc.value,
+        createdAt: Date.now()
+    };
+    const ref = db.ref(`calendarData/${currentUser.uid}/${selectedDate}`);
+    editId ? ref.child(editId).update(data) : ref.push(data);
+    taskTitle.value=""; taskDesc.value=""; editId=null;
+}
+
+function editTask(id,t,d){
+    editId=id;
+    taskTitle.value=t;
+    taskDesc.value=d;
+}
+
+function deleteTask(id){
+    db.ref(`calendarData/${currentUser.uid}/${selectedDate}/${id}`).remove();
+}
+</script>
+
+</body>
+</html>

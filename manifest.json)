@@ -1,0 +1,22 @@
+{
+  "name": "Birthday Reminder Dashboard",
+  "short_name": "Birthdays",
+  "description": "Your automated assistant for tracking and notifying birthdays.",
+  "start_url": "/home.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3b82f6",
+  "icons": [
+    {
+      "src": "/images/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/images/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "orientation": "portrait"
+}

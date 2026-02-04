@@ -1,0 +1,155 @@
+{
+  "rules": {
+    // 1️⃣ USER-SPECIFIC PRIVATE DATA NODES
+
+    // Node for general user profile/settings data
+    "users": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid"
+      }
+    },
+
+    // 🔑 PRINCIPLES
+    "principles": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid",
+
+        "$principleId": {
+          ".validate": "newData.hasChildren(['title']) || newData.exists() === false || data.exists()",
+          
+          "title": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 255" },
+          "description": { ".validate": "newData.isString() || newData.val() === '' || !newData.exists()" },
+          "createdAt": { ".validate": "newData.isNumber() || !newData.exists()" },
+          "$other": { ".validate": false } // Deny unexpected fields
+        }
+      }
+    },
+
+    // 🔑 ADDRESSES (Validated for all expected fields: id, place, landmark, mapLink, timestamp)
+    "addresses": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid",
+
+        "$addressId": {
+          // Requires these fields on new creation/set
+          ".validate": "newData.hasChildren(['id', 'place', 'landmark', 'mapLink']) || newData.exists() === false || data.exists()",
+          
+          "id": { 
+            // Ensures the 'id' field exists and matches the path variable ($addressId)
+            ".validate": "newData.isString() && newData.val() == $addressId" 
+          },
+          "place": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 150" },
+          "landmark": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length < 5000" },
+          
+          // Allows mapLink to be an empty string or absent on update
+          "mapLink": { ".validate": "newData.isString() || newData.val() === '' || !newData.exists()" },
+          
+          "timestamp": { ".validate": "newData.isNumber() || !newData.exists()" },
+          "$other": { ".validate": false } 
+        }
+      }
+    },
+    
+    // --- DAILY ESSENTIALS ---
+    "essentials": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid",
+        "$essentialId": {
+          ".validate": "newData.hasChildren(['productName']) || newData.hasChildren(['personName']) || newData.hasChildren(['purchaseDate']) || newData.hasChildren(['productPrice']) || newData.exists() === false || data.exists()",
+          
+          "id": { ".validate": "newData.isString() && newData.val() == $essentialId" },
+          "personName": { ".validate": "newData.isString() || !newData.exists()" },
+          "productName": { ".validate": "newData.isString() || !newData.exists()" },
+          "productPrice": { ".validate": "newData.isString() || newData.isNumber() || !newData.exists()" },
+          "$other": { ".validate": false }
+        }
+      }
+    },
+
+    // --- VEHICLES ---
+    "vehicles": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid",
+        "$vehicleId": {
+          ".validate": "newData.hasChildren(['ownerName', 'vehicleNo']) || newData.exists() === false || data.exists()",
+          "ownerName": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 150" },
+          "vehicleNo": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 20" },
+          "timestamp": { ".validate": "newData.isNumber() || !newData.exists()" },
+          "$other": { ".validate": false }
+        }
+      }
+    },
+
+    // --- TRAVEL RULES, BIRTHDAYS, PASSWORDS, INCOME, LINKS ---
+    "travel_rules": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid",
+        "$ruleId": {
+          ".validate": "newData.hasChildren(['type', 'name']) || newData.exists() === false || data.exists()",
+          "$other": { ".validate": false }
+        }
+      }
+    },
+    
+    "birthdays": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid",
+        "$birthdayId": {
+          ".validate": "newData.hasChildren(['name', 'date']) || newData.exists() === false || data.exists()",
+          "$other": { ".validate": false }
+        }
+      }
+    },
+
+    "passwords": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid",
+        "$passwordId": { ".validate": "newData.hasChildren() || newData.isString() || newData.isNumber() || !newData.exists()" }
+      }
+    },
+    
+    "income": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid",
+        "$incomeId": { ".validate": "newData.hasChildren() || newData.isString() || newData.isNumber() || !newData.exists()" }
+      }
+    },
+    
+    "links": {
+      "$uid": {
+        ".read": "$uid === auth.uid",
+        ".write": "$uid === auth.uid",
+        "$linkId": { ".validate": "newData.hasChildren() || (newData.isString() && newData.val().length > 0) || !newData.exists()" }
+      }
+    },
+    
+    
+    // 2️⃣ PUBLIC DATA 
+    "contacts": {
+      ".read": true,
+      ".write": "auth != null",
+      "$contactId": {
+        ".validate": "data.exists() || newData.hasChildren(['name', 'email'])",
+        "$other": { ".validate": false }
+      }
+    },
+
+    "festivals": {
+      ".read": true,
+      ".write": false
+    },
+
+    // 3️⃣ DEFAULT DENY 
+    ".read": false,
+    ".write": false
+  }
+}

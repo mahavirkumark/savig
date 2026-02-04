@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧦 My Personal Website - Gear Inventory</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* --- General Styling and Scrollbar --- */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #9ca3af;
+            border-radius: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background-color: #f3f4f6;
+        }
+
+        /* Fixed-height scrollable select dropdown */
+        .scrollable-select {
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        /* --- Content Protection/Logged Out State --- */
+        .content-hidden {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 200px;
+            text-align: center;
+            color: #6b7280;
+            border: 2px dashed #d1d5db;
+            border-radius: 12px;
+            margin-top: 16px;
+            font-size: 1.125rem;
+            font-weight: 500;
+        }
+
+        /* --- Description List Formatting (Compact) --- */
+        .description-wrapper { 
+            display: flex; 
+            align-items: baseline; 
+            margin-top: 2px; /* Reduced margin */
+            font-size: 0.875rem; /* Reduced font size */
+        }
+        .description-wrapper p {
+            font-weight: 600; 
+            margin-right: 6px; /* Reduced margin */
+            color: #1f2937;
+        }
+        .description-list {
+            list-style-type: disc;
+            margin-left: 0; 
+            padding-left: 0;
+            margin-top: 0;
+            color: #1f2937;
+        }
+        .description-list li {
+            margin-bottom: 1px; /* Reduced margin */
+            margin-left: 15px; /* Reduced margin */
+            font-size: 0.875rem; /* Reduced font size */
+        }
+
+        /* --- Professional Action Button Hover --- */
+        .action-btn {
+            padding: 8px; /* Reduced padding */
+            border-radius: 50%;
+            transition: all 0.2s ease-in-out;
+            font-size:22px; /* Reduced font size */
+        }
+        .action-btn.edit:hover {
+            background-color: #dbeafe;
+            color: #2563eb;
+            transform: scale(1.1);
+        }
+        .action-btn.delete:hover {
+            background-color: #fee2e2;
+            color: #dc2626;
+            transform: scale(1.1);
+        }
+        .action-btn.share:hover {
+            background-color: #d1fae5;
+            color: #059669;
+            transform: scale(1.1);
+        }
+        .text-primary-indigo {
+            color: #4f46e5;
+        }
+
+        /* Custom class to hide display content and show form content */
+        .display-content { display: block; }
+        .edit-form-content { display: none; }
+        .editing .display-content { display: none; }
+        .editing .edit-form-content { display: block; }
+        
+        /* Ensure body is a flexible column container, and main content grows */
+        body {
+            display: flex;
+            flex-direction: column;
+        }
+        #main-container {
+            flex-grow: 1;
+        }
+        
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+    <nav class="bg-white shadow-lg fixed w-full z-50 top-0">
+        <div class="container mx-auto flex justify-between items-center p-4 md:px-8">
+            <div class="flex items-center gap-2 text-xl font-bold text-gray-800">
+                <i class="fas fa-user-circle" style="font-size: 28px; color: #4f46e5;"></i>
+                <span style="font-size: 22px;">My Personal Website</span>
+            </div>
+
+            <div class="hidden md:flex space-x-6 font-medium">
+                <a href="home.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-house"></i> Home</a>
+                <a href="birthday.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-birthday-cake"></i> Birthday</a>
+                <a href="password.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-key"></i> Passwords</a>
+               
+                <a href="links.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-link"></i> Links</a>
+                <a href="calendar.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-calendar-alt"></i> Calendar</a>
+            </div>
+
+            <div class="hidden md:flex items-center gap-4">
+                <div class="text-right">
+                    <p id="userName" class="font-bold text-gray-900">Guest</p>
+                    <p id="userEmail" class="text-sm text-gray-500">Sign In Required</p>
+                </div>
+                <img id="userPhoto" src="https://via.placeholder.com/40" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #4f46e5; object-fit: cover;">
+
+                <button id="authButton" onclick="handleAuth()" class="bg-indigo-600 text-white px-4 py-2 rounded-full font-semibold shadow-md hover:bg-indigo-700 transition duration-300">
+                    <i class="fab fa-google mr-2"></i> Sign In
+                </button>
+            </div>
+
+            <button id="menu-btn" class="md:hidden text-gray-700 text-2xl"><i class="fas fa-bars"></i></button>
+        </div>
+
+        <div id="mobileMenu" class="hidden md:hidden flex flex-col px-4 pb-4 space-y-2 text-sm text-gray-700 font-medium bg-gray-50">
+            <a href="home.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-house"></i> Home</a>
+            <a href="birthday.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-birthday-cake"></i> Birthday</a>
+            <a href="password.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-key"></i> Passwords</a>
+            
+            <a href="links.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-link"></i> Links</a>
+            <a href="calendar.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-calendar-alt"></i> Calendar</a>
+            <div class="border-t border-gray-300 mt-2 pt-2">
+                <p id="mobileUserName" class="font-bold text-gray-900">Guest</p>
+                <p id="mobileUserEmail" class="text-xs text-gray-500">Sign In Required</p>
+                <button id="mobileAuthButton" onclick="handleAuth()" class="bg-indigo-600 text-white px-3 py-2 rounded-full hover:bg-indigo-700 mt-2 w-full">
+                    <i class="fab fa-google mr-2"></i> Sign In
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main id="main-container" class="pt-24 pb-16 flex-grow flex flex-col">
+        <div class="container mx-auto flex-1 p-4 md:px-8 grid grid-cols-1 md:grid-cols-3 gap-6 items-start"> 
+
+            <div id="dataFormContainer" class="md:col-span-1 bg-white p-8 rounded-xl shadow-2xl border border-gray-200 h-fit">
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-3">📦 Add New Item to Inventory</h2>
+                <form id="dataForm" class="space-y-5">
+                    
+                    <div>
+                        <label for="itemType" class="block text-sm font-semibold text-gray-700">**Item Type (Required)**</label>
+                        <select id="itemType" name="itemType" required
+                                class="mt-1 block w-full px-4 py-2 border-2 border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition duration-150">
+                            <option value="" disabled selected>Select Clothing or Footwear</option>
+                            <option value="Clothing">Clothing</option>
+                            <option value="Footwear">Footwear</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label for="itemName" class="block text-sm font-semibold text-gray-700">Item Name (Required)</label>
+                        <input type="text" id="itemName" name="itemName" required placeholder="e.g., Blue T-Shirt"
+                                class="mt-1 block w-full px-4 py-2 border-2 border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition duration-150">
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        
+                        <div>
+                            <label for="shopName" class="block text-sm font-semibold text-gray-700">Shop/Brand Name (Optional)</label>
+                            <input type="text" id="shopName" name="shopName" placeholder="e.g., Adidas"
+                                class="mt-1 block w-full px-4 py-2 border-2 border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition duration-150">
+                        </div>
+                        
+                        <div>
+                            <label for="itemNo" class="block text-sm font-semibold text-gray-700">Item No. / Size (Optional)</label>
+                            <select id="itemNo" name="itemNo" onchange="toggleCustomItemNo()"
+                                class="mt-1 block w-full px-4 py-2 border-2 border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 scrollable-select custom-scrollbar">
+                                <option value="" selected>Select Size/No.</option>
+                                <option value="CUSTOM" class="font-bold bg-gray-100">--- Type Custom Size/No. ---</option>
+                                <optgroup label="Letter Sizes">
+                                    <option value="XL">XL</option>
+                                    <option value="2XL">2XL</option>
+                                    <option value="3XL">3XL</option>
+                                    <option value="4XL">4XL</option>
+                                    <option value="5XL">5XL</option>
+                                    <option value="6XL">6XL</option>
+                                </optgroup>
+                                <optgroup label="Number Sizes">
+                                    <option value="24">24</option>
+                                    <option value="26">26</option>
+                                    <option value="28">28</option>
+                                    <option value="30">30</option>
+                                    <option value="32">32</option>
+                                    <option value="34">34</option>
+                                    <option value="36">36</option>
+                                    <option value="38">38</option>
+                                    <option value="40">40</option>
+                                    <option value="42">42</option>
+                                    <option value="44">44</option>
+                                    <option value="46">46</option>
+                                    <option value="48">48</option>
+                                </optgroup>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div id="customItemNoContainer" class="hidden">
+                        <label for="customItemNoInput" class="block text-sm font-semibold text-gray-700">Custom Size/No.</label>
+                        <input type="text" id="customItemNoInput" name="customItemNoInput" placeholder="e.g., UK 9.5, 30x32"
+                            class="mt-1 block w-full px-4 py-2 border-2 border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition duration-150">
+                    </div>
+                    
+                    <input type="hidden" id="category" name="category" value="">
+
+
+                    <div>
+                        <label for="description" class="block text-sm font-semibold text-gray-700">Description / Details (Optional)</label>
+                        <textarea id="description" name="description" rows="2" 
+                                    class="mt-1 block w-full px-4 py-2 border-2 border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition duration-150 overflow-y-auto custom-scrollbar"></textarea>
+                    </div>
+
+                    <button type="submit" id="saveButton"
+                            class="w-full py-3 px-4 border border-transparent rounded-lg shadow-lg text-lg font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-4 focus:ring-offset-2 focus:ring-indigo-500 transition duration-300 ease-in-out">
+                        <i class="fas fa-plus-circle mr-2"></i> Save Item
+                    </button>
+                </form>
+            </div>
+
+            <div class="md:col-span-2 bg-white p-8 rounded-xl shadow-2xl border border-gray-200 flex flex-col h-full">
+                
+                <h2 class="text-2xl font-bold text-gray-800 mb-6 border-b pb-3 flex-shrink-0">🗄️ Saved Inventory Items</h2>
+
+                <div class="mb-5 flex-shrink-0">
+                    <div class="relative">
+                        <input type="text" id="searchBar" onkeyup="searchData()" placeholder="Search item name, brand, size, or type..."
+                                class="w-full pl-10 pr-4 py-2 border-2 border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 transition duration-150">
+                        <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                    </div>
+                </div>
+
+                <div id="dataListContainer" class="flex-1 space-y-3 pr-3 overflow-y-auto custom-scrollbar max-h-[360px]">
+                    <p id="loadingMessage" class="text-center text-gray-500 py-12 text-lg">
+                        <i class="fas fa-spinner fa-spin mr-2"></i> Loading inventory...
+                    </p>
+                </div>
+            </div>
+        </div>
+    </main>
+<footer class="bg-white text-gray-900 text-center py-4 text-sm mt-10">
+    &copy; 2025 My Personal Website | All Rights Reserved.
+</footer>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+
+<script>
+    let database;
+    let gearRef;
+    let isUserSignedIn = false;
+    let userData = {};
+    let allGear = [];
+    
+    // --- Function to handle Custom Size Input Visibility ---
+    window.toggleCustomItemNo = function() {
+        const itemNoSelect = document.getElementById('itemNo');
+        const customContainer = document.getElementById('customItemNoContainer');
+        const customInput = document.getElementById('customItemNoInput');
+
+        if (itemNoSelect.value === 'CUSTOM') {
+            customContainer.classList.remove('hidden');
+            customInput.focus();
+        } else {
+            customContainer.classList.add('hidden');
+            customInput.value = ''; // Clear custom input if a standard size is chosen
+        }
+    };
+    // -----------------------------------------------------------
+
+
+    // === 1. FIREBASE CONFIGURATION (Keep as is) ===
+    const firebaseConfig = {
+        apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc",
+        authDomain: "sk12-58e9e.firebaseapp.com",
+        projectId: "sk12-58e9e",
+        storageBucket: "sk12-58e9e.appspot.com",
+        messagingSenderId: "470207874652",
+        appId: "1:470207874652:web:67ba1cf3629b7e5b144899",
+        databaseURL: "https://sk12-58e9e-default-rtdb.firebaseio.com"
+    };
+
+    if (!firebase.apps.length) {
+        firebase.initializeApp(firebaseConfig);
+    }
+
+    database = firebase.database();
+    const googleProvider = new firebase.auth.GoogleAuthProvider();
+
+    // =========================================================================
+    // 🔑 AUTH Logic & User Data Fetching 
+    // =========================================================================
+
+    firebase.auth().onAuthStateChanged((user) => {
+        const userNameEl = document.getElementById('userName');
+        const userEmailEl = document.getElementById('userEmail');
+        const userPhotoEl = document.getElementById('userPhoto');
+        const authButton = document.getElementById('authButton');
+        const mobileAuthButton = document.getElementById('mobileAuthButton');
+        const dataListContainer = document.getElementById('dataListContainer');
+        const formContainer = document.getElementById('dataFormContainer');
+        const searchBar = document.getElementById('searchBar');
+
+        isUserSignedIn = !!user;
+
+        if (user) {
+            const USER_ID = user.uid;
+            gearRef = database.ref(`users/${USER_ID}/gear`);
+
+            userData = { uid: USER_ID, name: user.displayName, email: user.email, photoURL: user.photoURL };
+            userNameEl.textContent = user.displayName || "User";
+            userEmailEl.textContent = user.email || "No email";
+            userPhotoEl.src = user.photoURL || "https://via.placeholder.com/40/4f46e5/ffffff?text=U";
+            document.getElementById('mobileUserName').textContent = userNameEl.textContent;
+            document.getElementById('mobileUserEmail').textContent = userEmailEl.textContent;
+
+            // Desktop Button: 
+            authButton.innerHTML = 'Logout';
+            authButton.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+            authButton.classList.add('bg-red-500', 'hover:bg-red-600');
+            
+            // Mobile Button: 
+            mobileAuthButton.innerHTML = 'Logout'; 
+            mobileAuthButton.classList.remove('bg-indigo-600', 'hover:bg-indigo-700');
+            mobileAuthButton.classList.add('bg-red-500', 'hover:bg-red-600');
+
+            formContainer.classList.remove('hidden');
+            searchBar.closest('div').classList.remove('hidden'); 
+            
+            // Display loading message in the scrollable container
+            dataListContainer.innerHTML = '<p id="loadingMessage" class="text-center text-gray-500 py-12 text-lg"><i class="fas fa-spinner fa-spin mr-2"></i> Loading inventory...</p>';
+
+            attachDatabaseListeners();
+
+        } else {
+            gearRef = null;
+            userData = {};
+            allGear = []; // Reset array
+
+            userNameEl.textContent = "Guest";
+            userEmailEl.textContent = "Sign In Required";
+            userPhotoEl.src = "https://via.placeholder.com/40/6b7280/FFFFFF?text=G";
+            document.getElementById('mobileUserName').textContent = "Guest";
+            document.getElementById('mobileUserEmail').textContent = "Sign In Required";
+
+            authButton.innerHTML = '<i class="fab fa-google mr-2"></i> Sign In';
+            authButton.classList.remove('bg-red-500', 'hover:bg-red-600');
+            authButton.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+            mobileAuthButton.innerHTML = '<i class="fab fa-google mr-2"></i> Sign In';
+            mobileAuthButton.classList.remove('bg-red-500', 'hover:bg-red-600');
+            mobileAuthButton.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+
+            formContainer.classList.add('hidden');
+            searchBar.closest('div').classList.add('hidden'); 
+            // Display sign-in message in the scrollable container
+            dataListContainer.innerHTML = '<div class="content-hidden"><p>Please sign in with Google to view and save your gear inventory.</p></div>';
+        }
+    });
+
+    window.handleAuth = function() {
+        if (isUserSignedIn) {
+            firebase.auth().signOut().then(() => {
+                 window.location.href = 'index.html';
+            });
+        } else {
+            firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+                .then(() => {
+                    return firebase.auth().signInWithPopup(googleProvider);
+                })
+                .catch((error) => {
+                    alert(`Authentication Error: ${error.message}`);
+                });
+        }
+    };
+
+    function formatDate(timestamp) {
+        if (!timestamp) return 'Date N/A';
+        const date = new Date(timestamp);
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+    }
+
+    function attachDatabaseListeners() {
+        if (!gearRef) return;
+        const form = document.getElementById('dataForm');
+        form.removeEventListener('submit', submitData);
+        form.addEventListener('submit', submitData);
+        gearRef.off('value');
+        gearRef.on('value', (snapshot) => {
+            const items = [];
+            if (snapshot.exists()) {
+                snapshot.forEach((childSnapshot) => {
+                    items.push({ key: childSnapshot.key, data: childSnapshot.val() });
+                });
+            }
+            allGear = items.reverse();
+            renderDataList(allGear);
+        }, (error) => {
+            document.getElementById('dataListContainer').innerHTML = `<p class="text-center text-red-500 py-12 text-lg">Error loading data: ${error.message}</p>`;
+        });
+    }
+
+    function renderDataList(items) {
+        const dataListContainer = document.getElementById('dataListContainer');
+        
+        // 1. Clear the entire scrollable container
+        dataListContainer.innerHTML = '';
+
+        if (items.length === 0) {
+             // 2. If empty, insert the 'No items' message directly.
+             dataListContainer.innerHTML = '<p class="text-center text-gray-500 py-12 text-lg">No inventory items found matching your search or none saved yet.</p>';
+             return;
+        }
+
+        // 3. If data exists, create the list structure
+        const dataList = document.createElement('div');
+        dataList.id = 'dataList'; // Re-create the dataList ID
+        dataList.className = 'space-y-2'; // Reduced space-y for compactness
+        
+        items.forEach(({ key, data }) => {
+            const card = createDataCard(key, data);
+            dataList.appendChild(card);
+        });
+
+        // 4. Append the populated list to the main scrollable area.
+        dataListContainer.appendChild(dataList);
+    }
+
+    window.searchData = function() {
+        const query = document.getElementById('searchBar').value.toLowerCase();
+        if (!query) {
+            renderDataList(allGear);
+            return;
+        }
+        const filteredData = allGear.filter(({ data }) =>
+            (data.itemName && data.itemName.toLowerCase().includes(query)) ||
+            (data.description && data.description.toLowerCase().includes(query)) ||
+            (data.itemNo && data.itemNo.toLowerCase().includes(query)) ||
+            (data.shopName && data.shopName.toLowerCase().includes(query)) ||
+            (data.itemType && data.itemType.toLowerCase().includes(query))
+        );
+        renderDataList(filteredData);
+    };
+
+    function submitData(e) {
+        e.preventDefault();
+        if (!gearRef) {
+            displayMessage("Please sign in to save data.", true);
+            return;
+        }
+        
+        const itemType = document.getElementById('itemType').value;
+        const itemName = document.getElementById('itemName').value; 
+        const category = document.getElementById('category').value; 
+        let itemNo = document.getElementById('itemNo').value;
+        const shopName = document.getElementById('shopName').value;
+        const description = document.getElementById('description').value;
+
+        // --- Handle Custom Item No. Logic ---
+        if (itemNo === 'CUSTOM') {
+            itemNo = document.getElementById('customItemNoInput').value.trim();
+        } else if (itemNo === '') {
+            itemNo = ''; 
+        }
+        // -----------------------------------
+
+
+        if (!itemName || !itemType) {
+            displayMessage("Item Name and Item Type are required.", true);
+            return;
+        }
+
+        gearRef.push({
+            itemType: itemType,
+            itemName: itemName, 
+            category: category || '', 
+            itemNo: itemNo || '', 
+            shopName: shopName || '', 
+            description: description || '',
+            createdAt: firebase.database.ServerValue.TIMESTAMP
+        }).then(() => {
+            displayMessage("Item Saved!", false);
+            document.getElementById('dataForm').reset();
+            document.getElementById('itemType').value = ""; 
+            // Reset the custom input visibility
+            document.getElementById('customItemNoContainer').classList.add('hidden'); 
+            document.getElementById('customItemNoInput').value = '';
+        }).catch(error => {
+            displayMessage(`Error: ${error.message}`, true);
+        });
+    }
+
+    function displayMessage(message, isError = false) {
+        const saveButton = document.getElementById('saveButton');
+        const originalHTML = '<i class="fas fa-plus-circle mr-2"></i> Save Item'; 
+
+        saveButton.innerHTML = `<i class="fas fa-${isError ? 'exclamation-triangle' : 'check'} mr-2"></i> ${message}`;
+        saveButton.classList.remove('bg-indigo-600', 'hover:bg-indigo-700', 'bg-red-500', 'hover:bg-red-600', 'bg-green-500', 'hover:bg-green-600');
+        saveButton.classList.add(isError ? 'bg-red-500 hover:bg-red-600' : 'bg-green-600', 'hover:bg-green-700');
+
+        setTimeout(() => {
+            saveButton.innerHTML = originalHTML;
+            saveButton.classList.remove('bg-green-600', 'hover:bg-green-700', 'bg-red-500', 'hover:bg-red-600');
+            saveButton.classList.add('bg-indigo-600', 'hover:bg-indigo-700');
+        }, 3000);
+    }
+
+    function createDataCard(key, data) {
+        const trimmedDescription = (data.description || '').trim();
+        const descriptionLines = trimmedDescription ? trimmedDescription.split('\n').filter(line => line.trim() !== '') : [];
+        
+        // --- Compact Description Section ---
+        let descriptionSectionHTML = '';
+        if (descriptionLines.length > 0) {
+            const listHTML = `<ul class="description-list">${descriptionLines.map(line => `<li>${line.trim()}</li>`).join('')}</ul>`;
+            descriptionSectionHTML = `
+                <div class="md:col-span-4">
+                    <div class="description-wrapper">
+                        <p class="text-sm font-semibold text-gray-900 mb-0">Details:</p> 
+                        ${listHTML}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Escape string data for inline function calls
+        const escapedName = data.itemName.replace(/'/g, "\\'"); 
+        const escapedType = data.itemType.replace(/'/g, "\\'");
+        const escapedShop = data.shopName ? data.shopName.replace(/'/g, "\\'") : ''; 
+        const escapedCategory = data.category ? data.category.replace(/'/g, "\\'") : ''; 
+        const escapedNo = data.itemNo ? data.itemNo.replace(/'/g, "\\'") : ''; 
+        const escapedDesc = trimmedDescription.replace(/`/g, '\\`').replace(/'/g, "\\'").replace(/"/g, '\\"');
+        
+        const editDataString = `'${key}', '${escapedName}', '${escapedType}', '${escapedCategory}', '${escapedNo}', '${escapedShop}', \`${trimmedDescription.replace(/`/g, '\\`')}\`, '${formatDate(data.createdAt)}', '${data.updatedAt ? formatDate(data.updatedAt) : 'Never'}'`;
+
+        const creationDate = formatDate(data.createdAt);
+        const updateDate = data.updatedAt ? formatDate(data.updatedAt) : ''; 
+
+        // Conditional Date Display
+        let dateText = `<span class="text-xs text-gray-500 block text-right">Saved: ${creationDate}</span>`;
+        if (updateDate) {
+            dateText += `<span class="text-xs text-gray-500 block text-right">Updated: ${updateDate}</span>`;
+        }
+        
+        // --- Compact Detail Lines ---
+        const shopDisplay = data.shopName
+            ? `<p class="text-sm text-gray-900">Shop/Brand: <span class="font-semibold text-gray-900">${data.shopName}</span></p>`
+            : '';
+            
+        const itemNoDisplay = data.itemNo
+            ? `<p class="text-sm text-gray-900">Size/No.: <span class="font-semibold text-gray-900">${data.itemNo}</span></p>` 
+            : '';
+            
+        const typeDisplay = `<p class="text-sm text-gray-900">Type: <span class="font-semibold text-gray-900">${data.itemType}</span></p>`; 
+        
+
+        const card = document.createElement('div');
+        card.id = `data-${key}`;
+        // Reduced p-3 for smaller card padding
+        card.className = 'bg-white p-3 rounded-xl border border-gray-200 shadow-md transition duration-300 hover:shadow-lg'; 
+        card.innerHTML = `
+            <div class="display-content">
+                
+                <div class="flex justify-between items-start mb-1">
+                     <h3 class="text-lg font-bold text-gray-900 max-w-[70%] md:max-w-full">${data.itemName}</h3> 
+                     <span class="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full whitespace-nowrap hidden md:block">${data.itemType}</span>
+                </div>
+                
+                <div class="mb-1 space-y-0.5 text-gray-900">
+                    ${typeDisplay}
+                    ${shopDisplay}
+                    ${itemNoDisplay}
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-2 items-start">
+                    
+                    ${descriptionSectionHTML} <div class="hidden md:flex flex-col items-end w-full ${descriptionSectionHTML ? 'md:col-span-4' : 'md:col-span-4'} justify-end">
+                        
+                        <div class="space-x-1 flex items-center mb-0.5">
+                            <button onclick="editData(${editDataString})" class="action-btn edit text-blue-500" title="Edit"><i class="fas fa-pencil-alt"></i></button>
+                            <button onclick="deleteData('${key}')" class="action-btn delete text-red-500" title="Delete"><i class="fas fa-trash-alt"></i></button>
+                            <button onclick="shareData('${escapedName}', '${escapedType}', '${escapedCategory}', '${escapedNo}', '${escapedShop}', '${escapedDesc}')" class="action-btn share text-green-500" title="Share"><i class="fas fa-share-alt"></i></button>
+                        </div>
+                        
+                        <div>${dateText}</div>
+                    </div>
+                    
+                    <div class="md:hidden flex space-x-2 items-center justify-end col-span-full border-t pt-2 mt-2">
+                        <span class="text-xs text-gray-500 mr-auto">Saved: ${creationDate}</span>
+                        <button onclick="editData(${editDataString})" class="action-btn edit text-blue-500" title="Edit"><i class="fas fa-pencil-alt"></i></button>
+                        <button onclick="deleteData('${key}')" class="action-btn delete text-red-500" title="Delete"><i class="fas fa-trash-alt"></i></button>
+                        <button onclick="shareData('${escapedName}', '${escapedType}', '${escapedCategory}', '${escapedNo}', '${escapedShop}', '${escapedDesc}')" class="action-btn share text-green-500" title="Share"><i class="fas fa-share-alt"></i></button>
+                    </div>
+                    
+                </div>
+            </div>
+
+            <div class="edit-form-content space-y-3">
+                <form id="editForm-${key}" onsubmit="saveEdit(event, '${key}')" class="space-y-3">
+                    <div class="text-sm text-gray-600 border-b pb-2">
+                        <p><strong>Saved:</strong> <span id="view-createdAt-${key}"></span></p>
+                        <p><strong>Last Edit:</strong> <span id="view-updatedAt-${key}"></span></p>
+                    </div>
+
+                    <div>
+                        <label for="editName-${key}" class="block text-sm font-semibold text-gray-700">Item Name (Required)</label>
+                        <input type="text" id="editName-${key}" name="itemName" required
+                            class="mt-1 block w-full px-3 py-2 border-2 border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition duration-150">
+                    </div>
+                    
+                    <div>
+                        <label for="editType-${key}" class="block text-sm font-semibold text-gray-700">**Item Type (Required)**</label>
+                        <select id="editType-${key}" name="itemType" required
+                            class="mt-1 block w-full px-3 py-2 border-2 border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition duration-150">
+                            <option value="Clothing">Clothing</option>
+                            <option value="Footwear">Footwear</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label for="editShop-${key}" class="block text-sm font-semibold text-gray-700">Shop/Brand Name (Optional)</label>
+                            <input type="text" id="editShop-${key}" name="shopName"
+                                class="mt-1 block w-full px-3 py-2 border-2 border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition duration-150">
+                        </div>
+                        
+                        <div>
+                            <label for="editNo-${key}" class="block text-sm font-semibold text-gray-700">Item No. / Size (Optional)</label>
+                            <input type="text" id="editNo-${key}" name="itemNo"
+                                class="mt-1 block w-full px-3 py-2 border-2 border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition duration-150">
+                        </div>
+                    </div>
+                    
+                    <div class="hidden">
+                        <label for="editCategory-${key}" class="block text-sm font-semibold text-gray-700">Category</label>
+                        <input type="text" id="editCategory-${key}" name="category"
+                            class="mt-1 block w-full px-3 py-2 border-2 border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition duration-150">
+                    </div>
+
+
+                    <div>
+                        <label for="editDesc-${key}" class="block text-sm font-semibold text-gray-700">Description / Details (Optional)</label>
+                        <textarea id="editDesc-${key}" name="description" rows="2"
+                            class="mt-1 block w-full px-3 py-2 border-2 border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 transition duration-150 overflow-y-auto custom-scrollbar"></textarea>
+                    </div>
+                    <div class="flex space-x-3">
+                        <button type="submit" class="flex-1 py-2 px-4 rounded-lg font-bold text-white bg-green-600 hover:bg-green-700 transition duration-300">
+                            <i class="fas fa-check mr-2"></i> Save Changes
+                        </button>
+                        <button type="button" onclick="cancelEdit('${key}')" class="flex-1 py-2 px-4 rounded-lg font-bold text-gray-700 bg-gray-200 hover:bg-gray-300 transition duration-300">
+                            <i class="fas fa-times mr-2"></i> Cancel
+                        </button>
+                    </div>
+                </form>
+            </div>
+        `;
+        return card;
+    }
+
+    window.deleteData = function(key) {
+        if (!gearRef) { alert('Please sign in to manage data.'); return; }
+        if (confirm("Are you sure you want to delete this inventory item?")) {
+            gearRef.child(key).remove()
+                .then(() => { console.log("Item deleted successfully"); })
+                .catch((error) => { alert(`Deletion failed: ${error.message}`); });
+        }
+    };
+
+    window.editData = function(key, currentName, currentType, currentCategory, currentNo, currentShop, currentDesc, creationDate, updateDate) {
+        if (!gearRef) { alert('Please sign in to manage data.'); return; }
+
+        const card = document.getElementById(`data-${key}`);
+        const editNameInput = document.getElementById(`editName-${key}`);
+        const editTypeInput = document.getElementById(`editType-${key}`);
+        const editCategoryInput = document.getElementById(`editCategory-${key}`);
+        const editNoInput = document.getElementById(`editNo-${key}`);
+        const editShopInput = document.getElementById(`editShop-${key}`);
+        const editDescInput = document.getElementById(`editDesc-${key}`);
+        const createdAtEl = document.getElementById(`view-createdAt-${key}`);
+        const updatedAtEl = document.getElementById(`view-updatedAt-${key}`);
+
+        if (card) {
+            editNameInput.value = currentName;
+            editTypeInput.value = currentType;
+            // Set category value for consistency in saveEdit, even if not displayed
+            editCategoryInput.value = currentCategory; 
+            editNoInput.value = currentNo;
+            editShopInput.value = currentShop;
+            editDescInput.value = currentDesc;
+
+            createdAtEl.textContent = creationDate;
+            updatedAtEl.textContent = updateDate === 'Never' || updateDate === '' ? 'Not Yet Edited' : updateDate;
+
+            card.classList.add('editing');
+            editNameInput.focus();
+        }
+    };
+
+    window.saveEdit = function(e, key) {
+        e.preventDefault();
+        if (!gearRef) { alert('Please sign in to manage data.'); return; }
+
+        const newName = document.getElementById(`editName-${key}`).value.trim();
+        const newType = document.getElementById(`editType-${key}`).value.trim();
+        const newCategory = document.getElementById(`editCategory-${key}`).value.trim(); // This is a hidden field, maintaining its value.
+        const newNo = document.getElementById(`editNo-${key}`).value.trim();
+        const newShop = document.getElementById(`editShop-${key}`).value.trim();
+        const newDesc = document.getElementById(`editDesc-${key}`).value.trim();
+        const card = document.getElementById(`data-${key}`);
+
+        if (!newName || !newType) {
+            alert("Item Name and Item Type are required.");
+            return;
+        }
+
+        gearRef.child(key).once('value')
+            .then((snapshot) => {
+                const currentData = snapshot.val();
+                if (!currentData) { alert("Error: Item data not found."); return; }
+
+                currentData.itemName = newName; 
+                currentData.itemType = newType;
+                currentData.category = newCategory || ''; // Save newCategory (which is either blank or old value)
+                currentData.itemNo = newNo;
+                currentData.shopName = newShop;
+                currentData.description = newDesc;
+                
+                // Set updatedAt timestamp only when changes are saved
+                currentData.updatedAt = firebase.database.ServerValue.TIMESTAMP;
+
+                return gearRef.child(key).set(currentData);
+            })
+            .then(() => {
+                console.log("Item updated successfully.");
+                if (card) card.classList.remove('editing');
+            })
+            .catch((error) => {
+                alert(`Update failed: ${error.message}.`);
+            });
+    };
+
+    window.cancelEdit = function(key) {
+        const card = document.getElementById(`data-${key}`);
+        if (card) {
+            card.classList.remove('editing');
+        }
+    };
+
+    window.shareData = function(name, type, category, no, shop, desc) {
+        const itemNoText = no ? `\nSize/No.: ${no}` : '';
+        const shopText = shop ? `\nShop/Brand: ${shop}` : '';
+        const categoryText = category ? `\nCategory: ${category}` : '';
+        const descText = desc ? `\n\nDetails:\n${desc}` : '';
+        const shareText = `Inventory Item: ${name}\nType: ${type}${categoryText}${shopText}${itemNoText}${descText}`;
+        
+        if (navigator.share) {
+            navigator.share({
+                title: `My Inventory: ${name}`, 
+                text: shareText, 
+            }).then(() => { console.log('Successful share'); })
+              .catch((error) => { console.log('Error sharing:', error); });
+        } else {
+            navigator.clipboard.writeText(shareText);
+            alert(`Item details copied to clipboard:\n\n${shareText}`);
+        }
+    };
+
+    document.getElementById('menu-btn').addEventListener('click', function() {
+        document.getElementById('mobileMenu').classList.toggle('hidden');
+    });
+</script>
+<style>
+    #dataListContainer{
+        height: 200px;
+    }
+</style>
+</body>
+</html>

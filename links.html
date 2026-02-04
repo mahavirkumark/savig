@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Link Manager | My Personal Website</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<style>
+    /* Global Font Change to Times New Roman for Body Text */
+    body {
+        font-family: 'Times New Roman', Times, serif;
+        color: black;
+    }
+    
+    /* UI Elements (Buttons, Inputs, Nav) - Sans-Serif */
+    nav, button, input, textarea, .sans-font {
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    }
+
+    /* Copied Badge */
+    .copied-badge {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%) translateY(5px);
+        margin-bottom: 5px;
+        padding: 0.25rem 0.5rem;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        background: #10B981;
+        color: white;
+        opacity: 0;
+        pointer-events: none;
+        transition: all 0.3s ease;
+        font-family: ui-sans-serif, system-ui, sans-serif;
+    }
+    .copied-badge.visible {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    /* Scrollbar */
+    .link-list-container {
+        max-height: 75vh; 
+        overflow-y: auto;
+        padding-right: 4px;
+    }
+    .link-list-container::-webkit-scrollbar {
+        width: 6px;
+    }
+    .link-list-container::-webkit-scrollbar-thumb {
+        background-color: #cbd5e1;
+        border-radius: 10px;
+    }
+</style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+<nav class="hidden lg:flex bg-white shadow-md px-8 py-4 justify-between items-center sticky top-0 z-50">
+    <div class="text-2xl font-extrabold flex items-center gap-1">
+        <i class="fas fa-user-circle text-2xl text-blue-600"></i>
+        <span class="font-extrabold text-black">My Personal Website</span>
+    </div>
+    
+    <div class="flex items-center gap-x-6 text-gray-600 sans-font">
+        <a href="home.html" class="flex items-center gap-2 hover:text-indigo-500 transition duration-300 whitespace-nowrap" style="font-size: 18px;"><i class="fas fa-house"></i> Home</a>
+        <a href="password.html" class="flex items-center gap-2 hover:text-indigo-500 transition duration-300 whitespace-nowrap" style="font-size: 18px;"><i class="fas fa-key"></i> Passwords</a>
+        <a href="income.html" class="flex items-center gap-2 hover:text-indigo-500 transition duration-300 whitespace-nowrap" style="font-size: 18px;"><i class="fas fa-wallet"></i> Income</a>
+        <a href="links.html" class="flex items-center gap-2 text-indigo-500 border-b-2 border-indigo-500 pb-1 transition duration-300 whitespace-nowrap" style="font-size: 18px;"><i class="fas fa-link"></i> Links</a>
+        <a href="calender.html" class="flex items-center gap-2 hover:text-indigo-500 transition duration-300 whitespace-nowrap" style="font-size: 18px;"><i class="fas fa-calendar-alt"></i> Calendar</a>
+        <a href="birthday.html" class="flex items-center gap-2 hover:text-indigo-500 transition duration-300 whitespace-nowrap" style="font-size: 18px;"><i class="fas fa-cake-candles"></i> Birthday</a>
+    </div>
+
+    <div class="flex items-center space-x-4 sans-font">
+        <div class="text-right hidden sm:block">
+            <p id="userName" class="font-bold text-gray-900 text-lg">User Name</p>
+            <p id="userEmail" class="text-base text-gray-500 break-all">user@example.com</p>
+        </div>
+        <img id="userPic" class="rounded-full w-12 h-12 object-cover border-2 border-blue-400" />
+        <button id="logoutBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow-sm text-base font-medium">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+    </div>
+</nav>
+
+<nav class="lg:hidden bg-white shadow-md px-4 py-4 flex justify-between items-center sticky top-0 z-50">
+    <div class="text-xl font-bold flex items-center gap-1">
+        <i class="fas fa-user-circle text-2xl text-blue-600"></i>
+        <span class="font-bold text-black">My Personal Website</span>
+    </div>
+    <button id="menu-btn" class="text-3xl text-gray-700 hover:text-blue-600 transition duration-150"><i class="fas fa-bars"></i></button>
+</nav>
+
+<div id="mobile-menu" class="hidden lg:hidden bg-white shadow-lg px-6 py-6 flex flex-col space-y-4 text-xl absolute w-full z-40 sans-font">
+    <a href="home.html" class="hover:text-indigo-500 flex items-center gap-3 py-2 border-b border-gray-100"><i class="fas fa-house w-6"></i> Home</a>
+    <a href="password.html" class="hover:text-indigo-500 flex items-center gap-3 py-2 border-b border-gray-100"><i class="fas fa-key w-6"></i> Passwords</a>
+    <a href="income.html" class="hover:text-indigo-500 flex items-center gap-3 py-2 border-b border-gray-100"><i class="fas fa-wallet w-6"></i> Income</a>
+    <a href="links.html" class="text-indigo-500 flex items-center gap-3 py-2 border-b border-gray-100"><i class="fas fa-link w-6"></i> Links</a>
+    <a href="calender.html" class="hover:text-indigo-500 flex items-center gap-3 py-2 border-b border-gray-100"><i class="fas fa-calendar-alt w-6"></i> Calendar</a>
+    <a href="birthday.html" class="hover:text-indigo-500 flex items-center gap-3 py-2"><i class="fas fa-cake-candles w-6"></i> Birthday</a>
+
+    <div class="flex items-center space-x-4 pt-4 border-t mt-4 border-gray-200">
+        <img id="mobileUserPic" class="rounded-full w-14 h-14 object-cover border-2 border-blue-400" />
+        <div class="text-left flex-grow">
+            <p id="mobileUserName" class="font-bold text-gray-900 text-lg">User Name</p>
+            <p id="mobileUserEmail" class="text-gray-500 break-words text-base">user@example.com</p>
+        </div>
+        <button id="mobileLogout" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-base font-medium">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+    </div>
+</div>
+<main class="flex-grow max-w-7xl mx-auto mt-8 p-4 md:p-6 w-full">
+
+    <div class="flex flex-col lg:flex-row gap-6 items-start">
+
+        <div class="w-full lg:w-1/2 lg:sticky lg:top-28">
+            <div class="bg-white shadow-xl rounded-2xl overflow-hidden border border-gray-100">
+                <div class="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
+                    <h2 class="text-white font-bold text-xl flex items-center gap-2 sans-font">
+                        <i class="fas fa-plus-circle"></i> Add New Link
+                    </h2>
+                </div>
+                
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1 sans-font">Website URL</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                                <i class="fas fa-link"></i>
+                            </div>
+                            <input id="linkInput" type="url" placeholder="https://example.com"
+                                class="w-full pl-10 p-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 outline-none sans-font" required/>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1 sans-font">Description</label>
+                        <textarea id="descInput" rows="3" placeholder="What is this link about?"
+                            class="w-full p-3 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150 outline-none" required></textarea>
+                    </div>
+
+                    <button id="addLinkBtn"
+                        class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 w-full rounded-xl text-lg shadow-md sans-font transition-all">
+                        <i class="fas fa-save mr-2"></i> Save Link
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <div class="w-full lg:w-1/2">
+            <div class="bg-white shadow-sm p-2 rounded-xl border border-gray-200 mb-6 flex items-center gap-2">
+                <div class="pl-3 text-gray-400"><i class="fas fa-search"></i></div>
+                <input id="searchBar" type="text" placeholder="Search your links..."
+                    class="w-full p-2.5 text-base rounded-lg focus:outline-none bg-transparent sans-font" />
+            </div>
+
+            <div id="linkList" class="space-y-5 link-list-container pr-2">
+                </div>
+        </div>
+
+    </div>
+</main>
+<footer class="bg-white shadow mt-8 py-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-base text-gray-600 flex justify-center">
+        &copy; 2025 My Personal Website Link Manager. All rights reserved.
+    </div>
+</footer>
+<script>
+    // --- Mobile menu toggle ---
+    const menuBtn = document.getElementById('menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    menuBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+        const icon = menuBtn.querySelector('i');
+        icon.classList.toggle('fa-bars');
+        icon.classList.toggle('fa-times');
+    });
+
+    // --- Firebase Config ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc",
+        authDomain: "sk12-58e9e.firebaseapp.com",
+        databaseURL: "https://sk12-58e9e-default-rtdb.firebaseio.com",
+        projectId: "sk12-58e9e",
+        storageBucket: "sk12-58e9e.appspot.com",
+        messagingSenderId: "470207874652",
+        appId: "1:470207874652:web:67ba1cf3629b7e5b144899"
+    };
+
+    // Init Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    // DOM Elements
+    const userName = document.getElementById("userName");
+    const userEmail = document.getElementById("userEmail");
+    const userPic = document.getElementById("userPic");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    const mobileUserName = document.getElementById("mobileUserName");
+    const mobileUserEmail = document.getElementById("mobileUserEmail");
+    const mobileUserPic = document.getElementById("mobileUserPic");
+    const mobileLogout = document.getElementById("mobileLogout");
+
+    const linkInput = document.getElementById("linkInput");
+    const descInput = document.getElementById("descInput");
+    const addLinkBtn = document.getElementById("addLinkBtn");
+    const linkList = document.getElementById("linkList");
+    const searchBar = document.getElementById("searchBar");
+
+    let currentUserId = "";
+    let allLinks = [];
+
+    // --- Auth Check ---
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            currentUserId = user.uid;
+            
+            // Set User Info
+            const name = user.displayName || "My Account";
+            const email = user.email;
+            const photo = user.photoURL || "https://ui-avatars.com/api/?name=" + name + "&background=0D8ABC&color=fff";
+            
+            userName.textContent = name;
+            userEmail.textContent = email;
+            userPic.src = photo;
+            
+            mobileUserName.textContent = name;
+            mobileUserEmail.textContent = email;
+            mobileUserPic.src = photo;
+            
+            loadLinks();
+        } else {
+            window.location.href = "index.html";
+        }
+    });
+
+    // --- Add Link ---
+    addLinkBtn.addEventListener("click", () => {
+        let link = linkInput.value.trim();
+        const desc = descInput.value.trim();
+
+        if (!link || !desc) {
+            alert("Please enter both a valid link and a description.");
+            return;
+        }
+
+        if (!/^https?:\/\//i.test(link)) {
+            link = 'https://' + link;
+        }
+
+        try { new URL(link); } catch (e) {
+            alert("Please enter a valid URL.");
+            return;
+        }
+
+        addLinkBtn.disabled = true;
+        addLinkBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Saving...';
+        addLinkBtn.classList.add('opacity-75');
+
+        const newRef = db.ref(`users/${currentUserId}/links`).push();
+        newRef.set({ link, desc, timestamp: firebase.database.ServerValue.TIMESTAMP })
+            .then(() => {
+                linkInput.value = "";
+                descInput.value = "";
+                addLinkBtn.innerHTML = '<i class="fas fa-save mr-2"></i> Save Link';
+                addLinkBtn.disabled = false;
+                addLinkBtn.classList.remove('opacity-75');
+            })
+            .catch(err => {
+                alert("Error: " + err.message);
+                addLinkBtn.innerHTML = '<i class="fas fa-save mr-2"></i> Save Link';
+                addLinkBtn.disabled = false;
+                addLinkBtn.classList.remove('opacity-75');
+            });
+    });
+
+    // --- Load & Render ---
+    function loadLinks() {
+        db.ref(`users/${currentUserId}/links`).on("value", snapshot => {
+            const links = [];
+            snapshot.forEach(child => links.push({ id: child.key, ...child.val() }));
+            allLinks = links.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+            renderLinks(allLinks);
+        });
+        
+        searchBar.addEventListener('input', filterLinks);
+    }
+
+    function filterLinks() {
+        const query = searchBar.value.toLowerCase().trim();
+        const filteredLinks = allLinks.filter(item => 
+            item.link.toLowerCase().includes(query) || 
+            item.desc.toLowerCase().includes(query)
+        );
+        renderLinks(filteredLinks);
+    }
+
+    function renderLinks(links) {
+        linkList.innerHTML = "";
+
+        if (links.length === 0) {
+            linkList.innerHTML = `
+            <div class="flex flex-col items-center justify-center p-8 bg-white border border-dashed border-gray-300 rounded-xl text-gray-500">
+                <i class="fas fa-link text-3xl mb-2 text-gray-300"></i>
+                <p class="text-lg sans-font">No links found.</p>
+            </div>`;
+            return;
+        }
+
+        links.forEach(item => {
+            const div = document.createElement("div");
+            div.className = "bg-white rounded-xl shadow-sm border border-gray-100 hover:shadow-md transition duration-200 overflow-hidden group";
+
+            let domain = "";
+            try { domain = new URL(item.link).hostname; } catch(e) { domain = "Link"; }
+
+            div.innerHTML = `
+                <div class="p-5">
+                    <div class="flex items-center gap-2 mb-2">
+                        <img src="https://www.google.com/s2/favicons?domain=${item.link}&sz=32" class="w-4 h-4" alt="icon"/>
+                        <span class="text-xs font-bold text-gray-400 uppercase tracking-wider sans-font">${domain}</span>
+                    </div>
+                    
+                    <a href="${item.link}" target="_blank" rel="noopener noreferrer"
+                        class="text-xl font-bold text-gray-900 hover:text-blue-600 transition-colors block mb-2 sans-font truncate">
+                        ${item.link}
+                    </a>
+
+                    <p class="text-gray-700 text-lg leading-relaxed border-l-4 border-blue-100 pl-3 font-serif">
+                        ${item.desc}
+                    </p>
+                </div>
+                
+                <div class="bg-gray-50 px-5 py-3 border-t border-gray-100 flex justify-between items-center sans-font">
+                    <div class="flex gap-2">
+                        <button class="copy-btn relative bg-white border border-gray-200 hover:border-blue-300 hover:text-blue-600 text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-md flex items-center gap-1 shadow-sm transition-all"
+                            data-copy="${item.link}">
+                            <i class="fas fa-copy"></i> Copy
+                            <span class="copied-badge">Copied!</span>
+                        </button>
+                        
+                        <button class="share-btn relative bg-white border border-gray-200 hover:border-green-300 hover:text-green-600 text-gray-600 text-xs font-semibold px-3 py-1.5 rounded-md flex items-center gap-1 shadow-sm transition-all"
+                            data-share-link="${item.link}" data-share-desc="${item.desc}">
+                            <i class="fas fa-share-alt"></i> Share
+                            <span class="copied-badge">Sent!</span>
+                        </button>
+                    </div>
+
+                    <div class="flex gap-1 opacity-100 lg:opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button onclick="editLink('${item.id}', '${encodeURIComponent(item.desc)}')"
+                            class="text-gray-400 hover:text-yellow-600 p-2 rounded hover:bg-yellow-50 transition">
+                            <i class="fas fa-pen"></i>
+                        </button>
+                        <button onclick="deleteLink('${item.id}')"
+                            class="text-gray-400 hover:text-red-600 p-2 rounded hover:bg-red-50 transition">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            linkList.appendChild(div);
+
+            // Copy logic
+            const copyBtn = div.querySelector(".copy-btn");
+            const copyBadge = copyBtn.querySelector(".copied-badge");
+            copyBtn.addEventListener("click", () => {
+                navigator.clipboard.writeText(item.link)
+                    .then(() => showCopiedAnimation(copyBadge))
+                    .catch(err => console.error("Copy failed:", err));
+            });
+
+            // Share logic
+            const shareBtn = div.querySelector(".share-btn");
+            const shareBadge = shareBtn.querySelector(".copied-badge");
+            shareBtn.addEventListener("click", () => {
+                if (navigator.share) {
+                    navigator.share({ title: 'Shared Link', text: item.desc, url: item.link }).catch(console.error);
+                } else {
+                    navigator.clipboard.writeText(item.link + "\n" + item.desc)
+                        .then(() => { shareBadge.innerText = "Copied!"; showCopiedAnimation(shareBadge); });
+                }
+            });
+        });
+    }
+
+    function showCopiedAnimation(badgeElement) {
+        badgeElement.classList.add('visible');
+        setTimeout(() => badgeElement.classList.remove('visible'), 1500);
+    }
+
+    function editLink(id, oldDescEncoded) {
+        const oldDesc = decodeURIComponent(oldDescEncoded);
+        const newDesc = prompt("Edit description:", oldDesc);
+        if (newDesc !== null && newDesc.trim() !== "" && newDesc.trim() !== oldDesc.trim()) {
+            db.ref('users/' + currentUserId + '/links/' + id).update({ desc: newDesc.trim() })
+                .catch(err => alert("Error: " + err.message));
+        }
+    }
+
+    function deleteLink(id) {
+        if (confirm("Delete this link?")) {
+            db.ref('users/' + currentUserId + '/links/' + id).remove()
+                .catch(err => alert("Error: " + err.message));
+        }
+    }
+
+    // Logout
+    logoutBtn.addEventListener("click", () => auth.signOut().then(() => (window.location.href = "index.html")));
+    mobileLogout.addEventListener("click", () => auth.signOut().then(() => (window.location.href = "index.html")));
+</script>
+</body>
+</html>

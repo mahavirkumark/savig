@@ -1,0 +1,982 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Income & Expense Tracker</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+  <!-- Firebase v8 SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body class="bg-gray-100">
+ 
+ <div id="loader" class="fixed inset-0 bg-white bg-opacity-40 backdrop-blur-sm z-50 flex flex-col items-center justify-center pointer-events-auto">
+  <div class="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin"></div>
+  <p class="mt-4 text-gray-800 font-semibold">Loading... Please Wait</p>
+</div>
+
+ 
+
+ <nav  class="bg-white shadow p-4 flex justify-between items-center">
+  <div class="text-2xl font-bold text-black-400">My Personal Website</div>
+  
+  <div class="flex space-x-6 text-gray-700 text-lg">
+  <a href="home.html" class="flex items-center gap-2"><i class="fas fa-house"></i> Home</a>
+
+<a href="income.html" class="flex items-center gap-2"><i class="fas fa-wallet"></i> Income</a>
+<a href="links.html" class="flex items-center gap-2"><i class="fas fa-link"></i> Links</a>
+ <a href="calender.html" class="flex items-center gap-2"><i class="fas fa-calendar-days"></i> Calendar</a>
+<a href="birthday.html" class="flex items-center gap-2"><i class="fas fa-cake-candles"></i> Birthday</a>
+<a href="password.html" class="flex items-center gap-2"><i class="fas fa-lock"></i> Passwords</a>
+  </div>
+
+
+  <div class="flex items-center space-x-3">
+    <div class="text-right">
+      <p id="userName" class="font-medium text-black text-sm">User Name</p>
+      <p id="userEmail" class="text-xs text-gray-600">user@example.com</p>
+      <p id="userId" class="text-xs text-gray-400 hidden">UID here</p>
+    </div>
+   <img id="userPic" src="" alt="User Photo" width="40" style="border-radius: 50%;" />
+<button id="logoutBtn" style="background-color: #dc2626; color: white; padding: 8px 16px; border-radius: 6px; border: none; cursor: pointer;">
+  Logout
+</button>
+  </div>
+</nav>
+
+<div class="max-w-8xl mx-auto p-3">
+  <!-- Month Selector -->
+  <div class="flex justify-center mb-6">
+    <input type="month" id="monthSelector" class="border p-2 rounded w-60" />
+  </div>
+
+  <!-- Summary Boxes -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2 mb-6">
+    <div class="bg-white p-3 shadow rounded text-center">
+      <h2 class="text-sm text-gray-600">This Month's Income</h2>
+      <input type="number" id="incomeInput" class="mt-2 border rounded w-full text-center p-1" placeholder="Enter Income" />
+      <div class="text-xl font-bold mt-2" id="incomeDisplay">₹0</div>
+      <button onclick="saveIncomeData()" class="mt-3 bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 text-sm">Save</button>
+    </div>
+    <div class="bg-white p-1 shadow rounded text-center">
+      <h2 class="text-sm text-gray-600">This Month's Expense</h2>
+      <div class="text-xl font-bold" id="monthExpense">₹0</div>
+    </div>
+    <div class="bg-white p-2 shadow rounded text-center">
+      <h2 class="text-sm text-gray-600">This Month's Saving</h2>
+      <div class="text-xl font-bold" id="monthSaving">₹0</div>
+    </div>
+    <div class="bg-white p-2 shadow rounded text-center">
+      <h2 class="text-sm text-gray-600">Overall Saving</h2>
+      <div class="text-xl font-bold" id="overallSaving">₹0</div>
+    </div>
+  </div>
+
+ <!-- Add Expense -->
+<div class="bg-white p-4 rounded shadow mb-4">
+  <h2 class="text-lg font-semibold mb-2">Add Expense</h2>
+  <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+    <input type="text" id="expenseName" placeholder="Expense Name" class="border p-2 rounded" />
+    <input type="number" id="expenseAmount" placeholder="Amount" class="border p-2 rounded" />
+    
+ 
+ <select id="expenseType" class="border p-2 rounded">
+    <option value="">-- Select Expense Type --</option>
+    <option value="Food">Food</option>
+    <option value="Clothes">Clothes</option>
+    <option value="Medicine">Medicine</option>
+    <option value="Necessity">Necessity</option>
+    <option value="Grocery">Grocery</option>
+    <option value="Home Maintenance">Home Maintenance</option>
+    <option value="TV/OTT Recharge">TV/OTT Recharge</option>
+    <option value="School/College Fee">School/College Fee</option>
+    <option value="Mobile Recharge">Mobile Recharge</option>
+    <option value="Gas">Gas</option>
+    <option value="Car/Bike Repair">Car/Bike Repair</option>
+    <option value="Entertainment">Entertainment</option>
+    <option value="Travel">Travel</option>
+    <option value="Dining Out">Dining Out</option>
+    <option value="Gym/Fitness">Gym/Fitness</option>
+    <option value="Insurance">Insurance</option>
+    <option value="Electronics">Electronics</option>
+    <option value="Gifts">Gifts</option>
+    <option value="Miscellaneous">Miscellaneous</option>
+  </select>
+
+
+    <button onclick="addExpense()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Add</button>
+  </div>
+</div>
+
+<!-- Expense List -->
+<div class="bg-white p-4 rounded shadow mb-4">
+  <h2 class="text-lg font-semibold mb-2">Expenses</h2>
+  <input type="text" id="searchInput" placeholder="Search..." class="border p-2 mb-4 w-full" oninput="filterTable()" />
+  <table class="table-auto w-full text-center">
+    <thead class="bg-gray-200">
+      <tr>
+        <th class="p-2">#</th>
+        <th class="p-2">Name Of The Product</th>
+        <th class="p-2">Amount</th>
+        <th class="p-2">Type</th> <!-- Added Type column -->
+        <th class="p-2">Date</th>
+        <th class="p-2">Actions</th>
+      </tr>
+    </thead>
+    <tbody id="expenseTable"></tbody>
+  </table>
+</div>
+
+  <div class="text-center my-6">
+  <button onclick="printAllExpenses()" class="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700">
+    🖨️ Print All Expenses
+  </button>
+</div>
+
+
+
+<style>
+    /* Desktop Check */
+    @media only screen and (min-width: 768px) {
+        #universal-bottom-nav, .nav-spacer { display: none !important; }
+    }
+
+    :root {
+        --nav-bg: #ffffff;
+        --nav-text: #666666;
+        --nav-hover: #007AFF; /* Modern Blue */
+        --nav-height: 65px;
+    }
+
+    /* THE HOVER EFFECT (For Laptop/Mouse) */
+    .nav-link:hover {
+        color: var(--nav-hover) !important;
+    }
+
+    .nav-link:hover i {
+        transform: translateY(-3px); /* Icon pops up slightly */
+        transition: 0.3s;
+    }
+
+    /* THE ACTIVE/TAP EFFECT (For Mobile/Touch) */
+    .nav-link:active {
+        transform: scale(0.9); /* Button shrinks slightly when pressed */
+        color: var(--nav-hover) !important;
+    }
+
+    .nav-link {
+        transition: all 0.2s ease;
+    }
+</style>
+
+<nav id="universal-bottom-nav" style="position: fixed; bottom: 0; left: 0; width: 100%; height: var(--nav-height); background-color: var(--nav-bg); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #eee; box-shadow: 0 -5px 15px rgba(0,0,0,0.05); z-index: 999999; font-family: sans-serif;">
+
+    <a href="home.html" class="nav-link" style="text-decoration: none; color: var(--nav-text); text-align: center; flex: 1; -webkit-tap-highlight-color: transparent;">
+        <i class="fa-solid fa-house" style="font-size: 18px; display: block; margin-bottom: 3px;"></i>
+        <div style="font-size: 10px; font-weight: 600;">Home</div>
+    </a>
+
+    <a href="adress.html" class="nav-link" style="text-decoration: none; color: var(--nav-text); text-align: center; flex: 1; -webkit-tap-highlight-color: transparent;">
+        <i class="fa-solid fa-location-dot" style="font-size: 18px; display: block; margin-bottom: 3px;"></i>
+        <div style="font-size: 10px; font-weight: 600;">Address</div>
+    </a>
+
+    <a href="password.html" class="nav-link" style="text-decoration: none; color: var(--nav-text); text-align: center; flex: 1; -webkit-tap-highlight-color: transparent;">
+        <i class="fa-solid fa-key" style="font-size: 18px; display: block; margin-bottom: 3px;"></i>
+        <div style="font-size: 10px; font-weight: 600;">Passwords</div>
+    </a>
+
+    <a href="grocery.html" class="nav-link" style="text-decoration: none; color: var(--nav-text); text-align: center; flex: 1; -webkit-tap-highlight-color: transparent;">
+        <i class="fa-solid fa-cart-shopping" style="font-size: 18px; display: block; margin-bottom: 3px;"></i>
+        <div style="font-size: 10px; font-weight: 600;">Grocery</div>
+    </a>
+
+    <a href="contact.html" class="nav-link" style="text-decoration: none; color: var(--nav-text); text-align: center; flex: 1; -webkit-tap-highlight-color: transparent;">
+        <i class="fa-solid fa-envelope" style="font-size: 18px; display: block; margin-bottom: 3px;"></i>
+        <div style="font-size: 10px; font-weight: 600;">Contact</div>
+    </a>
+
+</nav>
+
+<div class="nav-spacer" style="height: 75px; width: 100%;"></div>
+
+
+
+<style>
+  body {
+    color: #000;
+    background-color: #fff;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  .dark-mode {
+    background-color: #121212;
+    color: #ccc;
+  }
+
+  .dark-mode *,
+
+ 
+  .dark-mode .card,
+  .dark-mode .box,
+  .dark-mode .container,
+  .dark-mode .section,
+  .dark-mode .modal,
+
+  .dark-mode .footer {
+    background-color: #1e1e1e !important;
+    color: #ccc !important;
+    border: 1px solid #444 !important; /* 🔲 Clear visible border */
+  }
+
+
+  .dark-mode a {
+    color: #90cdf4 !important;
+  }
+
+ 
+
+
+
+  .dark-mode .popup {
+    box-shadow: 0 0 5px #333;
+  }
+</style>
+<style>
+  body {
+    background-color: #fff;
+    color: #000;
+    transition: background 0.3s, color 0.3s;
+  }
+
+  .dark-mode {
+    background-color: #121212;
+    color: #e0e0e0;
+  }
+
+
+
+
+
+
+  .dark-mode a {
+    color: #90cdf4;
+  }
+
+
+</style>
+
+
+
+
+
+
+ <style>
+    /* Basic Reset */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    /* Fullscreen loader */
+    #loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 9999;
+    }
+
+    /* Circular animation */
+    .spinner {
+      border: 8px solid #f3f3f3;
+      border-top: 8px solid #3498db;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Hide main content initially */
+    #main-content {
+      display: none;
+    }
+    #expenseName{
+ padding: 20px;
+ height: 25px;
+ margin-right: 20px;
+    }
+</style>
+   <script>
+    window.addEventListener('load', () => {
+      setTimeout(() => {
+        document.getElementById('loader').style.display = 'none';
+        document.getElementById('main-content').style.display = 'block';
+      }, 4000); // 9 seconds
+    });
+
+  </script>
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+
+
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc",
+    authDomain: "sk12-58e9e.firebaseapp.com",
+    databaseURL: "https://sk12-58e9e-default-rtdb.firebaseio.com",
+    projectId: "sk12-58e9e",
+    storageBucket: "sk12-58e9e.appspot.com",
+    messagingSenderId: "470207874652",
+    appId: "1:470207874652:web:67ba1cf3629b7e5b144899"
+  };
+
+  if (!firebase.apps.length) {
+    firebase.initializeApp(firebaseConfig);
+  }
+
+  const auth = firebase.auth();
+  const db = firebase.database();
+
+  let currentUID = null;
+
+  async function printAllExpenses() {
+    if (!currentUID) {
+      alert("User not logged in");
+      return;
+    }
+
+    const snapshot = await db.ref(`users/${currentUID}/expenses`).once('value');
+    if (!snapshot.exists()) {
+      alert("No expenses found.");
+      return;
+    }
+
+
+  let html = `
+  <html>
+  <head>
+    <title>All Expenses</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        padding: 20px;
+        background-color: #f9f9f9;
+      }
+      .receipt-container {
+        max-width: 800px;
+        margin: auto;
+        border: 3px solid black; /* Receipt border */
+        padding: 20px;
+        background-color: white;
+      }
+      h2 {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+      .month {
+        margin-top: 20px;
+        font-weight: bold;
+        font-size: 18px;
+      }
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+      }
+      th, td {
+        border: 1px solid black; /* Cell borders */
+        padding: 8px;
+        text-align: left;
+      }
+      th {
+        background-color: #f0f0f0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="receipt-container">
+      <h2>All Expenses Report</h2>
+`;
+
+
+    snapshot.forEach(monthSnap => {
+      const month = monthSnap.key;
+      const expenses = monthSnap.val();
+      html += `<div style="margin-top:20px; font-weight:bold; font-size:18px;">${month}</div>`;
+      html += `<table border="1" cellpadding="8" cellspacing="0" width="100%" style="margin-top:10px; border-collapse:collapse;">
+        <tr style="background-color:#f0f0f0;"><th>#</th><th>Name</th><th>Amount (₹)</th><th>Date</th></tr>`;
+      let count = 1;
+      for (const id in expenses) {
+        const exp = expenses[id];
+        html += `
+          <tr>
+            <td>${count++}</td>
+            <td>${exp.name || ''}</td>
+            <td>${exp.amount || ''}</td>
+            <td>${exp.date || ''}</td>
+          </tr>`;
+      }
+      html += `</table>`;
+    });
+
+    document.body.innerHTML = html;
+    window.print();
+    location.reload(); // Reload after printing to restore page
+  }
+
+  auth.onAuthStateChanged(user => {
+    if (!user) return (location.href = "index.html");
+
+    currentUID = user.uid;
+
+    document.getElementById("userPic").src = user.photoURL || "";
+    document.getElementById("userName").textContent = user.displayName || "No Name";
+    document.getElementById("userEmail").textContent = user.email;
+    document.getElementById("userId").textContent = user.uid;
+
+    loadData();
+  });
+
+  function getSelectedMonth() {
+    return document.getElementById("monthSelector").value || null;
+  }
+
+  async function saveIncomeData() {
+    const month = getSelectedMonth();
+    const income = parseFloat(document.getElementById("incomeInput").value);
+    if (!month || isNaN(income)) return alert("Enter valid month and income");
+
+    await db.ref(`users/${currentUID}/income/${month}`).set(income);
+    loadData();
+  }
+
+  async function addExpense() {
+    const name = document.getElementById("expenseName").value;
+    const amount = parseFloat(document.getElementById("expenseAmount").value);
+    const month = getSelectedMonth();
+
+    if (!month || !name || isNaN(amount)) return alert("Fill all fields");
+
+    const newRef = db.ref(`users/${currentUID}/expenses/${month}`).push();
+
+    await newRef.set({
+      name,
+      amount,
+      date: new Date().toLocaleDateString()
+    });
+
+    document.getElementById("expenseName").value = "";
+    document.getElementById("expenseAmount").value = "";
+
+    loadData();
+  }
+
+  async function loadData() {
+    const month = getSelectedMonth();
+    if (!month || !currentUID) return;
+
+    const incomeSnap = await db.ref(`users/${currentUID}/income/${month}`).get();
+    const income = incomeSnap.exists() ? incomeSnap.val() : 0;
+    document.getElementById("incomeDisplay").textContent = `₹${income}`;
+
+    const expenseSnap = await db.ref(`users/${currentUID}/expenses/${month}`).get();
+    const table = document.getElementById("expenseTable");
+    table.innerHTML = "";
+    let total = 0, index = 1;
+
+  if (expenseSnap.exists()) {
+  expenseSnap.forEach(child => {
+    const { name, amount, type, date } = child.val(); // ✅ include type
+    const id = child.key;
+    total += amount;
+
+    table.innerHTML += `
+      <tr class="border-b">
+        <td class="p-2">${index++}</td>
+        <td class="p-2">${name}</td>
+        <td class="p-2">₹${amount}</td>
+        <td class="p-2">${type || ""}</td> <!-- Display type -->
+        <td class="p-2">${date}</td>
+        <td class="p-2">
+          <button onclick="editExpense('${month}', '${id}', '${name}', ${amount}, '${type}')" class="bg-yellow-400 px-2 py-1 rounded">Edit</button>
+          <button onclick="deleteExpense('${month}', '${id}')" class="bg-red-500 text-white px-2 py-1 rounded ml-2">Delete</button>
+        </td>
+      </tr>`;
+  });
+}
+
+    document.getElementById("monthExpense").textContent = `₹${total}`;
+    document.getElementById("monthSaving").textContent = `₹${income - total}`;
+
+    const incomeYearSnap = await db.ref(`users/${currentUID}/income`).get();
+    const expenseYearSnap = await db.ref(`users/${currentUID}/expenses`).get();
+
+    let totalSaving = 0;
+    const allMonths = new Set([
+      ...Object.keys(incomeYearSnap.val() || {}),
+      ...Object.keys(expenseYearSnap.val() || {})
+    ]);
+
+    allMonths.forEach(month => {
+      const monthIncome = incomeYearSnap.child(month).val() || 0;
+      let monthExpense = 0;
+      const exp = expenseYearSnap.child(month);
+      if (exp.exists()) {
+        exp.forEach(c => {
+          monthExpense += c.val().amount || 0;
+        });
+      }
+      totalSaving += monthIncome - monthExpense;
+    });
+
+    document.getElementById("overallSaving").textContent = `₹${totalSaving}`;
+  }
+
+  function editExpense(month, id, currentName, currentAmount) {
+    if (!currentUID) return alert("User not logged in");
+
+    const newName = prompt("Edit name:", currentName);
+    if (newName === null || newName.trim() === "") return;
+
+    const newAmountStr = prompt("Edit amount:", currentAmount);
+    if (newAmountStr === null) return;
+    const newAmount = parseFloat(newAmountStr.trim());
+    if (isNaN(newAmount)) return alert("Invalid amount");
+
+    db.ref(`users/${currentUID}/expenses/${month}/${id}`).update({
+      name: newName.trim(),
+      amount: newAmount
+    }).then(loadData).catch(err => {
+      console.error("Update failed:", err);
+      alert("Failed to update expense");
+    });
+  }
+
+  function deleteExpense(month, id) {
+    if (confirm("Are you sure you want to delete this expense?")) {
+      db.ref(`users/${currentUID}/expenses/${month}/${id}`).remove().then(loadData);
+    }
+  }
+
+  function filterTable() {
+    const input = document.getElementById("searchInput").value.toLowerCase();
+    const rows = document.getElementById("expenseTable").getElementsByTagName("tr");
+    for (let row of rows) {
+      const text = row.innerText.toLowerCase();
+      row.style.display = text.includes(input) ? "" : "none";
+    }
+  }
+
+window.addEventListener("load", () => {
+  const now = new Date();
+  document.getElementById("monthSelector").value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+
+  const printBtn = document.getElementById("printExpensesBtn");
+  if (printBtn) {
+    printBtn.addEventListener("click", printAllExpenses);
+  }
+
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", () => {
+      auth.signOut().then(() => location.href = "index.html").catch(console.error);
+    });
+  }
+
+  // ✅ ADD THIS LINE TO LISTEN FOR MONTH CHANGE
+  document.getElementById("monthSelector").addEventListener("change", loadData);
+});
+
+
+
+
+</script>
+<script>
+  window.addEventListener("DOMContentLoaded", () => {
+  // Wait for Firebase auth state and DOM to be ready
+  firebase.auth().onAuthStateChanged(function(user) {
+    if (user) {
+      const currentUID = user.uid;
+      const db = firebase.database();
+
+      const monthSelector = document.getElementById("monthSelector");
+
+      // Create button
+      const printBtn = document.createElement("button");
+      printBtn.id = "printMonthBtn";
+      printBtn.innerText = "🖨️ Print This Month";
+      printBtn.style.backgroundColor = "#4CAF50";
+      printBtn.style.color = "white";
+      printBtn.style.padding = "10px 16px";
+      printBtn.style.border = "none";
+      printBtn.style.borderRadius = "6px";
+      printBtn.style.fontSize = "16px";
+      printBtn.style.cursor = "pointer";
+      printBtn.style.marginLeft = "10px";
+
+      if (monthSelector && monthSelector.parentNode) {
+        monthSelector.parentNode.insertBefore(printBtn, monthSelector.nextSibling);
+      }
+
+      // Button click logic
+      printBtn.addEventListener("click", async () => {
+        const month = monthSelector.value;
+        if (!month) {
+          alert("Please select a month.");
+          return;
+        }
+
+        const incomeSnap = await db.ref(`users/${currentUID}/income/${month}`).once('value');
+        const expenseSnap = await db.ref(`users/${currentUID}/expenses/${month}`).once('value');
+
+        const income = incomeSnap.exists() ? incomeSnap.val().amount : 0;
+        const expenses = expenseSnap.exists() ? expenseSnap.val() : {};
+
+        let content = `<h2>Finance Report for ${month}</h2>`;
+        content += `<p><strong>Income:</strong> ₹${income}</p>`;
+        content += `<h3>Expenses:</h3>`;
+
+        if (Object.keys(expenses).length === 0) {
+          content += `<p>No expenses found.</p>`;
+        } else {
+          content += `<ul>`;
+          for (const key in expenses) {
+            const { name, amount } = expenses[key];
+            content += `<li>${name}: ₹${amount}</li>`;
+          }
+          content += `</ul>`;
+        }
+
+        const printWindow = window.open("", "_blank");
+        printWindow.document.write(`
+          <html>
+            <head><title>Print Report</title></head>
+            <body style="font-family: Arial, sans-serif; padding: 20px;">
+              ${content}
+            </body>
+          </html>
+        `);
+        printWindow.document.close();
+        printWindow.print();
+      });
+    }
+  });
+});
+
+</script>
+<script>
+async function addExpense() {
+  const name = document.getElementById("expenseName").value.trim();
+  const amount = parseFloat(document.getElementById("expenseAmount").value);
+  const type = document.getElementById("expenseType").value || ""; // optional
+  const month = getSelectedMonth();
+
+  if (!month || !name || isNaN(amount)) {
+    return alert("Please fill all required fields (name and amount)");
+  }
+
+  try {
+    const newRef = db.ref(`users/${currentUID}/expenses/${month}`).push();
+    await newRef.set({
+      name,
+      amount,
+      type, // optional type
+      date: new Date().toLocaleDateString()
+    });
+
+    // Clear input fields
+    document.getElementById("expenseName").value = "";
+    document.getElementById("expenseAmount").value = "";
+    document.getElementById("expenseType").value = ""; // reset select
+
+    loadData(); // Refresh table
+  } catch (error) {
+    console.error("Error adding expense:", error);
+    alert("Failed to add expense. Check console for details.");
+  }
+}
+
+// Function to get selected month
+function getSelectedMonth() {
+  return document.getElementById("monthSelector").value || null;
+}
+</script>
+<!--<!-- Centered Modern Pie Chart -->
+<div style="display: flex; justify-content: center; align-items: center; margin: 20px 0;">
+  <canvas id="expenseTypeChart" width="550" height="550"></canvas>
+</div>
+
+<script>
+let expenseChart = null; // global chart variable
+
+async function loadData() {
+  const month = getSelectedMonth();
+  if (!month || !currentUID) return;
+
+  const incomeSnap = await db.ref(`users/${currentUID}/income/${month}`).get();
+  const income = incomeSnap.exists() ? incomeSnap.val() : 0;
+  document.getElementById("incomeDisplay").textContent = `₹${income}`;
+
+  const expenseSnap = await db.ref(`users/${currentUID}/expenses/${month}`).get();
+  const table = document.getElementById("expenseTable");
+  table.innerHTML = "";
+  let total = 0, index = 1;
+
+  const typeTotals = {}; // for pie chart
+
+  if (expenseSnap.exists()) {
+    expenseSnap.forEach(child => {
+      const { name, amount, type = "Miscellaneous", date } = child.val(); 
+      const id = child.key;
+      total += amount;
+
+      if (!typeTotals[type]) typeTotals[type] = 0;
+      typeTotals[type] += amount;
+
+      table.innerHTML += `
+        <tr class="border-b">
+          <td class="p-2">${index++}</td>
+          <td class="p-2">${name}</td>
+          <td class="p-2">₹${amount}</td>
+          <td class="p-2">${type}</td>
+          <td class="p-2">${date}</td>
+          <td class="p-2">
+            <button onclick="editExpense('${month}', '${id}', '${name}', ${amount}, '${type}')" class="bg-yellow-400 px-2 py-1 rounded">Edit</button>
+            <button onclick="deleteExpense('${month}', '${id}')" class="bg-red-500 text-white px-2 py-1 rounded ml-2">Delete</button>
+          </td>
+        </tr>`;
+    });
+  }
+
+  document.getElementById("monthExpense").textContent = `₹${total}`;
+  document.getElementById("monthSaving").textContent = `₹${income - total}`;
+
+  // Pie chart data
+  const labels = Object.keys(typeTotals);
+  const data = Object.values(typeTotals);
+  const ctx = document.getElementById('expenseTypeChart').getContext('2d');
+
+  if (expenseChart) expenseChart.destroy();
+
+  expenseChart = new Chart(ctx, {
+    type: 'pie',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        backgroundColor: [
+          '#FF6384','#36A2EB','#FFCE56','#8BC34A','#FF9800',
+          '#9C27B0','#00BCD4','#E91E63','#3F51B5','#CDDC39'
+        ],
+        borderWidth: 2,
+        borderColor: '#fff',
+        hoverOffset: 12
+      }]
+    },
+    options: {
+      responsive: false, // fixed size
+      plugins: {
+        legend: { position: 'right', labels: { boxWidth: 12, padding: 10, font: { size: 10 } } },
+        tooltip: {
+          callbacks: {
+            label: context => `${context.label}: ₹${context.raw}`
+          }
+        }
+      }
+    }
+  });
+}
+</script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('theme-toggle-btn');
+    const icon = document.getElementById('theme-icon');
+    
+    // 1. Load saved theme immediately on page load
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    icon.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+
+    // 2. Click Event
+    btn.addEventListener('click', () => {
+        let currentTheme = document.documentElement.getAttribute('data-theme');
+        let newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+        // Apply new theme
+        document.documentElement.setAttribute('data-theme', newTheme);
+        
+        // Save to LocalStorage (works across all pages on your site)
+        localStorage.setItem('theme', newTheme);
+        
+        // Update Icon
+        icon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+    });
+});
+</script>
+      <button id="theme-toggle-btn">
+    <span id="theme-icon">🌙</span>
+</button>
+<style>
+    /* --- 1. THEME VARIABLE DEFINITIONS --- */
+    :root {
+        --bg-body: #f9fafb;
+        --bg-card: #ffffff;
+        --text-main: #1f2937;   /* Deep Gray 800 */
+        --text-bold: #000000;   /* Pure Black */
+        --border: #e5e7eb;
+        
+        /* BOTTOM NAV COLORS (LIGHT) */
+        --nav-bg: #ffffff;
+        --nav-text: #000000;    /* Pure Black for text and icons */
+        --nav-height: 65px;
+    }
+
+    [data-theme="dark"] {
+        --bg-body: #0f172a;     /* Deep Navy/Black */
+        --bg-card: #1e293b;     /* Slate 800 */
+        --text-main: #cbd5e1;   /* Slate 300 */
+        --text-bold: #f8fafc;   /* Slate 50 */
+        --border: #334155;      /* Slate 700 */
+        
+        /* BOTTOM NAV COLORS (DARK) */
+        --nav-bg: #0f172a;
+        --nav-text: #ffffff;    /* Pure White */
+    }
+
+    /* --- 2. GLOBAL OVERRIDES --- */
+    body { background-color: var(--bg-body) !important; color: var(--text-main) !important; transition: background 0.3s; }
+    
+    /* Ensure all text classes inside containers adapt */
+    h1, h2, h3, h4, .font-bold, .font-semibold, 
+    .text-gray-900, .text-gray-800, .text-blue-800, .text-green-800, .text-yellow-800 { 
+        color: var(--text-bold) !important; 
+    }
+
+    p, li, span, .text-gray-700, .text-gray-600 { 
+        color: var(--text-main) !important; 
+    }
+
+    /* Component Surfaces */
+    .bg-white, header, aside, main, #mobile-menu, footer {
+        background-color: var(--bg-card) !important;
+        border-color: var(--border) !important;
+    }
+
+    /* --- 3. SIDEBAR & CORE FEATURES FIXES --- */
+    [data-theme="dark"] .sidebar-desktop, [data-theme="dark"] aside {
+        background-color: var(--bg-card) !important;
+    }
+    
+    /* Muted Sidebar links in dark mode */
+    [data-theme="dark"] .sidebar-nav-internal a { color: #94a3b8 !important; }
+    [data-theme="dark"] .sidebar-nav-internal a:hover,
+    [data-theme="dark"] .sidebar-nav-internal a.active {
+        background-color: #334155 !important;
+        color: #60a5fa !important;
+    }
+
+    /* Core Features Overview Boxes */
+    [data-theme="dark"] .bg-gray-100, 
+    [data-theme="dark"] .bg-yellow-50,
+    [data-theme="dark"] .bg-blue-50,
+    [data-theme="dark"] .bg-green-50 {
+        background-color: #334155 !important;
+        border-color: var(--border) !important;
+    }
+
+    /* Brighter borders for boxes in dark mode */
+    [data-theme="dark"] .border-l-4, [data-theme="dark"] .border-t-4 {
+        border-color: #4f46e5 !important; 
+    }
+
+    /* --- 4. BOTTOM NAV (DARKER FONTS & ICONS) --- */
+    #universal-bottom-nav {
+        background-color: var(--nav-bg) !important;
+        border-top: 1px solid var(--border) !important;
+        height: var(--nav-height);
+    }
+
+    /* This targets the icon specifically */
+    .nav-link i { 
+        color: var(--nav-text) !important; 
+        font-weight: 900 !important; /* Makes icons look thicker/bolder */
+        font-size: 20px !important;  /* Slightly larger for visibility */
+        transition: transform 0.2s;
+    }
+
+    /* This targets the text label specifically */
+    .nav-link div { 
+        color: var(--nav-text) !important; 
+        font-weight: 900 !important; /* Thickest weight for labels */
+        font-size: 11px !important;
+        margin-top: 2px;
+    }
+
+    /* --- 5. THEME TOGGLE (50px ABOVE NAV) --- */
+  #theme-toggle-btn {
+        position: fixed;
+        bottom: 85px; 
+        right: 15px;
+        z-index: 9999;
+        width: 42px; height: 42px;
+        border-radius: 50%;
+        background: #4f46e5;
+        color: white;
+        border: none;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        display: flex; align-items: center; justify-content: center;
+        cursor: pointer;
+        transition: transform 0.2s;
+    }
+
+    #theme-toggle-btn:active { transform: scale(0.9); }
+</style>
+
+
+
+</body>
+</html>
+
+
+
+
+
+
+

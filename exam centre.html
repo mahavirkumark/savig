@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Centre Travel Planner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <style>
+        /* FIX 1: Overlap Fix - Add padding to the top of the main content equal to the nav height (~5rem/80px) */
+        .main-content {
+            padding-top: 5rem; 
+        }
+
+        /* Responsive and Scrollbar Styles */
+        .right-container {
+            max-height: calc(100vh - 80px); 
+            overflow-y: auto;
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-thumb { background-color: #4f46e5; border-radius: 4px; }
+        ::-webkit-scrollbar-track { background-color: #f0f0f0; }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+
+    <nav class="bg-white shadow-lg fixed w-full z-50 top-0">
+        <div class="container mx-auto flex justify-between items-center p-4 md:px-8">
+            <div class="flex items-center gap-2 text-xl font-bold text-gray-800">
+                <i class="fas fa-user-circle" style="font-size: 28px; color: #4f46e5;"></i>
+                <span style="font-size: 22px;">My Personal Website</span>
+            </div>
+            
+            <div class="hidden md:flex space-x-6 font-medium">
+                <a href="home.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-house"></i> Home</a>
+                <a href="exam-center.html" class="flex items-center gap-2 transition duration-300 text-blue-500 font-extrabold" style="font-size: 18px;"><i class="fas fa-map-marker-alt"></i> Exam Centre</a>
+                <a href="password.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-key"></i> Passwords</a>
+                <a href="income.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-wallet"></i> Income</a>
+                <a href="links.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-link"></i> Links</a>
+                <a href="calendar.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-calendar-alt"></i> Calendar</a>
+            </div>
+
+            <div class="hidden md:flex items-center gap-4">
+                <div class="text-right">
+                    <p id="userName" class="font-bold text-gray-900">Loading...</p>
+                    <p id="userEmail" class="text-sm text-gray-500">Loading...</p>
+                </div>
+                <img id="userPhoto" src="https://via.placeholder.com/40" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #4f46e5;">
+                <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-full hover:bg-red-600 transition duration-300">Logout</button>
+            </div>
+
+            <button id="menu-btn" class="md:hidden text-gray-700 text-2xl"><i class="fas fa-bars"></i></button>
+        </div>
+
+        <div id="mobileMenu" class="hidden md:hidden flex flex-col px-4 pb-4 space-y-2 text-sm text-gray-700 font-medium bg-gray-50">
+            <a href="home.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-house"></i> Home</a>
+            <a href="exam-center.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 text-blue-500 font-extrabold transition duration-300"><i class="fas fa-map-marker-alt"></i> Exam Centre</a>
+            <a href="password.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-key"></i> Passwords</a>
+            <a href="income.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-wallet"></i> Income</a>
+            <a href="links.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-link"></i> Links</a>
+            <a href="calendar.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-calendar-alt"></i> Calendar</a>
+            <div class="border-t border-gray-300 mt-2 pt-2">
+                <p id="mobileUserName" class="font-bold text-gray-900">Loading...</p>
+                <p id="mobileUserEmail" class="text-xs text-gray-500">Loading...</p>
+                <button onclick="logout()" class="bg-red-500 text-white px-3 py-2 rounded-full hover:bg-red-600 mt-2 w-full">Logout</button>
+            </div>
+        </div>
+    </nav>
+    <div class="main-content container mx-auto p-4 md:px-8 flex flex-col lg:flex-row gap-6">
+
+        <div class="lg:w-1/2 w-full">
+            <div class="bg-white shadow-xl rounded-lg p-6 sm:p-8">
+                <h2 class="text-2xl font-extrabold text-indigo-700 mb-6 border-b-2 border-indigo-300 pb-2 flex items-center gap-2">
+                    <i class="fas fa-file-alt"></i> New Exam Centre Entry
+                </h2>
+                
+                <form id="examDetailsForm" class="space-y-6" onsubmit="saveExamPlanToFirebase(event)">
+                    
+                    <div>
+                        <label for="studentName" class="block text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-user-tag text-indigo-500"></i> Select Student:
+                        </label>
+                        <select id="studentName" name="studentName" required
+                            class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm bg-gray-50" 
+                            onchange="handleStudentSelection()"> 
+                            <option value="" disabled selected>Loading contacts from Firebase...</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        
+                        <div>
+                            <label for="examDate" class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-calendar-alt text-green-500"></i> Exam Date:
+                            </label>
+                            <input type="date" id="examDate" name="examDate" required
+                                class="w-full p-3 border border-gray-300 rounded-lg focus:ring-green-500 focus:border-green-500 shadow-sm">
+                        </div>
+                        
+                        <div>
+                            <label for="centreCity" class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-city text-indigo-500"></i> Exam Centre City:
+                            </label>
+                            <select id="centreCity" name="centreCity" onchange="fetchCentresByCity()" required
+                                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm bg-gray-200">
+                                <option value="" disabled selected>Select a student first...</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                        <div>
+                            <label for="examCentreName" class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-graduation-cap text-indigo-500"></i> Select Centre Name:
+                            </label>
+                            <select id="examCentreName" name="examCentreName" onchange="fetchTravelInfo()" required
+                                    class="w-full p-3 border border-gray-300 rounded-lg focus:ring-indigo-500 focus:border-indigo-500 shadow-sm" disabled>
+                                <option value="" disabled selected>Select a city first...</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-2">
+                                <i class="fas fa-car-side text-red-600"></i> Uber/Ola/Rapido:
+                            </label>
+                            <div id="transportStatus" class="flex flex-wrap gap-2 text-white font-medium p-3 bg-gray-50 border border-gray-300 rounded-lg">
+                                <span class="text-sm px-3 py-1 rounded-full bg-gray-500">Uber: ?</span>
+                                <span class="text-sm px-3 py-1 rounded-full bg-gray-500">Ola: ?</span>
+                                <span class="text-sm px-3 py-1 rounded-full bg-gray-500">Rapido: ?</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="howToReach" class="block text-sm font-semibold text-gray-700 mb-2">
+                            <i class="fas fa-route text-green-600"></i> How to Reach (Auto-filled):
+                        </label>
+                        <textarea id="howToReach" name="howToReach" readonly 
+                                  class="w-full p-3 border border-gray-300 rounded-lg bg-gray-50 shadow-inner h-20 text-gray-600">Travel details will appear here after selecting the centre name.</textarea>
+                    </div>
+
+                    <button type="submit" id="saveButton"
+                            class="w-full flex items-center justify-center gap-2 px-6 py-3 border border-transparent text-lg font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-300 ease-in-out">
+                        <i class="fas fa-plus-circle"></i> Save Exam Plan
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        <div class="lg:w-1/2 w-full lg:sticky lg:top-20 right-container bg-white shadow-xl rounded-lg p-6 sm:p-8">
+            <h2 class="text-2xl font-extrabold text-teal-700 mb-6 border-b-2 border-teal-300 pb-2 flex items-center gap-2">
+                <i class="fas fa-database"></i> Saved Exam Plans
+            </h2>
+            
+            <div id="savedDataList" class="space-y-4">
+                <p class="text-gray-500 text-center">Loading saved data...</p>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        // Import necessary Firestore, Auth, and utility functions
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, addDoc, onSnapshot, query, orderBy } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+        import { getAuth, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+
+
+        // 🛑🛑🛑 STEP 1: YOUR FIREBASE CONFIGURATION 🛑🛑🛑
+        const firebaseConfig = {
+            apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc",
+            authDomain: "sk12-58e9e.firebaseapp.com",
+            projectId: "sk12-58e9e",
+            storageBucket: "sk12-58e9e.appspot.com",
+            messagingSenderId: "470207874652",
+            appId: "1:470207874652:web:67ba1cf3629b7e5b144899"
+        };
+        // 🛑🛑🛑 END OF FIREBASE CONFIGURATION 🛑🛑🛑
+
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app); 
+        
+        // References to collections
+        const contactsColRef = collection(db, 'contacts');
+        const examPlansColRef = collection(db, 'examPlans');
+
+        // --- AUTHENTICATION & UI UPDATE ---
+        function checkAuthStatus() {
+            onAuthStateChanged(auth, (user) => {
+                const defaultPhotoURL = 'https://via.placeholder.com/40';
+                
+                if (user) {
+                    // User is signed in, update UI with user info
+                    const name = user.displayName || 'User Name';
+                    const email = user.email || 'No Email';
+                    const photo = user.photoURL || defaultPhotoURL;
+
+                    // Desktop View
+                    document.getElementById('userName').textContent = name;
+                    document.getElementById('userEmail').textContent = email;
+                    document.getElementById('userPhoto').src = photo;
+
+                    // Mobile View
+                    document.getElementById('mobileUserName').textContent = name;
+                    document.getElementById('mobileUserEmail').textContent = email;
+                    
+                    fetchSavedPlansFromFirebase();
+
+                } else {
+                    // User is signed out, use placeholders
+                    const placeholderText = 'Sign In Required';
+                    
+                    document.getElementById('userName').textContent = placeholderText;
+                    document.getElementById('userEmail').textContent = '';
+                    document.getElementById('userPhoto').src = defaultPhotoURL;
+
+                    document.getElementById('mobileUserName').textContent = placeholderText;
+                    document.getElementById('mobileUserEmail').textContent = '';
+                    
+                    document.getElementById('savedDataList').innerHTML = '<p class="text-red-500 text-center p-4">Please log in to view your saved plans.</p>';
+                }
+            });
+        }
+        
+        // Logout function uses Firebase Auth
+        window.logout = function() {
+            signOut(auth).then(() => {
+                alert("Logged out successfully.");
+                // window.location.href = 'login.html'; 
+            }).catch((error) => {
+                console.error("Logout failed:", error);
+                alert("Logout failed. Check console for details.");
+            });
+        }
+        
+        // --- REALISTIC MOCK DATA FOR CENTRES (FINAL VERSION) ---
+        // Helper function to create a unique key from a real centre name
+        function createCentreKey(centreName) {
+            return centreName.replace(/[^a-zA-Z0-9]/g, '_');
+        }
+
+        const cityCentreData = {
+            // Maharashtra Cities
+            "Mumbai": [
+                { name: "TCS iON Digital Zone IDZ Powai", reach: "Near Hiranandani Gardens, easily accessible via JVLR." },
+                { name: "Reliable Tech Park", reach: "Digha, near Airoli Station." },
+                { name: "S.K. Somaiya College, Vidyavihar", reach: "5 min walk from Vidyavihar railway station." }
+            ],
+            "Pune": [
+                { name: "iON Digital Zone iDZ Narhe", reach: "Off Katraj-Dehu Road Bypass, near Sai Service." },
+                { name: "Infinity iNet Solutions Pvt. Ltd.", reach: "Kothrud Industrial Area, near Karve Road." },
+                { name: "DY Patil School of Engineering, Akurdi", reach: "Close to Akurdi Railway Station." }
+            ],
+            "Nagpur": [
+                { name: "iON Digital Zone iDZ 1 Wadi MIDC", reach: "Located in the main Industrial area, requires cab/auto." },
+                { name: "VMV Commerce JMT Arts & JJP Science College", reach: "Wardhaman Nagar, Central Avenue Road." }
+            ],
+            
+            // Madhya Pradesh Cities
+            "Bhopal": [
+                { name: "iON Digital Zone iDZ Village Adampur", reach: "10 km from main city centre, use cab service." },
+                { name: "NRI Group of Institutions, Raisen Road", reach: "Directly on Raisen Road, easily reachable by bus." }
+            ],
+            "Indore": [
+                { name: "Acropolis Institute of Technology", reach: "Manglia Square, near AB Road." },
+                { name: "iON Digital Zone iDZ 2 Nanda Nagar", reach: "Near Nanda Nagar Police Station." }
+            ],
+
+            // Chhattisgarh Cities
+            "Raipur": [
+                { name: "iON Digital Zone iDZ Tupudana", reach: "Near Airport Road, well connected by local transport." },
+                { name: "Koustuv Technical Campus", reach: "Kalunga village, requires a 15 min drive from city." }
+            ],
+            "Bilaspur": [
+                 { name: "Chhattisgarh Institute of Technology", reach: "Located on the outskirts, best reached by private transport." }
+            ]
+            // We use this structure to populate 'mockCentreData' below
+        };
+
+        // This structure uses the clean city name as the primary key and includes ALL centres.
+        let mockCentreData = {};
+        Object.keys(cityCentreData).forEach(city => {
+            mockCentreData[city] = {};
+            cityCentreData[city].forEach((centre, index) => {
+                // Generate a unique, safe key for internal use/storage (e.g., TCS_iON_Digital_Zone_IDZ_Powai)
+                const centreKey = createCentreKey(centre.name); 
+                
+                // Add mock travel status (randomized)
+                const id = index + 1;
+                const travelStatus = (id % 3 === 0) ? { uber: "Not Available", ola: "Available", rapido: "Available" } : 
+                                     (id % 2 === 0) ? { uber: "Available", ola: "Not Available", rapido: "Available" } : 
+                                                      { uber: "Available", ola: "Available", rapido: "Not Available" };
+
+                mockCentreData[city][centreKey] = {
+                    reach: centre.reach,
+                    displayName: centre.name, // Store the clean display name
+                    ...travelStatus
+                };
+            });
+        });
+        
+        // --------------------------------------------------------
+
+        // --- CORE LOGIC FUNCTIONS ---
+        
+        // Helper function to get student name from ID
+        function getStudentNameById(studentId) {
+            const option = document.querySelector(`#studentName option[value="${studentId}"]`);
+            return option ? option.textContent : "Unknown Student";
+        }
+
+        // 7. 📈 Function to FETCH and DISPLAY saved plans
+        function fetchSavedPlansFromFirebase() {
+            const listContainer = document.getElementById('savedDataList');
+            listContainer.innerHTML = '<p class="text-gray-500 text-center">Loading saved plans...</p>';
+            
+            const user = auth.currentUser;
+            if (!user) {
+                listContainer.innerHTML = '<p class="text-red-500 text-center p-4">Please log in to view your saved plans.</p>';
+                return;
+            }
+
+            const q = query(examPlansColRef, orderBy('examDate', 'asc'));
+
+            onSnapshot(q, (snapshot) => {
+                listContainer.innerHTML = ''; 
+
+                let userPlansExist = false;
+                snapshot.forEach(doc => {
+                    const plan = doc.data();
+                    if (plan.userId !== user.uid) return; 
+                    
+                    userPlansExist = true;
+                    const dateString = plan.examDate ? plan.examDate.toDate().toLocaleDateString('en-IN') : 'N/A';
+                    
+                    const centreDisplayName = plan.examCentreName.includes('_') ? plan.examCentreName.replace(/_/g, ' ') : plan.examCentreName;
+
+                    const card = document.createElement('div');
+                    card.className = 'bg-indigo-50 border-l-4 border-indigo-500 p-4 rounded-lg shadow-md';
+                    card.innerHTML = `
+                        <div class="flex justify-between items-start">
+                            <h3 class="text-xl font-bold text-indigo-800">${plan.studentName}</h3>
+                            <button onclick="alert('Share function coming soon!')" class="text-gray-500 hover:text-indigo-600 transition duration-150">
+                                <i class="fas fa-share-alt"></i>
+                            </button>
+                        </div>
+                        <p class="text-sm text-gray-500 mt-1">Date: <span class="font-medium text-gray-700">${dateString}</span></p>
+                        <p class="text-lg font-semibold text-gray-700 mt-2"><i class="fas fa-map-marker-alt text-red-500"></i> ${centreDisplayName} (<span class="text-indigo-600">${plan.centreCity}</span>)</p>
+                        <p class="text-sm text-gray-600 mt-1">${plan.howToReach}</p>
+                    `;
+                    listContainer.appendChild(card);
+                });
+                
+                if (!userPlansExist) {
+                    listContainer.innerHTML = '<p class="text-gray-500 text-center p-4">No exam plans saved yet.</p>';
+                }
+                
+            }, (error) => {
+                console.error("Error fetching real-time plans:", error);
+                listContainer.innerHTML = '<p class="text-red-500 text-center p-4">Error loading plans. Check connection.</p>';
+            });
+        }
+        
+        // 6. 💾 Function to SAVE Exam Plan to Firebase 
+        window.saveExamPlanToFirebase = async function(event) {
+            event.preventDefault(); 
+            
+            const form = event.target;
+            const saveButton = document.getElementById('saveButton');
+            saveButton.disabled = true;
+            saveButton.textContent = 'Saving...';
+
+            const user = auth.currentUser;
+            if (!user) {
+                alert("You must be logged in to save an exam plan.");
+                saveButton.disabled = false;
+                saveButton.innerHTML = '<i class="fas fa-plus-circle"></i> Save Exam Plan';
+                return;
+            }
+
+            const studentId = form.studentName.value;
+            const studentName = getStudentNameById(studentId); 
+            const examDate = form.examDate.value;
+            const centreCity = form.centreCity.value;
+            const examCentreName = form.examCentreName.value; // This is the KEY
+            const howToReach = form.howToReach.value;
+
+            if (!studentId || !examDate || !centreCity || !examCentreName) {
+                alert("Please fill in all required fields.");
+                saveButton.disabled = false;
+                saveButton.innerHTML = '<i class="fas fa-plus-circle"></i> Save Exam Plan';
+                return;
+            }
+
+            try {
+                const planData = {
+                    userId: user.uid, 
+                    studentId: studentId,
+                    studentName: studentName,
+                    examDate: new Date(examDate),
+                    centreCity: centreCity,
+                    examCentreName: examCentreName, // Store the unique key
+                    howToReach: howToReach,
+                    createdAt: new Date()
+                };
+
+                await addDoc(examPlansColRef, planData);
+
+                alert(`Exam plan saved successfully for ${studentName}!`);
+                form.reset(); 
+                
+                saveButton.disabled = false;
+                saveButton.innerHTML = '<i class="fas fa-plus-circle"></i> Save Exam Plan';
+
+            } catch (error) {
+                console.error("Error saving document: ", error);
+                alert("Error saving plan. Check the console for details.");
+                saveButton.disabled = false;
+                saveButton.innerHTML = '<i class="fas fa-plus-circle"></i> Save Exam Plan';
+            }
+        }
+
+        // 1. Function to Populate Student Contacts (Fixed)
+        async function fetchContactsFromFirebase() {
+            const selectElement = document.getElementById('studentName');
+            selectElement.innerHTML = ''; 
+            selectElement.disabled = true; 
+            
+            const selectPrompt = document.createElement('option');
+            selectPrompt.value = "";
+            selectPrompt.textContent = "Loading contacts...";
+            selectPrompt.disabled = true;
+            selectPrompt.selected = true;
+            selectElement.appendChild(selectPrompt);
+
+            try {
+                const contactSnapshot = await getDocs(contactsColRef);
+                
+                selectElement.innerHTML = '';
+                
+                const selectPromptLoaded = document.createElement('option');
+                selectPromptLoaded.value = "";
+                selectPromptLoaded.textContent = "Select a Student/Contact";
+                selectPromptLoaded.disabled = true;
+                selectPromptLoaded.selected = true;
+                selectElement.appendChild(selectPromptLoaded);
+
+                contactSnapshot.forEach(doc => {
+                    const contact = doc.data();
+                    const option = document.createElement('option');
+                    
+                    option.value = doc.id; 
+                    option.textContent = contact.name;
+                    
+                    if (contact.city) {
+                        option.setAttribute('data-city', contact.city); 
+                    }
+                    selectElement.appendChild(option);
+                });
+
+                if (contactSnapshot.empty) {
+                    selectElement.innerHTML = `<option value="" disabled selected>No contacts found. Add contacts to Firebase.</option>`;
+                } else {
+                    selectElement.disabled = false; 
+                }
+
+            } catch (error) {
+                console.error("Error fetching contacts from Firebase:", error);
+                selectElement.innerHTML = `<option disabled selected>Error loading contacts!</option>`;
+                selectElement.disabled = true;
+            }
+        }
+        
+        // 2. Load ALL City Options
+        function populateCityOptions() {
+            const citySelect = document.getElementById('centreCity');
+            citySelect.innerHTML = '';
+            
+            const defaultOption = document.createElement('option');
+            defaultOption.value = "";
+            defaultOption.textContent = "Select Centre City"; 
+            defaultOption.disabled = true;
+            defaultOption.selected = true;
+            citySelect.appendChild(defaultOption);
+
+            const cities = Object.keys(mockCentreData).sort(); 
+            
+            cities.forEach(city => {
+                const option = document.createElement('option');
+                option.value = city;
+                option.textContent = city;
+                citySelect.appendChild(option);
+            });
+        }
+        
+        // 3. Handles Student Selection and Pre-selects City (Fixed)
+        window.handleStudentSelection = function() {
+            const selectedId = document.getElementById('studentName').value;
+            const citySelect = document.getElementById('centreCity');
+            
+            if (!selectedId) return;
+
+            const selectedOption = document.querySelector(`#studentName option[value="${selectedId}"]`);
+            const preselectedCity = selectedOption ? selectedOption.getAttribute('data-city') : null;
+
+            // Reset other fields first
+            document.getElementById('examCentreName').innerHTML = '<option value="" disabled selected>Select a city first...</option>';
+            document.getElementById('examCentreName').disabled = true;
+            document.getElementById('howToReach').value = '';
+
+            if (preselectedCity && mockCentreData[preselectedCity]) {
+                citySelect.value = preselectedCity;
+                fetchCentresByCity(); 
+            } else {
+                citySelect.value = ""; 
+                alert("Contact city data is missing or city not covered in master list. Please select the city manually.");
+            }
+        }
+
+
+        // 4. Load Centre Names based on Selected City (Fixed for Display Name)
+        window.fetchCentresByCity = function() {
+            const selectedCity = document.getElementById('centreCity').value;
+            const centreSelect = document.getElementById('examCentreName');
+            
+            centreSelect.innerHTML = ''; 
+            centreSelect.disabled = true;
+            
+            if (!selectedCity) return;
+
+            const defaultOption = document.createElement('option');
+            defaultOption.value = "";
+            defaultOption.textContent = `Select Centre in ${selectedCity}`;
+            defaultOption.disabled = true;
+            defaultOption.selected = true;
+            centreSelect.appendChild(defaultOption);
+
+            const cityCentres = mockCentreData[selectedCity]; 
+
+            if (cityCentres) {
+                Object.keys(cityCentres).forEach(centreKey => {
+                    const option = document.createElement('option');
+                    option.value = centreKey; // Store the unique KEY (e.g., TCS_iON_Digital_Zone_IDZ_Powai)
+                    // Display the REAL NAME stored in the mock data
+                    option.textContent = cityCentres[centreKey].displayName; 
+                    centreSelect.appendChild(option);
+                });
+                centreSelect.disabled = false;
+            } else {
+                 centreSelect.innerHTML = `<option value="" disabled selected>No centres found for ${selectedCity}</option>`;
+            }
+            
+            document.getElementById('howToReach').value = '';
+            document.getElementById('transportStatus').innerHTML = `<span class="text-sm px-3 py-1 rounded-full bg-gray-500">Uber: ?</span>
+                                                                   <span class="text-sm px-3 py-1 rounded-full bg-gray-500">Ola: ?</span>
+                                                                   <span class="text-sm px-3 py-1 rounded-full bg-gray-500">Rapido: ?</span>`;
+        }
+
+        // 5. Load Travel Info based on Selected Centre Name
+        window.fetchTravelInfo = function() {
+            const selectedCity = document.getElementById('centreCity').value;
+            const selectedCentreKey = document.getElementById('examCentreName').value; // This is the KEY
+            
+            // Use the KEY to look up the data
+            const travelInfo = mockCentreData[selectedCity]?.[selectedCentreKey]; 
+            const transportStatusDiv = document.getElementById('transportStatus');
+
+            if (travelInfo) {
+                document.getElementById('howToReach').value = travelInfo.reach;
+                
+                transportStatusDiv.innerHTML = `
+                    <span class="text-sm px-3 py-1 rounded-full ${travelInfo.uber === 'Available' ? 'bg-green-600' : 'bg-red-600'}">Uber: ${travelInfo.uber}</span>
+                    <span class="text-sm px-3 py-1 rounded-full ${travelInfo.ola === 'Available' ? 'bg-green-600' : 'bg-red-600'}">Ola: ${travelInfo.ola}</span>
+                    <span class="text-sm px-3 py-1 rounded-full ${travelInfo.rapido === 'Available' ? 'bg-green-600' : 'bg-red-600'}">Rapido: ${travelInfo.rapido}</span>
+                `;
+            } else {
+                 document.getElementById('howToReach').value = 'Travel details not available for this centre.';
+                 transportStatusDiv.innerHTML = `<span class="text-sm px-3 py-1 rounded-full bg-gray-500">Uber: ?</span>
+                                                 <span class="text-sm px-3 py-1 rounded-full bg-gray-500">Ola: ?</span>
+                                                 <span class="text-sm px-3 py-1 rounded-full bg-gray-500">Rapido: ?</span>`;
+            }
+        }
+        
+        // --- Page Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            populateCityOptions(); 
+            fetchContactsFromFirebase();
+            checkAuthStatus(); 
+            
+            // Navbar functions
+            document.getElementById('menu-btn').addEventListener('click', function() {
+                document.getElementById('mobileMenu').classList.toggle('hidden');
+            });
+        });
+    </script>
+</body>
+</html>

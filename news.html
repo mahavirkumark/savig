@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>News & Professional Feeds</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script>
+        // Tailwind Configuration for a modern palette
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'primary-indigo': '#4f46e5',
+                        'primary-blue': '#3b82f6',
+                        'accent-blue': '#1e40af',
+                    },
+                    boxShadow: {
+                        'custom-light': '0 4px 6px rgba(0, 0, 0, 0.05), 0 1px 3px rgba(0, 0, 0, 0.02)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Re-using styles from your main page */
+        .nav-link { display: flex; align-items: center; gap: 8px; transition: all 0.2s ease-in-out; color: #4b5563; font-size: 16px; padding: 4px 0; }
+        .nav-link:hover { color: #3b82f6; transform: translateY(-2px); font-weight: 600; }
+        .mobile-nav-link { display: flex; align-items: center; gap: 8px; padding: 8px; border-radius: 6px; transition: background-color 0.2s; }
+        .mobile-nav-link:hover { background-color: #eef2ff; color: #4f46e5; }
+        
+        /* Custom styles for the news cards */
+        .news-card {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            transition: all 0.3s ease-in-out;
+        }
+        .news-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+        }
+        .article-image {
+            object-fit: cover;
+            height: 140px; /* Smaller image height for dual-column view */
+            width: 100%;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen pt-20 font-sans">
+
+    <nav class="bg-white shadow-md fixed w-full z-50 top-0">
+        <div class="container mx-auto flex justify-between items-center p-4 md:px-8">
+            <div class="flex items-center gap-2 text-xl font-extrabold text-gray-800">
+                <i class="fas fa-user-circle" style="font-size: 28px; color: #3b82f6;"></i>
+                <span style="font-size: 22px;">My **Personal Website**</span>
+            </div>
+            
+            <div class="hidden md:flex space-x-6 font-medium">
+                <a href="home.html" class="nav-link"><i class="fas fa-house"></i> Home</a>
+                <a href="address.html" class="nav-link"><i class="fas fa-tasks"></i> Address</a>
+                <a href="birthday.html" class="nav-link"><i class="fas fa-birthday-cake"></i> Birthday</a>
+                <a href="password.html" class="nav-link"><i class="fas fa-key"></i> Passwords</a>
+                <a href="income.html" class="nav-link"><i class="fas fa-wallet"></i> Income</a>
+                <a href="links.html" class="nav-link"><i class="fas fa-link"></i> Links</a>
+                <a href="calendar.html" class="nav-link"><i class="fas fa-calendar-alt"></i> Calendar</a>
+            </div>
+
+            <div class="hidden md:flex items-center gap-4">
+                <div class="text-right">
+                    <p id="userName" class="font-bold text-gray-900">User Name</p>
+                    <p id="userEmail" class="text-sm text-gray-500">user@email.com</p>
+                </div>
+                <img id="userPhoto" src="https://via.placeholder.com/40" class="w-10 h-10 rounded-full ring-2 ring-primary-blue object-cover">
+                <button onclick="console.log('Logout Clicked')" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition duration-300 font-semibold shadow-md">Logout</button>
+            </div>
+
+            <button id="menu-btn" class="md:hidden text-gray-700 text-2xl"><i class="fas fa-bars"></i></button>
+        </div>
+    </nav>
+    <main class="container mx-auto p-4 md:px-8 mt-4">
+        <h1 class="text-3xl font-extrabold text-gray-900 mb-8 border-b-2 pb-3">
+            <i class="fas fa-newspaper mr-2 text-primary-blue"></i> Professional News Dashboard 
+        </h1>
+        
+        <div class="flex justify-between items-center mb-6">
+            <p class="text-gray-600">Showing top headlines from India in both English and Hindi languages.</p>
+            <span id="updateTime" class="text-sm font-medium text-gray-400"></span>
+        </div>
+
+        <div class="flex flex-col lg:flex-row gap-8">
+            
+            <div class="w-full lg:w-1/2">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2"><i class="fas fa-language mr-2 text-green-600"></i> English (Business)</h2>
+                <div id="en-news-container" class="grid grid-cols-1 gap-6">
+                    <p id="en-loading-message" class="col-span-full text-center py-8 text-lg text-gray-500">
+                        <i class="fas fa-spinner fa-spin mr-2"></i> Fetching English headlines...
+                    </p>
+                </div>
+            </div>
+
+            <div class="w-full lg:w-1/2">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4 border-b pb-2"><i class="fas fa-language mr-2 text-red-600"></i> हिन्दी (राष्ट्रीय)</h2>
+                <div id="hi-news-container" class="grid grid-cols-1 gap-6">
+                    <p id="hi-loading-message" class="col-span-full text-center py-8 text-lg text-gray-500">
+                        <i class="fas fa-spinner fa-spin mr-2"></i> हिंदी खबरें लोड हो रही हैं...
+                    </p>
+                </div>
+            </div>
+            
+        </div>
+        
+    </main>
+    
+
+    <footer class="bg-white text-gray-600 text-center py-4 text-sm mt-10 border-t border-gray-100 shadow-inner">
+        &copy; 2025 My Personal Website | All Rights Reserved.
+    </footer>
+    <script>
+    // -------------------------------------------------------------------
+    // NEWSDATA.IO INTEGRATION (DUAL LANGUAGE)
+    // -------------------------------------------------------------------
+    const NEWS_API_KEY = "pub_677646a653536356a509177bed9f1352fff4f"; 
+    const NEWS_API_ENDPOINT = "https://newsdata.io/api/1/news";
+
+    const enNewsContainer = document.getElementById('en-news-container');
+    const hiNewsContainer = document.getElementById('hi-news-container');
+    const enLoadingMessage = document.getElementById('en-loading-message');
+    const hiLoadingMessage = document.getElementById('hi-loading-message');
+    const updateTimeElement = document.getElementById('updateTime');
+
+    function formatTime(date) {
+        return date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: true });
+    }
+
+    // ⚡️ NEW: Function to fetch news for a specific language
+    async function fetchNews(language, container, loadingElement, category) {
+        if (!NEWS_API_KEY) {
+            loadingElement.textContent = `🚨 ERROR: API key is missing for ${language} news.`;
+            loadingElement.classList.add('text-red-500');
+            return;
+        }
+        
+        const params = new URLSearchParams({
+            apikey: NEWS_API_KEY, 
+            country: 'in',
+            category: category,
+            language: language // Dynamically set language: 'en' or 'hi'
+        });
+
+        try {
+            const response = await fetch(`${NEWS_API_ENDPOINT}?${params.toString()}`);
+            
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || `HTTP Error: ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            loadingElement.remove(); 
+            container.innerHTML = ''; 
+
+            if (data.results && data.results.length > 0) {
+                data.results.forEach(article => {
+                    renderArticleCard(article, container, language);
+                });
+            } else {
+                container.innerHTML = `<p class="col-span-full text-center py-8 text-gray-500">No articles found in ${language} for this category.</p>`;
+            }
+
+        } catch (error) {
+            console.error(`Error fetching ${language} news:`, error);
+            container.innerHTML = `<p class="col-span-full text-center py-8 text-red-500">Failed to load ${language} news. (${error.message})</p>`;
+        }
+    }
+
+    function renderArticleCard(article, container, language) {
+        // NewsData.io data fields vs. NewsAPI.org data fields
+        const articleDate = new Date(article.pubDate);
+        const timeAgo = formatTimeAgo(articleDate);
+        const readMoreText = language === 'hi' ? 'पूरा पढ़ें' : 'Read More';
+
+        const card = document.createElement('div');
+        card.className = 'news-card bg-white rounded-xl shadow-lg overflow-hidden border border-gray-100';
+        
+        card.innerHTML = `
+            <img 
+                src="${article.image_url || 'https://via.placeholder.com/600x300?text=Image+Not+Available'}" 
+                alt="${article.title}" 
+                class="article-image"
+                loading="lazy" 
+            >
+            
+            <div class="p-4 flex flex-col flex-grow">
+                <span class="text-xs font-semibold ${language === 'hi' ? 'text-red-600' : 'text-primary-blue'} mb-1">${article.source_id || 'Unknown Source'}</span>
+                <h3 class="text-lg font-bold text-gray-900 mb-2 line-clamp-3">${article.title}</h3>
+                
+                <p class="text-sm text-gray-600 mb-3 flex-grow line-clamp-4">${article.description || article.content || 'विवरण उपलब्ध नहीं है।'}</p>
+                
+                <div class="mt-auto flex justify-between items-center border-t pt-3">
+                    <span class="text-xs text-gray-400">${timeAgo}</span>
+                    <a href="${article.link}" target="_blank" rel="noopener noreferrer" class="text-sm font-semibold text-green-600 hover:text-green-700 transition duration-200 flex items-center gap-1">
+                        ${readMoreText} <i class="fas fa-arrow-right text-xs"></i>
+                    </a>
+                </div>
+            </div>
+        `;
+        container.appendChild(card);
+    }
+
+    function formatTimeAgo(date) {
+        const seconds = Math.floor((new Date() - date) / 1000);
+        let interval = seconds / 31536000;
+        if (interval > 1) return Math.floor(interval) + " years ago";
+        interval = seconds / 2592000;
+        if (interval > 1) return Math.floor(interval) + " months ago";
+        interval = seconds / 86400;
+        if (interval > 1) return Math.floor(interval) + " days ago";
+        interval = seconds / 3600;
+        if (interval > 1) return Math.floor(interval) + " hours ago";
+        interval = seconds / 60;
+        if (interval > 1) return Math.floor(interval) + " minutes ago";
+        return Math.floor(seconds) + " seconds ago";
+    }
+
+    // Initialize fetching BOTH sets of news when the page loads
+    async function initNewsDashboard() {
+        // Fetch English Business News
+        const enPromise = fetchNews('en', enNewsContainer, enLoadingMessage, 'business'); 
+        // Fetch Hindi National News (General/National category for wider reach)
+        const hiPromise = fetchNews('hi', hiNewsContainer, hiLoadingMessage, 'national'); 
+
+        // Use Promise.all to load both simultaneously for speed
+        await Promise.all([enPromise, hiPromise]);
+        
+        updateTimeElement.textContent = `Last updated: ${formatTime(new Date())}`;
+    }
+
+    initNewsDashboard();
+</script>
+
+</body>
+</html>

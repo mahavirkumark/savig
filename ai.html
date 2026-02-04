@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepSeek AI Chatbot - Client-Side</title>
+    <style>
+        /* CSS Section */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        #chat-container {
+            width: 100%;
+            max-width: 600px;
+            background: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            height: 80vh;
+            min-height: 400px;
+        }
+        #chat-box {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .message {
+            max-width: 80%;
+            padding: 10px 15px;
+            border-radius: 18px;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+        .user-message {
+            align-self: flex-end;
+            background-color: #007bff;
+            color: white;
+            border-bottom-right-radius: 4px;
+        }
+        .ai-message {
+            align-self: flex-start;
+            background-color: #e9ecef;
+            color: #333;
+            border-bottom-left-radius: 4px;
+        }
+        #input-form {
+            display: flex;
+            padding: 15px;
+            border-top: 1px solid #dee2e6;
+        }
+        #user-input {
+            flex-grow: 1;
+            padding: 10px;
+            border: 1px solid #ced4da;
+            border-radius: 20px;
+            margin-right: 10px;
+            font-size: 16px;
+        }
+        #send-button {
+            padding: 10px 20px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        #send-button:hover:not(:disabled) {
+            background-color: #218838;
+        }
+        #send-button:disabled {
+            background-color: #90ee90;
+            cursor: not-allowed;
+        }
+        .typing-indicator {
+            align-self: flex-start;
+            background-color: #e9ecef;
+            color: #333;
+            padding: 10px 15px;
+            border-radius: 18px;
+            font-style: italic;
+            border-bottom-left-radius: 4px;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.5; }
+            50% { opacity: 1; }
+            100% { opacity: 0.5; }
+        }
+    </style>
+</head>
+<body>
+    <div id="chat-container">
+        <div id="chat-box">
+            <div class="message ai-message">👋 Hello! I'm DeepJS. Ask me anything to get started!</div>
+        </div>
+        <form id="input-form">
+            <input type="text" id="user-input" placeholder="Type your message..." required>
+            <button type="submit" id="send-button">Send</button>
+        </form>
+    </div>
+
+    <script>
+        // JavaScript Section
+
+        // 🟢 INSERTED API KEY: This should resolve the 401 Unauthorized error.
+        const API_KEY = "sk-79f6b3e624324120a72c376d03d3a2f3"; 
+        const API_ENDPOINT = "https://api.deepseek.com/v1/chat/completions"; 
+        const MODEL = "deepseek-chat";
+        
+        const form = document.getElementById('input-form');
+        const input = document.getElementById('user-input');
+        const chatBox = document.getElementById('chat-box');
+        const sendButton = document.getElementById('send-button');
+        
+        // Initial system message plus conversation history
+        let conversationHistory = [
+            { "role": "system", "content": "You are a friendly, enthusiastic, and concise AI assistant named DeepJS. Respond in markdown format." }
+        ];
+
+        // Helper function to create a new message bubble
+        function appendMessage(content, sender) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message', sender === 'user' ? 'user-message' : 'ai-message');
+            messageElement.innerHTML = content;
+            chatBox.appendChild(messageElement);
+            chatBox.scrollTop = chatBox.scrollHeight;
+            return messageElement;
+        }
+        
+        // Main function to handle the chat submission
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const userMessage = input.value.trim();
+            if (!userMessage) return;
+
+            // 1. Display user message and update history
+            appendMessage(userMessage, 'user');
+            conversationHistory.push({ role: 'user', content: userMessage });
+            
+            // 2. Clear input and disable button
+            input.value = '';
+            sendButton.disabled = true;
+            
+            // 3. Show typing indicator
+            const typingIndicator = document.createElement('div');
+            typingIndicator.classList.add('typing-indicator');
+            typingIndicator.textContent = 'DeepJS is thinking...';
+            chatBox.appendChild(typingIndicator);
+            chatBox.scrollTop = chatBox.scrollHeight;
+            
+            try {
+                // 4. Send request to DeepSeek API
+                const response = await fetch(API_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${API_KEY}` // Using the provided API Key
+                    },
+                    body: JSON.stringify({ 
+                        model: MODEL, 
+                        messages: conversationHistory,
+                        stream: true 
+                    }),
+                });
+
+                if (!response.ok) {
+                    // This error block catches 400 Bad Request, 404 Not Found, etc.
+                    throw new Error(`API responded with status ${response.status}`);
+                }
+
+                // 5. Initialize AI message bubble and remove typing indicator
+                const aiMessageElement = appendMessage('', 'ai');
+                typingIndicator.remove();
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let fullAiResponse = '';
+
+                // 6. Process the stream
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value);
+                    const lines = chunk.split('\n\n').filter(line => line.startsWith('data: '));
+
+                    for (const line of lines) {
+                        try {
+                            // Extract JSON payload after "data: "
+                            const payload = JSON.parse(line.substring(6)); 
+                            const content = payload.choices[0]?.delta?.content || '';
+                            
+                            // Append streamed text
+                            aiMessageElement.textContent += content; 
+                            fullAiResponse += content;
+                            chatBox.scrollTop = chatBox.scrollHeight;
+                        } catch (e) {
+                            // Ignore non-JSON or partial data lines
+                        }
+                    }
+                }
+
+                // 7. Update history with the final AI response
+                conversationHistory.push({ role: 'assistant', content: fullAiResponse });
+
+            } catch (error) {
+                console.error('Chat failed:', error);
+                typingIndicator.remove();
+                appendMessage('An error occurred. Check your console for details.', 'ai');
+                conversationHistory.pop(); 
+            } finally {
+                // 8. Re-enable button and focus input
+                sendButton.disabled = false;
+                input.focus();
+            }
+        });
+    </script>
+</body>
+</html>

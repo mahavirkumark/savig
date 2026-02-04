@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Travel Rules - Modern UI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <style>
+        /* Modern color scheme */
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --primary-light: #a5b4fc;
+            --secondary: #f8fafc;
+            --accent: #f59e0b;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --card-bg: #ffffff;
+            --card-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        /* Custom scrollbar */
+        #rules-container-content::-webkit-scrollbar {
+            width: 6px;
+        }
+        #rules-container-content::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 10px;
+        }
+        #rules-container-content::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        #rules-container-content::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+        
+        /* Glass morphism effect for navbar */
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        /* Modern tab buttons */
+        .tab-btn {
+            @apply relative overflow-hidden transition-all duration-300;
+        }
+        .tab-btn.active {
+            @apply text-white;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+        }
+        .tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: var(--accent);
+        }
+        
+        /* Card hover effects */
+        .rule-card {
+            @apply transition-all duration-300 ease-in-out;
+            background: var(--card-bg);
+            box-shadow: var(--card-shadow);
+            border-radius: 12px;
+            border-left: 4px solid var(--primary);
+        }
+        .rule-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+        
+        /* Button styles */
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            @apply text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 shadow-md;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(99, 102, 241, 0.3);
+        }
+        
+        .btn-secondary {
+            @apply bg-gray-100 text-gray-700 font-medium py-2 px-4 rounded-lg transition-all duration-300;
+        }
+        .btn-secondary:hover {
+            @apply bg-gray-200;
+        }
+        
+        /* Form styling */
+        .form-input {
+            @apply w-full px-4 py-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-300;
+            background: #f8fafc;
+        }
+        
+        /* Animation for loading */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.5s ease-out forwards;
+        }
+        
+        /* Custom max-height for the scrollable rule list */
+        #rules-container-content {
+            max-height: 50vh; 
+        }
+        @media (min-width: 1024px) {
+            #rules-container-content {
+                max-height: 70vh; 
+            }
+        }
+        
+        /* Gradient text */
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-50 to-blue-100 min-h-screen flex flex-col pt-16">
+    
+    <nav class="glass-nav fixed w-full z-50 top-0">
+        <div class="container mx-auto flex justify-between items-center p-4 md:px-8">
+            <div class="flex items-center gap-2 text-xl font-bold text-gray-800">
+                <div class="w-10 h-10 rounded-full bg-gradient-to-r from-indigo-500 to-purple-600 flex items-center justify-center text-white">
+                    <i class="fas fa-user-circle"></i>
+                </div>
+                <span class="text-lg md:text-xl">Travel Rules Manager</span> 
+            </div>
+            
+            <div class="hidden lg:flex space-x-6 font-medium">
+                <a href="home.html" class="nav-link flex items-center gap-2 transition-all duration-300 text-gray-600 hover:text-indigo-600 hover:-translate-y-0.5">
+                    <i class="fas fa-house"></i> Home
+                </a>
+                <a href="address.html" class="nav-link flex items-center gap-2 transition-all duration-300 text-gray-600 hover:text-indigo-600 hover:-translate-y-0.5">
+                    <i class="fas fa-map-marker-alt"></i> Address
+                </a>
+                <a href="birthday.html" class="nav-link flex items-center gap-2 transition-all duration-300 text-gray-600 hover:text-indigo-600 hover:-translate-y-0.5">
+                    <i class="fas fa-birthday-cake"></i> Birthday
+                </a>
+                <a href="password.html" class="nav-link flex items-center gap-2 transition-all duration-300 text-gray-600 hover:text-indigo-600 hover:-translate-y-0.5">
+                    <i class="fas fa-key"></i> Passwords
+                </a>
+                <a href="income.html" class="nav-link flex items-center gap-2 transition-all duration-300 text-gray-600 hover:text-indigo-600 hover:-translate-y-0.5">
+                    <i class="fas fa-wallet"></i> Income
+                </a>
+                <a href="links.html" class="nav-link flex items-center gap-2 transition-all duration-300 font-bold text-indigo-600">
+                    <i class="fas fa-route"></i> Travel Rules
+                </a>
+                <a href="calendar.html" class="nav-link flex items-center gap-2 transition-all duration-300 text-gray-600 hover:text-indigo-600 hover:-translate-y-0.5">
+                    <i class="fas fa-calendar-alt"></i> Calendar
+                </a>
+            </div>
+
+            <div class="hidden md:flex items-center gap-4">
+                <div class="text-right">
+                    <p id="userName" class="font-bold text-gray-900">Loading...</p>
+                    <p id="userEmail" class="text-sm text-gray-500">Loading...</p>
+                </div>
+                <div class="w-10 h-10 rounded-full overflow-hidden border-2 border-indigo-500">
+                    <img id="userPhoto" src="https://via.placeholder.com/40" class="w-full h-full object-cover">
+                </div>
+                <button onclick="logout()" class="bg-gradient-to-r from-red-500 to-red-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:shadow-lg transition-all duration-300 transform hover:-translate-y-0.5">Logout</button>
+            </div>
+
+            <button id="menu-btn" class="lg:hidden text-gray-700 text-2xl"><i class="fas fa-bars"></i></button>
+        </div>
+        
+        <div id="mobileMenu" class="hidden lg:hidden flex flex-col px-4 pb-4 space-y-1 text-sm text-gray-700 font-medium bg-white/80 backdrop-blur-md">
+            <a href="home.html" class="mobile-nav-link flex items-center gap-2 p-2 rounded hover:bg-indigo-50 transition-colors duration-300">
+                <i class="fas fa-house w-5"></i> Home
+            </a>
+            <a href="address.html" class="mobile-nav-link flex items-center gap-2 p-2 rounded hover:bg-indigo-50 transition-colors duration-300">
+                <i class="fas fa-map-marker-alt w-5"></i> Address
+            </a>
+            <a href="birthday.html" class="mobile-nav-link flex items-center gap-2 p-2 rounded hover:bg-indigo-50 transition-colors duration-300">
+                <i class="fas fa-birthday-cake w-5"></i> Birthday
+            </a>
+            <a href="password.html" class="mobile-nav-link flex items-center gap-2 p-2 rounded hover:bg-indigo-50 transition-colors duration-300">
+                <i class="fas fa-key w-5"></i> Passwords
+            </a>
+            <a href="income.html" class="mobile-nav-link flex items-center gap-2 p-2 rounded hover:bg-indigo-50 transition-colors duration-300">
+                <i class="fas fa-wallet w-5"></i> Income
+            </a>
+            <a href="links.html" class="mobile-nav-link flex items-center gap-2 p-2 rounded bg-indigo-50 text-indigo-600 font-bold">
+                <i class="fas fa-route w-5"></i> Travel Rules
+            </a>
+            <a href="calendar.html" class="mobile-nav-link flex items-center gap-2 p-2 rounded hover:bg-indigo-50 transition-colors duration-300">
+                <i class="fas fa-calendar-alt w-5"></i> Calendar
+            </a>
+            
+            <div class="border-t border-gray-300 mt-2 pt-2">
+                <p id="mobileUserName" class="font-bold text-gray-900">Loading...</p>
+                <p id="mobileUserEmail" class="text-xs text-gray-500">Loading...</p>
+                <button onclick="logout()" class="bg-gradient-to-r from-red-500 to-red-600 text-white px-3 py-2 rounded-lg hover:shadow-lg transition-all duration-300 w-full mt-2">Logout</button>
+            </div>
+        </div>
+    </nav>
+    
+    <main class="container mx-auto p-4 md:p-8 flex-grow">
+        <div class="mb-8">
+            <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-2 flex items-center gap-3">
+                <i class="fas fa-clipboard-list gradient-text"></i> 
+                <span class="gradient-text">Travel Rules Manager</span>
+            </h1>
+            <p class="text-gray-600">Easily manage and organize your travel rules for different transportation modes</p>
+        </div>
+        
+        <div class="flex border border-gray-200 bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+            <button class="tab-btn active flex-1 py-4 px-3 text-sm md:text-base transition duration-300 flex items-center justify-center gap-2" data-type="Train">
+                <i class="fas fa-train"></i> Train
+            </button>
+            <button class="tab-btn flex-1 py-4 px-3 text-sm md:text-base transition duration-300 flex items-center justify-center gap-2" data-type="Bus">
+                <i class="fas fa-bus"></i> Bus
+            </button>
+            <button class="tab-btn flex-1 py-4 px-3 text-sm md:text-base transition duration-300 flex items-center justify-center gap-2" data-type="Flight">
+                <i class="fas fa-plane-departure"></i> Flight
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            
+            <div class="lg:col-span-1 bg-white p-6 rounded-2xl shadow-xl h-fit lg:sticky lg:top-20 border-t-4 border-indigo-500">
+                <h2 id="form-title" class="text-xl font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                    <i class="fas fa-plus-circle text-indigo-600"></i> 
+                    <span>Add New Train Rule</span>
+                </h2>
+                <form id="rule-form" class="space-y-4">
+                    <input type="hidden" id="rule-type" value="Train"> 
+                    
+                    <div>
+                        <label for="rule-name" class="block text-sm font-semibold text-gray-700 mb-2">Rule Title</label>
+                        <input type="text" id="rule-name" required placeholder="e.g., Ticket Cancellation Fee" class="form-input">
+                    </div>
+                    <div>
+                        <label for="rule-details" class="block text-sm font-semibold text-gray-700 mb-2">Rule Details</label>
+                        <textarea id="rule-details" rows="4" required placeholder="e.g., 25% refund if cancelled 48 hours prior to departure." class="form-input"></textarea>
+                    </div>
+                    
+                    <div class="flex space-x-2 pt-2">
+                        <button type="submit" id="submit-btn" class="btn-primary flex-1 flex items-center justify-center gap-2">
+                            <i class="fas fa-save"></i> Save Rule
+                        </button>
+                        <button type="button" id="update-btn" class="hidden flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-green-500 to-green-600 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300 shadow-md hover:shadow-lg">
+                            <i class="fas fa-check-circle"></i> Update
+                        </button>
+                        <button type="button" id="cancel-btn" class="hidden flex-shrink-0 items-center justify-center py-2 px-4 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200 transition-all duration-300" onclick="resetForm()">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                </form>
+            </div>
+            
+            <div class="lg:col-span-2 bg-white p-6 rounded-2xl shadow-xl">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 id="display-title" class="text-xl font-semibold text-gray-800 flex items-center gap-2">
+                        <i class="fas fa-list-ul text-indigo-600"></i> 
+                        <span>Saved Train Rules</span>
+                    </h2>
+                    <div class="text-sm text-gray-500" id="rules-count">0 rules</div>
+                </div>
+                
+                <div id="rules-container-content" class="space-y-4 pr-3">
+                    <div id="loading-message" class="text-center py-10">
+                        <div class="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-indigo-500 mb-2"></div>
+                        <p class="text-gray-500">Loading rules...</p>
+                    </div>
+                </div>
+            </div>
+            
+        </div>
+    </main>
+    
+    <footer class="mt-auto bg-white/80 backdrop-blur-sm text-gray-600 text-center p-4 border-t border-gray-200 text-sm">
+        &copy; 2025 Personal Website | All rights reserved
+    </footer>
+
+    <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 p-4 text-white rounded-xl shadow-xl transition-all duration-300 opacity-0 hidden z-50 max-w-md w-full"></div>
+
+    <script type="module">
+        // --- 1. FIREBASE SETUP (MODULAR V9+) ---
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+        import { getDatabase, ref, push, onValue, update, remove, serverTimestamp, query, orderByChild } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-auth.js";
+
+        // IMPORTANT: Replace with your actual Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc", 
+            authDomain: "sk12-58e9e.firebaseapp.com",
+            databaseURL: "https://sk12-58e9e-default-rtdb.firebaseio.com",
+            projectId: "sk12-58e9e",
+            storageBucket: "sk12-58e9e.appspot.com",
+            messagingSenderId: "470207874652",
+            appId: "1:470207874652:web:67ba1cf3629b7e5b144899"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth(app);
+        
+        window.logout = () => {
+            signOut(auth).then(() => {
+                alert('Logged out. You will need a login page (login.html) for a real app.');
+            });
+        };
+
+        // --- 2. GLOBAL VARIABLES & DOM ---
+        let currentUserId = null;
+        let isEditMode = false;
+        let editKey = null;
+        let allRulesCache = {};
+        let currentRuleType = 'Train';
+
+        const ruleForm = document.getElementById('rule-form');
+        const ruleTypeInput = document.getElementById('rule-type');
+        const ruleName = document.getElementById('rule-name');
+        const ruleDetails = document.getElementById('rule-details');
+        const rulesContainer = document.getElementById('rules-container-content');
+        const submitBtn = document.getElementById('submit-btn');
+        const updateBtn = document.getElementById('update-btn');
+        const cancelBtn = document.getElementById('cancel-btn');
+        const loadingMessage = document.getElementById('loading-message');
+        const toast = document.getElementById('toast');
+        const formTitle = document.getElementById('form-title');
+        const displayTitle = document.getElementById('display-title');
+        const rulesCount = document.getElementById('rules-count');
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        const menuBtn = document.getElementById('menu-btn');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        const GUEST_PHOTO_SVG = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><circle cx="20" cy="20" r="20" fill="%2394a3b8"/><text x="20" y="28" font-family="Arial, sans-serif" font-size="20" fill="%23ffffff" text-anchor="middle">G</text></svg>';
+        
+        // --- 3. UI EVENT LISTENERS ---
+        menuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        function setupTabListeners() {
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const newType = button.getAttribute('data-type');
+                    switchTab(newType);
+                });
+            });
+        }
+        
+        window.resetForm = () => {
+            isEditMode = false;
+            editKey = null;
+            ruleForm.reset();
+            
+            submitBtn.classList.remove('hidden');
+            updateBtn.classList.add('hidden');
+            cancelBtn.classList.add('hidden');
+            
+            formTitle.innerHTML = `<i class="fas fa-plus-circle text-indigo-600"></i> <span>Add New ${currentRuleType} Rule</span>`;
+        };
+
+        // --- 4. AUTHENTICATION & INITIAL LOAD ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUserId = user.uid;
+                const userDisplayName = user.displayName || user.email.split('@')[0];
+                const userPhotoURL = user.photoURL || `https://via.placeholder.com/40/4f46e5/ffffff?text=${userDisplayName.charAt(0)}`;
+
+                document.getElementById('userName').textContent = userDisplayName;
+                document.getElementById('userEmail').textContent = user.email || 'N/A';
+                document.getElementById('userPhoto').src = userPhotoURL;
+                document.getElementById('mobileUserName').textContent = userDisplayName;
+                document.getElementById('mobileUserEmail').textContent = user.email || 'N/A';
+                
+                loadRules();
+                setupTabListeners();
+            } else {
+                currentUserId = null;
+                document.getElementById('userName').textContent = 'Guest';
+                document.getElementById('userEmail').textContent = 'Please Log In';
+                document.getElementById('userPhoto').src = GUEST_PHOTO_SVG;
+                rulesContainer.innerHTML = '';
+                loadingMessage.innerHTML = '<p class="text-gray-500">Please log in to view and manage your travel rules.</p>';
+                loadingMessage.style.display = 'block';
+            }
+        });
+
+        // --- 5. DATA FETCHING, FILTERING & DISPLAY ---
+
+        function switchTab(newType) {
+            currentRuleType = newType;
+            ruleTypeInput.value = newType;
+            
+            tabButtons.forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`.tab-btn[data-type="${newType}"]`).classList.add('active');
+
+            formTitle.innerHTML = `<i class="fas fa-plus-circle text-indigo-600"></i> <span>Add New ${newType} Rule</span>`;
+            displayTitle.innerHTML = `<i class="fas fa-list-ul text-indigo-600"></i> <span>Saved ${newType} Rules</span>`;
+            
+            resetForm(); 
+            displayFilteredRules();
+        }
+
+        function displayFilteredRules() {
+            rulesContainer.innerHTML = '';
+            const filteredRules = Object.values(allRulesCache)
+                .filter(rule => rule.type === currentRuleType)
+                .sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+
+            if (filteredRules.length > 0) {
+                loadingMessage.style.display = 'none';
+                filteredRules.forEach(rule => {
+                    const ruleElement = createRuleElement(rule.key, rule);
+                    ruleElement.classList.add('fade-in');
+                    rulesContainer.appendChild(ruleElement);
+                });
+                rulesCount.textContent = `${filteredRules.length} ${filteredRules.length === 1 ? 'rule' : 'rules'}`;
+            } else {
+                loadingMessage.innerHTML = `
+                    <div class="text-center py-10">
+                        <i class="fas fa-inbox text-4xl text-gray-300 mb-4"></i>
+                        <p class="text-gray-500">No ${currentRuleType} rules saved yet. Start by adding one!</p>
+                    </div>
+                `;
+                loadingMessage.style.display = 'block';
+                rulesCount.textContent = '0 rules';
+            }
+        }
+        
+        function loadRules() {
+            if (!currentUserId) return;
+            const rulesRef = ref(db, `travel_rules/${currentUserId}`);
+            const rulesQuery = query(rulesRef, orderByChild('timestamp'));
+
+            onValue(rulesQuery, (snapshot) => {
+                allRulesCache = {};
+                
+                if (snapshot.exists()) {
+                    snapshot.forEach(childSnapshot => {
+                        const key = childSnapshot.key;
+                        allRulesCache[key] = { key, ...childSnapshot.val() };
+                    });
+                }
+                displayFilteredRules();
+
+            }, (error) => {
+                console.error("Firebase read failed: " + error.code);
+                loadingMessage.innerHTML = `<p class="text-red-500 text-center py-10">Error loading data: ${error.message}</p>`;
+            });
+        }
+        
+        function createRuleElement(key, rule) {
+            const iconMap = {
+                'Train': 'fas fa-train text-green-600',
+                'Bus': 'fas fa-bus text-yellow-600',
+                'Flight': 'fas fa-plane-departure text-blue-600',
+                'Other': 'fas fa-info-circle text-gray-600'
+            };
+            
+            const iconClass = iconMap[rule.type] || iconMap['Other'];
+
+            const div = document.createElement('div');
+            div.id = `rule-${key}`;
+            div.className = 'rule-card p-5';
+            
+            const escapedName = rule.name.replace(/'/g, "\\'").replace(/"/g, '\\"');
+            const escapedDetails = rule.details.replace(/'/g, "\\'").replace(/"/g, '\\"');
+
+            div.innerHTML = `
+                <div class="flex justify-between items-start">
+                    <div class="flex-1 min-w-0 pr-4">
+                        <div class="flex items-center gap-2 mb-3">
+                            <i class="${iconClass} text-lg"></i>
+                            <span class="text-xs font-semibold uppercase tracking-wider text-indigo-600">${rule.type}</span>
+                            <span class="text-xs text-gray-400 ml-auto">${formatTimestamp(rule.timestamp)}</span>
+                        </div>
+                        <h3 class="text-xl font-bold text-gray-900 mb-3">${rule.name}</h3>
+                        <p class="text-gray-700 whitespace-pre-wrap leading-relaxed">${rule.details}</p>
+                    </div>
+                    
+                    <div class="flex-shrink-0 flex flex-row space-x-2">
+                        <button onclick="editRule('${key}', '${rule.type}', '${escapedName}', '${escapedDetails}')" 
+                                class="text-blue-600 p-2 rounded-full hover:bg-blue-50 hover:text-blue-700 transition-all duration-300 transform hover:scale-110" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button onclick="deleteRule('${key}', '${escapedName}')" 
+                                class="text-red-600 p-2 rounded-full hover:bg-red-50 hover:text-red-700 transition-all duration-300 transform hover:scale-110" title="Delete">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                        <button onclick="shareRule('${rule.type}', '${escapedName}', '${escapedDetails}')" 
+                                class="text-gray-600 p-2 rounded-full hover:bg-gray-50 hover:text-gray-800 transition-all duration-300 transform hover:scale-110" title="Share">
+                            <i class="fas fa-share-alt"></i>
+                        </button>
+                    </div>
+                </div>
+            `;
+            return div;
+        }
+        
+        function formatTimestamp(timestamp) {
+            if (!timestamp) return '';
+            
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+            
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins} min ago`;
+            if (diffHours < 24) return `${diffHours} hr ago`;
+            if (diffDays < 7) return `${diffDays} day${diffDays > 1 ? 's' : ''} ago`;
+            
+            return date.toLocaleDateString();
+        }
+
+        // --- 6. CRUD EXPOSED FUNCTIONS ---
+        window.editRule = (key, type, name, details) => {
+            if (type !== currentRuleType) { switchTab(type); }
+            isEditMode = true;
+            editKey = key;
+            ruleName.value = name;
+            ruleDetails.value = details;
+            
+            submitBtn.classList.add('hidden');
+            updateBtn.classList.remove('hidden');
+            cancelBtn.classList.remove('hidden');
+
+            formTitle.innerHTML = `<i class="fas fa-edit text-green-600"></i> <span>Editing ${type} Rule</span>`;
+            ruleName.focus();
+            showToast(`Editing: ${name}`, 3000, 'bg-blue-600');
+        };
+
+        window.deleteRule = (key, name) => {
+            if (!currentUserId) return;
+            if (confirm(`Are you sure you want to delete the rule: "${name}"?`)) {
+                const ruleDeleteRef = ref(db, `travel_rules/${currentUserId}/${key}`);
+                remove(ruleDeleteRef)
+                    .then(() => {
+                        showToast('Rule deleted successfully!', 3000, 'bg-red-600');
+                        resetForm(); 
+                    })
+                    .catch(error => {
+                        console.error("Error removing document: ", error);
+                        showToast('Error deleting rule. Check console.', 5000, 'bg-red-700');
+                    });
+            }
+        };
+
+        window.shareRule = (type, name, details) => {
+            const shareText = `📌 ${type} Rule: ${name}\nDetails: ${details}\n\nShared from My Personal Website.`;
+            if (navigator.share) {
+                navigator.share({ title: `${type} Rule`, text: shareText })
+                .then(() => showToast('Rule shared successfully!', 3000, 'bg-green-600'))
+                .catch(() => {
+                    navigator.clipboard.writeText(shareText)
+                        .then(() => showToast('Rule details copied to clipboard!', 3000, 'bg-green-600'))
+                        .catch(err => console.error('Could not copy text: ', err));
+                });
+            } else {
+                navigator.clipboard.writeText(shareText)
+                    .then(() => showToast('Rule details copied to clipboard!', 3000, 'bg-green-600'))
+                    .catch(err => console.error('Could not copy text: ', err));
+            }
+        };
+        
+        // --- 7. TOAST FUNCTION ---
+        function showToast(message, duration = 3000, bgColor = 'bg-gray-800') {
+            toast.textContent = message;
+            toast.className = `fixed bottom-5 left-1/2 -translate-x-1/2 p-4 ${bgColor} text-white rounded-xl shadow-xl transition-all duration-300 opacity-100 z-50 max-w-md w-full text-center`;
+            setTimeout(() => {
+                toast.classList.remove('opacity-100');
+                toast.classList.add('opacity-0');
+                setTimeout(() => {
+                    toast.classList.add('hidden');
+                }, 300); 
+            }, duration);
+            toast.classList.remove('hidden');
+        }
+
+        // --- 8. FORM SUBMISSION ---
+        ruleForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (!currentUserId) {
+                 showToast('Please log in to save data.', 3000, 'bg-red-600');
+                 return;
+            }
+
+            const ruleData = {
+                type: ruleTypeInput.value,
+                name: ruleName.value.trim(),
+                details: ruleDetails.value.trim(),
+            };
+            
+            if (ruleData.name === "" || ruleData.details === "") {
+                showToast('Please enter both a Title and Details.', 3000, 'bg-yellow-600');
+                return;
+            }
+
+            const rulesRef = ref(db, `travel_rules/${currentUserId}`);
+
+            if (isEditMode && editKey) {
+                const ruleUpdateRef = ref(db, `travel_rules/${currentUserId}/${editKey}`);
+                update(ruleUpdateRef, {
+                    type: ruleData.type,
+                    name: ruleData.name,
+                    details: ruleData.details
+                })
+                .then(() => {
+                    showToast('Rule updated successfully!', 3000, 'bg-green-600');
+                    resetForm();
+                })
+                .catch(error => {
+                    console.error("Error updating document: ", error);
+                    showToast('Error updating rule. Check console.', 5000, 'bg-red-700');
+                });
+            } else {
+                push(rulesRef, { ...ruleData, timestamp: serverTimestamp() })
+                    .then(() => {
+                        showToast('Rule saved successfully!', 3000, 'bg-green-600');
+                        ruleForm.reset();
+                    })
+                    .catch(error => {
+                        console.error("Error writing document: ", error);
+                        showToast('Error saving rule. Check console.', 5000, 'bg-red-700');
+                    });
+            }
+        });
+
+    </script>
+</body>
+</html>

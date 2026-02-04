@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Travel Rules Manager | My Personal Website</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+
+<style>
+    /* ---------------------------------------------------------------------- */
+    /* --- CONSOLIDATED AND MODERN CSS STYLES (Includes Hover & Responsive) --- */
+    /* ---------------------------------------------------------------------- */
+    :root {
+        --color-primary-indigo: #4f46e5; /* Indigo-600 */
+        --color-success: #10B981; /* Emerald-500 */
+        --color-light-indigo: #eef2ff; /* Indigo-50 */
+    }
+
+    body {
+        font-family: 'Inter', sans-serif; 
+        color: black;
+        scroll-behavior: smooth;
+        /* Padding increased slightly for better mobile/tablet header clearance */
+        padding-top: 5.5rem; 
+    }
+    
+    .text-primary-indigo { color: var(--color-primary-indigo); }
+    .modern-nav-shadow { box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.05); }
+    
+    .modern-btn { 
+        border-radius: 0.5rem; 
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
+        transition: all 0.15s ease-in-out; 
+    }
+    .modern-btn:hover { 
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15); 
+        transform: translateY(-2px);
+    }
+    
+    .tab-active { 
+        border-color: var(--color-primary-indigo); 
+        color: var(--color-primary-indigo) !important; 
+        background-color: var(--color-light-indigo); 
+        border-bottom-width: 4px; 
+        font-weight: 700; 
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); 
+    }
+    .tab-btn { transition: all 0.2s ease-in-out; }
+    .tab-btn:hover:not(.tab-active) { 
+        background-color: #f3f4f6; 
+        color: var(--color-primary-indigo) !important; 
+    }
+    
+    .rule-card {
+        transition: all 0.2s ease-in-out;
+    }
+    .rule-card:hover { 
+        box-shadow: 0 15px 20px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -5px rgba(0, 0, 0, 0.08); 
+        transform: translateY(-3px);
+    }
+    
+    .copied-badge {
+        position: absolute; 
+        right: 0.5rem;
+        top: 50%;
+        transform: translateY(-50%) scale(0.9);
+        display: inline-block;
+        margin-left: 0.5rem;
+        padding: 0.125rem 0.5rem;
+        border-radius: 9999px;
+        font-size: 0.75rem; 
+        line-height: 1;
+        background: var(--color-success);
+        color: white;
+        box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+        opacity: 0;
+        transition: opacity 0.3s ease, transform 0.3s ease;
+        pointer-events: none;
+        z-index: 10;
+    }
+    .copied-badge.visible {
+        opacity: 1;
+        transform: translateY(-50%) scale(1);
+    }
+
+    /* Adjusted Max Height for better responsiveness on smaller desktops/tablets */
+    .scrollable-rules-list {
+        max-height: calc(100vh - 360px); 
+        overflow-y: auto;
+        padding-right: 0.5rem;
+    }
+
+    /* Mobile First: Form sticks to the top when scrolling the rules list on large screens */
+    @media (min-width: 1024px) {
+        .input-container {
+            position: sticky;
+            top: 7rem; /* Adjusted to clear the fixed navigation bar */
+            align-self: flex-start; /* Ensures sticky behavior respects the top boundary */
+        }
+    }
+
+    /* Print Styles (Kept as before) */
+    @media print {
+        h2 { color: #1f2937 !important; }
+        .tab-btn { display: none !important; } 
+        body { padding-top: 0; background-color: white; }
+        .modern-nav-shadow, footer, .input-container, .print-hide, .main-heading, .edit-mode-hide, .search-bar-container {
+            display: none !important;
+        }
+        main { margin-top: 0; }
+        .rules-container { width: 100% !important; padding: 0; box-shadow: none; border: none; }
+        .rule-card { border: 1px solid #ccc; page-break-inside: avoid; margin-bottom: 1rem; padding: 1rem; }
+        .scrollable-rules-list { max-height: none; overflow-y: visible; }
+    }
+</style>
+
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+    <nav class="bg-white modern-nav-shadow fixed w-full z-50 top-0">
+        <div class="container mx-auto flex justify-between items-center p-4 md:px-8">
+            <div class="flex items-center gap-2 text-xl font-extrabold text-gray-800">
+                <i class="fas fa-user-circle" style="font-size: 28px; color: var(--color-primary-indigo);"></i>
+                <span style="font-size: 22px;">My Personal Website</span>
+            </div>
+            
+            <div class="hidden md:flex space-x-6 font-medium">
+                <a href="home.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-house"></i> Home</a>
+                <a href="address.html" class="flex items-center gap-2 transition duration-300 text-primary-indigo font-bold hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-tasks"></i> Address</a>
+                <a href="birthday.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-birthday-cake"></i> Birthday</a>
+                <a href="password.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-key"></i> Passwords</a>
+                <a href="income.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-wallet"></i> Income</a>
+                <a href="links.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-link"></i> Links</a>
+                <a href="calendar.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-calendar-alt"></i> Calendar</a>
+            </div>
+
+            <div class="hidden md:flex items-center gap-4">
+                <div class="text-right">
+                    <p id="userName" class="font-bold text-gray-900">Loading...</p>
+                    <p id="userEmail" class="text-sm text-gray-500">Loading...</p>
+                </div>
+                <img id="userPhoto" src="https://via.placeholder.com/40" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid var(--color-primary-indigo);">
+                <button onclick="logout()" id="logoutBtn" class="bg-red-500 text-white px-4 py-2 rounded-full hover:bg-red-600 transition duration-300 modern-btn">Logout</button>
+            </div>
+
+            <button id="menu-btn" class="md:hidden text-gray-700 text-2xl"><i class="fas fa-bars"></i></button>
+        </div>
+
+        <div id="mobileMenu" class="hidden md:hidden flex flex-col px-4 pb-4 space-y-2 text-sm text-gray-700 font-medium bg-gray-50">
+            <a href="home.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-house"></i> Home</a>
+            <a href="address.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 text-primary-indigo font-bold hover:text-blue-500 transition duration-300"><i class="fas fa-tasks"></i> Address</a>
+            <a href="birthday.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-birthday-cake"></i> Birthday</a>
+            <a href="password.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-key"></i> Passwords</a>
+            <a href="income.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-wallet"></i> Income</a>
+            <a href="links.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-link"></i> Links</a>
+            <a href="calendar.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-calendar-alt"></i> Calendar</a>
+            <div class="border-t border-gray-300 mt-2 pt-2">
+                <p id="mobileUserName" class="font-bold text-gray-900">Loading...</p>
+                <p id="mobileUserEmail" class="text-xs text-gray-500">Loading...</p>
+                <button onclick="logout()" id="mobileLogoutBtn" class="bg-red-500 text-white px-3 py-2 rounded-full hover:bg-red-600 mt-2 w-full modern-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+<main class="flex-grow max-w-8xl mx-auto p-4 md:p-8 w-full">
+    <h1 class="text-4xl font-extrabold text-gray-800 mb-6 main-heading">Travel Rules Management ✈️🚌🚂</h1>
+    
+    <div class="flex flex-col md:flex-row mb-6 bg-white rounded-xl shadow-lg p-2 print-hide border border-gray-100">
+        <button data-type="railway" class="tab-btn w-full p-3 text-lg border-b-4 md:border-b-0 md:border-r border-transparent transition-colors tab-active">
+            <i class="fas fa-train mr-1"></i> Railway Rules
+        </button>
+        <button data-type="bus" class="tab-btn w-full p-3 text-lg border-b-4 md:border-b-0 md:border-r border-transparent transition-colors">
+            <i class="fas fa-bus-alt mr-1"></i> Bus Rules
+        </button>
+        <button data-type="flight" class="tab-btn w-full p-3 text-lg border-b-4 md:border-b-0 border-transparent transition-colors">
+            <i class="fas fa-plane mr-1"></i> Flight Rules
+        </button>
+    </div>
+
+    <div class="flex flex-col lg:flex-row gap-6">
+
+        <div class="w-full lg:w-5/12 bg-white shadow-xl p-6 rounded-xl border border-gray-100 input-container">
+            <h2 id="input-heading" class="text-2xl font-bold text-primary-indigo mb-4 border-b pb-2">Add New Railway Rule</h2>
+            
+            <input id="ruleTitleInput" type="text" placeholder="Rule Title (e.g., Luggage Limits)"
+                class="w-full p-3 text-base border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150" required/>
+            
+            <textarea id="ruleDetailsInput" rows="6" placeholder="Enter detailed rule information here..."
+                class="w-full p-3 text-base border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150" required></textarea>
+            
+            <button id="saveRuleBtn" data-mode="add"
+                class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-3 w-full modern-btn text-base">
+                <i class="fas fa-save mr-2"></i> Save Rule
+            </button>
+        </div>
+
+        <div class="w-full lg:w-7/12 bg-white shadow-xl p-6 rounded-xl border border-gray-100 rules-container">
+            <div class="flex justify-between items-center mb-4">
+                <h2 id="output-heading" class="text-2xl font-extrabold text-gray-800">Saved Railway Rules</h2>
+                <button id="printRulesBtn" onclick="window.print()"
+                    class="bg-gray-200 hover:bg-gray-300 text-gray-800 font-medium px-4 py-2 rounded-lg modern-btn text-sm print-hide">
+                    <i class="fas fa-print mr-2"></i> Print Rules
+                </button>
+            </div>
+            
+            <div class="mb-4 search-bar-container print-hide">
+                <div class="relative">
+                    <input id="searchRulesInput" type="text" placeholder="Search rules by title or content..."
+                        class="w-full p-3 pl-10 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150"/>
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"></i>
+                </div>
+            </div>
+
+            <div id="rulesListContainer" class="scrollable-rules-list">
+                <div id="rulesList" class="space-y-4">
+                    <p class='text-gray-500 text-lg p-4 bg-gray-50 rounded-lg'>
+                        Loading rules...
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+</main>
+
+<footer class="bg-white shadow mt-8 py-4 print-hide">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-base text-gray-600 flex justify-center">
+        &copy; 2025 My Personal Website Travel Manager. All rights reserved.
+    </div>
+</footer>
+
+<script>
+    // ----------------------------------------------------------------------
+    // --- Firebase Config and Init ---
+    // ----------------------------------------------------------------------
+    const firebaseConfig = {
+        // !!! REPLACE WITH YOUR FIREBASE KEY AND DETAILS !!!
+        apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc", 
+        authDomain: "sk12-58e9e.firebaseapp.com",
+        databaseURL: "https://sk12-58e9e-default-rtdb.firebaseio.com",
+        projectId: "sk12-58e9e",
+        storageBucket: "sk12-58e9e.appspot.com",
+        messagingSenderId: "470207874652",
+        appId: "1:470207874652:web:67ba1cf3629b7e5b144899"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    // --- DOM Elements ---
+    const menuBtn = document.getElementById('menu-btn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    const ruleTitleInput = document.getElementById("ruleTitleInput");
+    const ruleDetailsInput = document.getElementById("ruleDetailsInput");
+    const saveRuleBtn = document.getElementById("saveRuleBtn");
+    const rulesList = document.getElementById("rulesList");
+    const searchRulesInput = document.getElementById("searchRulesInput");
+    const logoutBtn = document.getElementById("logoutBtn"); 
+    const mobileLogoutBtn = document.getElementById("mobileLogoutBtn");
+
+    // --- State Variables ---
+    let currentUserId = "";
+    let currentRuleType = "railway";
+    let allRulesData = [];
+
+    // --- Utility Functions ---
+
+    /** Toggles mobile menu visibility. */
+    function toggleMobileMenu() {
+        if (menuBtn && mobileMenu) {
+            menuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+                const icon = menuBtn.querySelector('i');
+                icon.classList.toggle('fa-bars');
+                icon.classList.toggle('fa-times');
+            });
+        }
+    }
+
+    /** Shows the 'Copied!' animation badge. */
+    function showCopiedAnimation(button) {
+        let badge = button.querySelector('.copied-badge');
+        if (!badge) {
+            badge = document.createElement('span');
+            badge.className = 'copied-badge';
+            badge.textContent = 'Copied!';
+            button.style.position = 'relative'; 
+            button.appendChild(badge);
+        }
+
+        badge.classList.add('visible');
+        setTimeout(() => {
+            badge.classList.remove('visible');
+        }, 1500);
+    }
+
+    /** Logout function. */
+    window.logout = function() {
+        auth.signOut().then(() => (window.location.href = "index.html"));
+    }
+
+    // --- Firebase CRUD & Rendering Functions ---
+
+    /** Switches the active travel type tab. */
+    function switchTab(type) {
+        currentRuleType = type;
+        
+        tabBtns.forEach(btn => {
+            if (btn.getAttribute('data-type') === type) {
+                btn.classList.add('tab-active');
+            } else {
+                btn.classList.remove('tab-active');
+            }
+        });
+
+        const title = type.charAt(0).toUpperCase() + type.slice(1);
+        document.getElementById("input-heading").textContent = `Add New ${title} Rule`;
+        document.getElementById("output-heading").textContent = `Saved ${title} Rules`;
+        
+        ruleTitleInput.value = "";
+        ruleDetailsInput.value = "";
+        searchRulesInput.value = "";
+        ruleTitleInput.focus();
+        
+        // Remove 'edit-mode' class from any card when switching tabs
+        document.querySelectorAll('.edit-mode').forEach(editCard => {
+            editCard.classList.remove('edit-mode');
+        });
+        
+        loadRules();
+    }
+    
+    /** Loads rules for the current rule type. */
+    function loadRules() {
+        if (!currentUserId) return;
+
+        // Remove previous listener to avoid duplicates
+        db.ref(`users/${currentUserId}/rules/${currentRuleType}`).off();
+
+        // Set up a new listener (This is the mechanism for quick, real-time updates)
+        db.ref(`users/${currentUserId}/rules/${currentRuleType}`).on("value", snapshot => {
+            const rules = [];
+            snapshot.forEach(child => {
+                rules.push({ id: child.key, ...child.val() });
+            });
+            // Sort by timestamp, newest first
+            const sortedRules = rules.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+            
+            allRulesData = sortedRules;
+
+            // Only re-render if not in edit mode
+            if (rulesList.querySelector('.edit-mode') === null) {
+                filterRules(); // Call filterRules to handle active search/no-search state
+            }
+        });
+    }
+
+    /** Filters the cached rules data based on the search input. */
+    function filterRules() {
+        const searchTerm = searchRulesInput.value.trim().toLowerCase();
+        
+        if (searchTerm === "") {
+            renderRules(allRulesData);
+            return;
+        }
+
+        const filteredRules = allRulesData.filter(rule => 
+            (rule.title && rule.title.toLowerCase().includes(searchTerm)) || 
+            (rule.details && rule.details.toLowerCase().includes(searchTerm))
+        );
+
+        renderRules(filteredRules);
+    }
+    
+    /** Attaches event listeners for actions like Copy and Share to a rule card. */
+    function attachActionListeners(cardDiv, id, title, details) {
+        const copyBtn = cardDiv.querySelector('.copy-btn');
+        const shareBtn = cardDiv.querySelector('.share-btn');
+
+        // Copy Button Logic
+        if(copyBtn) {
+            copyBtn.addEventListener('click', () => {
+                const textToCopy = `[${currentRuleType.toUpperCase()} Rule] ${title}:\n\n${details}`;
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    showCopiedAnimation(copyBtn);
+                }).catch(err => {
+                    console.error('Could not copy text: ', err);
+                    alert('Failed to copy text. Please try manually.');
+                });
+            });
+        }
+
+        // Share Button Logic (using Web Share API)
+        if(shareBtn) {
+            shareBtn.addEventListener('click', () => {
+                if (navigator.share) {
+                    navigator.share({
+                        title: `My ${currentRuleType.toUpperCase()} Rule: ${title}`,
+                        text: details,
+                    }).catch(error => console.log('Error sharing', error));
+                } else {
+                    // Fallback for browsers that don't support Web Share API
+                    alert("Sharing is not supported on this browser. Use the 'Copy Text' button instead.");
+                }
+            });
+        }
+    }
+
+    /** Renders the list of rules based on the provided array. */
+    function renderRules(rules) {
+        rulesList.innerHTML = "";
+
+        if (rules.length === 0) {
+            rulesList.innerHTML = `<p class='text-gray-500 text-lg p-4 bg-gray-50 rounded-lg'>
+                ${searchRulesInput.value.trim() ? 'No rules matched your search criteria.' : `No rules saved for the ${currentRuleType} category yet.`}
+            </p>`;
+            return;
+        }
+
+        rules.forEach(item => {
+            const div = document.createElement("div");
+            div.className = "border border-gray-200 bg-white p-4 rounded-xl shadow-md rule-card transition duration-150";
+            div.id = `rule-card-${item.id}`; 
+
+            const title = item.title || 'No Title';
+            const details = item.details || 'No Details';
+
+            // Use Base64 encoding for passing string arguments containing quotes/newlines to onclick
+            const titleBase64 = btoa(title);
+            const detailsBase64 = btoa(details);
+
+            div.innerHTML = `
+                <div class="rule-title-text">
+                    <h3 class="text-xl font-bold text-gray-900 mb-2 border-b pb-1">${title}</h3>
+                </div>
+                <div class="rule-details-text">
+                    <p class="text-gray-700 whitespace-pre-wrap">${details}</p>
+                </div>
+                
+                <div class="flex flex-wrap gap-2 mt-4 print-hide rule-actions">
+                    <button onclick="editRule('${item.id}', '${titleBase64}', '${detailsBase64}')"
+                            class="edit-btn bg-yellow-500 hover:bg-yellow-600 text-white text-sm font-medium px-3 py-1.5 modern-btn flex items-center gap-1">
+                        <i class="fas fa-edit"></i> Edit
+                    </button>
+                    <button onclick="deleteRule('${item.id}')"
+                            class="delete-btn bg-red-500 hover:bg-red-600 text-white text-sm font-medium px-3 py-1.5 modern-btn flex items-center gap-1">
+                        <i class="fas fa-trash-alt"></i> Delete
+                    </button>
+                    <button class="copy-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-sm font-medium px-3 py-1.5 modern-btn flex items-center gap-1 relative">
+                        <i class="fas fa-copy"></i> Copy Text
+                    </button>
+                    <button class="share-btn bg-emerald-500 hover:bg-emerald-600 text-white text-sm font-medium px-3 py-1.5 modern-btn flex items-center gap-1 relative">
+                        <i class="fas fa-share-alt"></i> Share
+                    </button>
+                </div>
+            `;
+            rulesList.appendChild(div);
+            
+            // Attach action listeners for Copy/Share (which cannot be easily done via onclick)
+            attachActionListeners(div, item.id, title, details);
+        });
+    }
+
+    /** Saves a new rule. */
+    function saveNewRule() {
+        const title = ruleTitleInput.value.trim();
+        const details = ruleDetailsInput.value.trim();
+
+        if (!title || !details) {
+            alert("Please enter both a title and details for the rule.");
+            return;
+        }
+
+        const ruleData = { title, details, timestamp: firebase.database.ServerValue.TIMESTAMP };
+        const ref = `users/${currentUserId}/rules/${currentRuleType}`;
+
+        saveRuleBtn.disabled = true;
+        saveRuleBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Saving...';
+        
+        db.ref(ref).push().set(ruleData)
+            .then(() => {
+                ruleTitleInput.value = "";
+                ruleDetailsInput.value = "";
+                ruleTitleInput.focus();
+            })
+            .catch(err => {
+                alert("Error saving rule: " + err.message);
+            })
+            .finally(() => {
+                saveRuleBtn.disabled = false;
+                saveRuleBtn.innerHTML = '<i class="fas fa-save mr-2"></i> Save Rule';
+            });
+    }
+
+    /** Initiates in-place editing. */
+    window.editRule = function(id, originalTitleBase64, originalDetailsBase64) {
+        const card = document.getElementById(`rule-card-${id}`);
+        if (!card || card.classList.contains('edit-mode')) return;
+
+        // Restore any other card currently in edit mode
+        document.querySelectorAll('.edit-mode').forEach(editCard => {
+            if (editCard.id !== card.id) {
+                editCard.classList.remove('edit-mode');
+            }
+        });
+        
+        const originalTitle = atob(originalTitleBase64);
+        const originalDetails = atob(originalDetailsBase64);
+
+        const titleElement = card.querySelector('.rule-title-text');
+        const detailsElement = card.querySelector('.rule-details-text');
+        const actionsContainer = card.querySelector('.rule-actions');
+        
+        // Temporarily store original actions HTML for cancel function
+        const originalActionsHTML = actionsContainer.innerHTML;
+        card.setAttribute('data-original-actions', btoa(originalActionsHTML)); 
+
+        card.classList.add('edit-mode');
+        
+        // Replace text with input fields
+        titleElement.innerHTML = `
+            <input type="text" id="edit-title-${id}" value="${originalTitle.replace(/"/g, '&quot;')}" 
+                class="w-full p-2 border border-indigo-500 rounded-lg text-xl font-bold focus:ring-2 transition duration-150" />
+        `;
+        detailsElement.innerHTML = `
+            <textarea id="edit-details-${id}" rows="6" 
+                class="w-full p-2 border border-indigo-500 rounded-lg text-gray-700 focus:ring-2 transition duration-150">${originalDetails.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</textarea>
+        `;
+        
+        // Replace action buttons with Update/Cancel
+        actionsContainer.innerHTML = `
+            <button onclick="updateRule('${id}')"
+                    class="update-btn bg-green-600 hover:bg-green-700 text-white text-sm font-medium px-3 py-1.5 modern-btn flex items-center gap-1">
+                <i class="fas fa-check"></i> Update
+            </button>
+            <button onclick="cancelEdit('${id}')"
+                    class="cancel-btn bg-gray-500 hover:bg-gray-600 text-white text-sm font-medium px-3 py-1.5 modern-btn flex items-center gap-1">
+                <i class="fas fa-times"></i> Cancel
+            </button>
+        `;
+        
+        document.getElementById(`edit-title-${id}`).focus();
+    }
+    
+    /** Cancels in-place editing. */
+    window.cancelEdit = function(id) {
+        const card = document.getElementById(`rule-card-${id}`);
+        if (!card) return;
+        
+        card.classList.remove('edit-mode');
+        
+        // This will force the Firebase listener to re-render the card from the saved data.
+        loadRules();
+    }
+
+    /** Updates a rule in Firebase. (FIXED: Removes edit-mode class on success) */
+    window.updateRule = function(id) {
+        const newTitle = document.getElementById(`edit-title-${id}`).value.trim();
+        const newDetails = document.getElementById(`edit-details-${id}`).value.trim();
+        const card = document.getElementById(`rule-card-${id}`);
+        const updateBtn = card.querySelector('.update-btn');
+
+        if (!newTitle || !newDetails) {
+            alert("Rule title and details cannot be empty.");
+            return;
+        }
+
+        updateBtn.disabled = true;
+        updateBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Updating...';
+
+        const updateData = { title: newTitle, details: newDetails };
+        const ref = `users/${currentUserId}/rules/${currentRuleType}/${id}`;
+
+        db.ref(ref).update(updateData)
+            .then(() => {
+                // *** CRITICAL FIX: Remove edit-mode class to allow the listener to re-render ***
+                card.classList.remove('edit-mode'); 
+                // The loadRules listener will now execute and refresh the list with the updated data.
+            })
+            .catch(error => {
+                alert("Error updating rule: " + error.message);
+                card.classList.remove('edit-mode'); 
+                loadRules(); // Force refresh on failure
+            })
+            .finally(() => {
+                updateBtn.disabled = false;
+            });
+    }
+
+    /** Deletes a rule from Firebase. */
+    window.deleteRule = function(id) {
+        if (!confirm("Are you sure you want to delete this rule? This action cannot be undone.")) {
+            return;
+        }
+
+        const ref = `users/${currentUserId}/rules/${currentRuleType}/${id}`;
+        db.ref(ref).remove()
+            .catch(error => {
+                alert("Error deleting rule: " + error.message);
+            });
+    }
+
+    // --- Event Listeners and Initializers ---
+
+    saveRuleBtn.addEventListener('click', saveNewRule);
+    searchRulesInput.addEventListener('input', filterRules); 
+
+    if (logoutBtn) logoutBtn.addEventListener('click', logout);
+    if (mobileLogoutBtn) mobileLogoutBtn.addEventListener('click', logout);
+
+    tabBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            switchTab(btn.getAttribute('data-type'));
+        });
+    });
+
+    // --- Authentication Handler ---
+
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            currentUserId = user.uid;
+            
+            // Update User Info
+            const defaultPhoto = user.photoURL || 'https://via.placeholder.com/40';
+            const displayName = user.displayName || 'Travel Manager User';
+            const email = user.email || 'No Email';
+
+            document.getElementById('userName').textContent = displayName;
+            document.getElementById('userEmail').textContent = email;
+            document.getElementById('userPhoto').src = defaultPhoto;
+
+            document.getElementById('mobileUserName').textContent = displayName;
+            document.getElementById('mobileUserEmail').textContent = email;
+
+            // Load initial rules data (sets up the real-time listener)
+            loadRules();
+        } else {
+            // User is signed out, redirect to index.html
+            window.location.href = "index.html";
+        }
+    });
+
+    // --- Initialization Calls ---
+    toggleMobileMenu();
+</script>
+
+</body>
+</html>

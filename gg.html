@@ -1,0 +1,902 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Grocery List - My Personal Website</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.10/firebase-storage-compat.js"></script>
+
+    <style>
+        /* Custom Tailwind Configuration */
+        .primary-indigo { color: #4f46e5; }
+        .text-primary-indigo { color: #4f46e5; }
+        body { padding-top: 64px; }
+        
+        /* Ensure the main content containers fill the screen nicely */
+        .list-container-order { order: 1; }
+        .form-container-order { order: 0; }
+        
+        /* Desktop/Large Screen Order (Form on Left, Lists on Right) */
+        @media (min-width: 1024px) { 
+            body { padding-top: 80px; }
+            .list-container-order { order: 1; }
+            .form-container-order { order: 0; }
+        }
+
+        .btn-add { background-color: #1d4ed8; }
+        .btn-add:hover { background-color: #1e40af; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col bg-gray-50">
+
+    <nav class="bg-white shadow-lg fixed w-full z-50 top-0">
+        <div class="container mx-auto flex justify-between items-center p-4 md:px-8">
+            <div class="flex items-center gap-2 text-xl font-bold text-gray-800">
+                <i class="fas fa-user-circle" style="font-size: 28px; color: #4f46e5;"></i>
+                <span style="font-size: 22px;">My Personal Website</span>
+            </div>
+            
+            <div class="hidden md:flex space-x-6 font-medium">
+                <a href="home.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-house"></i> Home</a>
+                <a href="address.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-tasks"></i> Address</a>
+                <a href="birthday.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-birthday-cake"></i> Birthday</a>
+                <a href="password.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-key"></i> Passwords</a>
+                <a href="income.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-wallet"></i> Income</a>
+                <a href="links.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-link"></i> Links</a>
+                <a href="calendar.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-calendar-alt"></i> Calendar</a>
+            </div>
+
+            <div class="hidden lg:flex items-center gap-4"> 
+                <div class="text-right">
+                    <p id="userName" class="font-medium text-gray-900">Loading...</p>
+                    <p id="userEmail" class="text-sm text-gray-500">Loading...</p>
+                </div>
+                <img id="userPhoto" src="https://via.placeholder.com/40" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #4f46e5;">
+                <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-full hover:bg-red-600 transition duration-300 text-sm">Logout</button>
+            </div>
+            
+            <button id="menu-btn" class="md:hidden text-gray-700 text-2xl"><i class="fas fa-bars"></i></button>
+        </div>
+
+        <div id="mobileMenu" class="hidden md:hidden flex flex-col px-4 pb-4 space-y-2 text-sm text-gray-700 font-medium bg-gray-50">
+            <a href="home.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-house"></i> Home</a>
+            <a href="address.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-tasks"></i> Address</a>
+            <a href="birthday.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-birthday-cake"></i> Birthday</a>
+            <a href="password.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-key"></i> Passwords</a>
+            <a href="income.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-wallet"></i> Income</a>
+            <a href="links.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-link"></i> Links</a>
+            <a href="calendar.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-calendar-alt"></i> Calendar</a>
+            <div class="border-t border-gray-300 mt-2 pt-2">
+                <p id="mobileUserName" class="font-medium text-gray-900">Loading...</p>
+                <p id="mobileUserEmail" class="text-xs text-gray-500">Loading...</p>
+                <button onclick="logout()" class="bg-red-500 text-white px-3 py-2 rounded-full hover:bg-red-600 mt-2 w-full">Logout</button>
+            </div>
+        </div>
+    </nav>
+    <main class="container mx-auto p-4 md:p-8 flex-grow">
+        <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 mb-6 border-b-2 border-primary-indigo pb-2">
+            <i class="fas fa-shopping-basket primary-indigo mr-2"></i> Real-time Grocery List
+        </h1>
+        
+        <div class="flex flex-col lg:flex-row gap-8">
+            
+            <div class="lg:w-1/3 bg-white p-6 rounded-xl shadow-lg h-fit border border-gray-200 form-container-order" id="addItemContainer">
+                <h2 class="text-2xl font-semibold text-gray-800 mb-4 flex justify-between items-center">
+                    <span>Add New Item</span>
+                    <button id="toggleFormBtn" class="text-sm font-medium text-gray-500 hover:text-gray-800 transition">
+                        <i class="fas fa-minus-circle mr-1" id="toggleIcon"></i> Collapse Form
+                    </button>
+                </h2>
+                <form id="addItemForm" class="space-y-4">
+                    
+                    <div>
+                        <label for="item-name" class="block text-sm font-medium text-gray-700">Item Name (e.g., Milk)</label>
+                        <input type="text" id="item-name" required placeholder="Enter item name"
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-indigo focus:border-primary-indigo">
+                    </div>
+
+                    <div>
+                        <label for="item-quantity-value" class="block text-sm font-medium text-gray-700">Quantity</label>
+                        <div class="mt-1 flex rounded-md shadow-sm">
+                            <input type="number" id="item-quantity-value" min="0" step="any" placeholder="Value"
+                                    class="block w-2/3 px-3 py-2 border border-gray-300 rounded-l-md focus:outline-none focus:ring-primary-indigo focus:border-primary-indigo">
+                            <select id="item-quantity-unit"
+                                    class="block w-1/3 py-2 px-3 border border-gray-300 bg-white rounded-r-md focus:outline-none focus:ring-primary-indigo focus:border-primary-indigo">
+                                <option value="">Unit (Optional)</option>
+                                <option value="pcs">Pcs (Pieces)</option>
+                                <option value="g">g (Grams)</option>
+                                <option value="kg">kg (Kilograms)</option>
+                                <option value="ml">ml (Milliliters)</option>
+                                <option value="L">L (Liters)</option>
+                                <option value="box">Box</option>
+                                <option value="can">Can</option>
+                            </select>
+                        </div>
+                        <p class="text-xs text-gray-500 mt-1">Leave both fields empty for general details.</p>
+                    </div>
+
+                    <div>
+                        <label for="item-date" class="block text-sm font-medium text-gray-700">Shopping Date</label>
+                        <input type="date" id="item-date" required 
+                                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-primary-indigo focus:border-primary-indigo">
+                    </div>
+                    
+                    <div>
+                        <label for="item-photo" class="block text-sm font-medium text-gray-700">Item Photo (Optional)</label>
+                        <input type="file" id="item-photo" accept="image/*"
+                                class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary-indigo/10 file:text-primary-indigo hover:file:bg-primary-indigo/20">
+                    </div>
+
+                    <button type="submit" id="submit-btn"
+                            class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white btn-add hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-600 transition duration-150 ease-in-out">
+                        <i class="fas fa-plus mr-2"></i> Add Item
+                    </button>
+                    <p id="upload-status" class="text-center text-sm text-green-600 hidden"></p>
+                </form>
+            </div>
+            <div class="lg:w-2/3 space-y-8 list-container-order">
+                
+                <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200" id="todayListContainer">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+                        <h2 class="text-2xl font-semibold text-gray-800 flex items-center mb-2 sm:mb-0">
+                            <i class="fas fa-calendar-check text-green-500 mr-2"></i> Today's Grocery List
+                        </h2>
+                        <div class="flex flex-wrap gap-2 sm:space-x-2"> 
+                             <button onclick="shareList('today-list', 'Today_Grocery_List')" class="bg-blue-500 text-white text-sm px-3 py-1 rounded-full hover:bg-blue-600 transition duration-300">
+                                 <i class="fas fa-share-alt mr-1"></i> Share
+                            </button>
+                             <button onclick="downloadPDF('today-list', 'Today_Grocery_List')" class="bg-red-500 text-white text-sm px-3 py-1 rounded-full hover:bg-red-600 transition duration-300">
+                                 <i class="fas fa-file-pdf mr-1"></i> Download PDF
+                            </button>
+                        </div>
+                    </div>
+                    <p id="todayDateHeader" class="text-lg font-medium text-gray-600 mb-4 border-b pb-2"></p>
+                    
+                    <div id="today-list" class="space-y-4">
+                        <p class="text-gray-500 italic text-center" id="today-list-empty">No items scheduled for today. Time to add some!</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200" id="upcomingListContainer">
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+                        <h2 class="text-2xl font-semibold text-gray-800 flex items-center mb-2 sm:mb-0">
+                            <i class="fas fa-calendar-alt text-yellow-500 mr-2"></i> Upcoming Grocery List (By Date)
+                        </h2>
+                        <div class="flex flex-wrap gap-2 sm:space-x-2">
+                             <button onclick="shareList('upcoming-list', 'Upcoming_Grocery_List')" class="bg-blue-500 text-white text-sm px-3 py-1 rounded-full hover:bg-blue-600 transition duration-300">
+                                 <i class="fas fa-share-alt mr-1"></i> Share
+                            </button>
+                             <button onclick="downloadPDF('upcoming-list', 'Upcoming_Grocery_List')" class="bg-red-500 text-white text-sm px-3 py-1 rounded-full hover:bg-red-600 transition duration-300">
+                                 <i class="fas fa-file-pdf mr-1"></i> Download PDF
+                            </button>
+                        </div>
+                    </div>
+                    <div id="upcoming-list" class="space-y-4">
+                        <p class="text-gray-500 italic text-center" id="upcoming-list-empty">No upcoming items scheduled.</p>
+                    </div>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-lg border border-gray-200">
+                     <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4">
+                        <h2 class="text-2xl font-semibold text-gray-800 flex items-center mb-2 sm:mb-0">
+                            <i class="fas fa-history text-primary-indigo mr-2"></i> Past Completed Grocery List
+                        </h2>
+                        <div class="flex flex-wrap gap-2 sm:space-x-2">
+                             <button onclick="shareList('completed-list', 'Completed_Grocery_List')" class="bg-blue-500 text-white text-sm px-3 py-1 rounded-full hover:bg-blue-600 transition duration-300">
+                                 <i class="fas fa-share-alt mr-1"></i> Share
+                            </button>
+                            <button onclick="downloadPDF('completed-list', 'Completed_Grocery_List')" class="bg-red-500 text-white text-sm px-3 py-1 rounded-full hover:bg-red-600 transition duration-300">
+                                <i class="fas fa-file-pdf mr-1"></i> Download PDF
+                            </button>
+                        </div>
+                    </div>
+                    <div id="completed-list" class="space-y-4">
+                        <p class="text-gray-500 italic text-center" id="completed-list-empty">No items have been completed yet.</p>
+                    </div>
+                </div>
+
+            </div>
+            </div>
+        <div class="mt-8 text-center">
+             <button onclick="scrollToAddItem()" class="bg-primary-indigo text-white text-lg font-medium py-3 px-8 rounded-full shadow-lg hover:bg-indigo-700 transition duration-300 transform hover:scale-105">
+                 <i class="fas fa-plus-circle mr-2"></i> Quick Add Item
+             </button>
+        </div>
+
+    </main>
+
+    <footer class="mt-auto bg-white text-gray-600 text-center p-4 border-t text-sm fade-in border-t border-gray-200 mt-8">
+        &copy; 2025 Personal Website | All rights reserved
+    </footer>
+    
+    
+
+
+<script>
+        // =========================================================
+        // 🛑🛑 STEP 1: YOUR FIREBASE CONFIGURATION 🛑🛑
+        // 🔑 IMPORTANT: Replace these values with your actual Firebase project configuration.
+        // =========================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc", // Placeholder
+            authDomain: "sk12-58e9e.firebaseapp.com",        // Placeholder
+            projectId: "sk12-58e9e",                           // Placeholder
+            storageBucket: "sk12-58e9e.appspot.com",           // Placeholder
+            messagingSenderId: "470207874652",                 // Placeholder
+            appId: "1:470207874652:web:67ba1cf3629b7e5b144899"  // Placeholder
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const db = app.database();
+        const storage = app.storage();
+        const auth = app.auth(); 
+
+        let currentUserId = null; 
+        let userRef = null; 
+
+        // =========================================================
+        // --- HELPER FUNCTIONS ---
+        // =========================================================
+
+        const getTodayDateString = () => {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
+        const formatDate = (dateString) => {
+            if (!isNaN(dateString)) {
+                dateString = new Date(dateString).toISOString().split('T')[0];
+            }
+            const date = new Date(dateString);
+            return date.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+        };
+
+        const formatQuantity = (item) => {
+            if (item.quantityValue && item.quantityUnit) {
+                return `${item.quantityValue} ${item.quantityUnit}`;
+            }
+            if (item.quantityValue) return `${item.quantityValue}`;
+            if (item.quantityUnit) return `${item.quantityUnit}`;
+            return '1 Pcs'; 
+        };
+
+        // >>>>>>>>>>>>> MODIFIED FUNCTION STARTS HERE <<<<<<<<<<<<<
+        const formatItemText = (item) => {
+            const quantity = formatQuantity(item);
+            const name = item.name;
+            // CHANGE: Item Name first, then Quantity
+            return `${name} - ${quantity}`; 
+        }
+        // >>>>>>>>>>>>> MODIFIED FUNCTION ENDS HERE <<<<<<<<<<<<<
+
+        const checkAuth = () => {
+            if (!currentUserId || !userRef) {
+                alert("User not authenticated. Please log in.");
+                return false;
+            }
+            return true;
+        };
+
+        // --- GLOBAL LOGOUT FUNCTION ---
+        window.logout = () => {
+            auth.signOut().then(() => {
+                window.location.href = 'index.html'; 
+            }).catch((error) => {
+                console.error("Logout Error:", error);
+                alert("An error occurred during logout. Please try again.");
+            });
+        };
+
+        // =========================================================
+        // --- DOM MANIPULATION AND EVENT LISTENERS ---
+        // =========================================================
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('addItemForm');
+            const menuBtn = document.getElementById('menu-btn');
+            const mobileMenu = document.getElementById('mobileMenu');
+            const toggleFormBtn = document.getElementById('toggleFormBtn');
+            const addItemContainer = document.getElementById('addItemContainer');
+            const itemDateInput = document.getElementById('item-date');
+            const todayDateHeader = document.getElementById('todayDateHeader');
+            
+            const todayString = getTodayDateString();
+            itemDateInput.value = todayString;
+            todayDateHeader.textContent = `Date: ${formatDate(todayString)}`;
+
+            // --- Mobile Menu Toggle ---
+            menuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            // --- Form Toggle Functionality ---
+            toggleFormBtn.addEventListener('click', () => {
+                const formElements = form.querySelectorAll('div, button');
+                formElements.forEach(el => {
+                    // Check if the element is not the button itself or the form element
+                    if (el.id !== 'toggleFormBtn' && el.id !== 'addItemForm' && !el.closest('h2')) { 
+                        el.classList.toggle('hidden');
+                    }
+                });
+                
+                // Use a reliable way to check the state of the form (e.g., check the first input's parent div)
+                const firstInputDiv = form.querySelector('div');
+                const isHidden = firstInputDiv ? firstInputDiv.classList.contains('hidden') : false;
+                
+                if (isHidden) {
+                    toggleFormBtn.innerHTML = '<i class="fas fa-plus-circle mr-1"></i> Expand Form';
+                    addItemContainer.classList.remove('p-6');
+                    addItemContainer.classList.add('p-3');
+                } else {
+                    toggleFormBtn.innerHTML = '<i class="fas fa-minus-circle mr-1"></i> Collapse Form';
+                    addItemContainer.classList.remove('p-3');
+                    addItemContainer.classList.add('p-6');
+                }
+            });
+
+            // --- Form Submission Handler ---
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                if (!currentUserId) {
+                    alert("User not authenticated. Cannot save item.");
+                    return;
+                }
+                
+                const itemName = document.getElementById('item-name').value;
+                const itemQuantityValue = document.getElementById('item-quantity-value').value;
+                const itemQuantityUnit = document.getElementById('item-quantity-unit').value;
+                const itemDate = document.getElementById('item-date').value; // YYYY-MM-DD format
+                const itemPhoto = document.getElementById('item-photo').files[0];
+                const uploadStatus = document.getElementById('upload-status');
+                
+                document.getElementById('submit-btn').disabled = true;
+                uploadStatus.classList.remove('hidden');
+                uploadStatus.textContent = 'Saving item...';
+                
+                let photoURL = null;
+                
+                try {
+                    if (itemPhoto) {
+                        uploadStatus.textContent = 'Uploading photo...';
+                        const storageRef = storage.ref(`grocery_photos/${currentUserId}/${Date.now()}_${itemPhoto.name}`);
+                        const snapshot = await storageRef.put(itemPhoto);
+                        photoURL = await snapshot.ref.getDownloadURL();
+                    }
+                    
+                    const newItem = {
+                        name: itemName,
+                        quantityValue: itemQuantityValue,
+                        quantityUnit: itemQuantityUnit,
+                        photoURL: photoURL,
+                        timestamp: Date.now(),
+                        completed: false, 
+                    };
+                    
+                    await userRef.child('groceryList').child(itemDate).push(newItem);
+                    
+                    uploadStatus.textContent = 'Item saved successfully! ✅';
+                    form.reset();
+                    itemDateInput.value = getTodayDateString(); 
+                    uploadStatus.classList.remove('text-red-600');
+                    uploadStatus.classList.add('text-green-600');
+                    setTimeout(() => uploadStatus.classList.add('hidden'), 3000);
+
+                } catch (error) {
+                    console.error("Error saving grocery item: ", error);
+                    uploadStatus.textContent = 'Error saving item. Check console.';
+                    uploadStatus.classList.remove('text-green-600');
+                    uploadStatus.classList.add('text-red-600');
+                } finally {
+                    document.getElementById('submit-btn').disabled = false;
+                }
+            });
+        });
+
+
+        // --- Dynamic Item Element Creation ---
+        const createItemElement = (item, dateKey, isCompletedList = false) => {
+            const isCompleted = item.completed;
+            const itemDiv = document.createElement('div');
+            const isToday = dateKey === getTodayDateString();
+            
+            const baseClasses = 'flex items-center p-4 rounded-xl shadow-md transition duration-300';
+
+            if (isCompleted) {
+                itemDiv.className = `${baseClasses} bg-green-50 border-l-8 border-green-500 opacity-90`;
+            } else {
+                itemDiv.className = `${baseClasses} bg-white border-l-4 border-primary-indigo hover:shadow-lg hover:bg-gray-50`;
+            }
+
+            // Action Buttons Logic
+            const checkButton = isCompleted 
+                ? `<button onclick="uncompleteItem('${dateKey}', '${item.id}')" class="text-green-600 hover:text-green-800 p-2 text-2xl rounded-full hover:bg-green-100 transition" title="Mark as Not Taken">
+                        <i class="fas fa-undo"></i>
+                   </button>`
+                : `<button onclick="completeItem('${dateKey}', '${item.id}')" class="text-primary-indigo hover:text-indigo-700 p-2 text-2xl rounded-full hover:bg-indigo-100 transition" title="Mark as Taken">
+                        <i class="fas fa-check-circle"></i>
+                   </button>`;
+                   
+            const editButton = isCompleted
+                ? '' 
+                : `<button onclick="editItem('${dateKey}', '${item.id}')" class="text-blue-500 hover:text-blue-700 p-2 text-2xl rounded-full hover:bg-blue-100 transition" title="Edit">
+                        <i class="fas fa-pen"></i>
+                   </button>`;
+
+            const itemDetailsClass = isCompleted ? 'text-gray-600' : 'text-gray-900';
+            const itemDisplay = formatItemText(item);
+            
+            const completedStatus = isCompleted ?
+                `<span class="text-sm font-medium text-green-700 ml-4 flex-shrink-0">
+                    <i class="fas fa-award mr-1"></i> COMPLETED
+                </span>` : '';
+
+            // Footer for date (only shown in Upcoming list)
+            const dateFooter = (!isToday && !isCompleted && !isCompletedList) ? 
+                `<p class="text-xs text-red-500 font-medium mt-1">
+                    <i class="fas fa-calendar-day mr-1"></i> Scheduled: ${formatDate(dateKey)}
+                </p>` : '';
+                
+            // Removed completed time display
+
+            itemDiv.innerHTML = `
+                ${item.photoURL ? `<img src="${item.photoURL}" alt="${item.name}" class="w-16 h-16 object-cover rounded-lg mr-4 flex-shrink-0 cursor-pointer" onclick="window.open('${item.photoURL}')">` : ''}
+                
+                <div class="flex-grow min-w-0 flex flex-col justify-center sm:flex-row sm:items-center sm:justify-between">
+                    <div class="flex flex-col min-w-0 sm:flex-row sm:items-center">
+                        <p class="text-lg font-medium truncate ${itemDetailsClass}">${itemDisplay}</p>
+                        ${completedStatus}
+                    </div>
+                    ${dateFooter}
+                </div>
+                <div class="flex space-x-1 ml-4 flex-shrink-0 items-center">
+                    ${checkButton} 
+                    ${editButton}
+                    <button onclick="deleteItem('${dateKey}', '${item.id}', '${item.photoURL || ''}')" class="text-red-500 hover:text-red-700 p-2 text-2xl rounded-full hover:bg-red-100 transition" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+
+            return itemDiv;
+        };
+
+
+        // --- Function to set up the Realtime Database listener ---
+        const setupGroceryListListener = () => {
+            const todayList = document.getElementById('today-list');
+            const upcomingList = document.getElementById('upcoming-list');
+            const completedList = document.getElementById('completed-list');
+            const todayEmpty = document.getElementById('today-list-empty');
+            const upcomingEmpty = document.getElementById('upcoming-list-empty');
+            const completedEmpty = document.getElementById('completed-list-empty');
+            const todayDateString = getTodayDateString(); 
+            const groceryListRef = userRef.child('groceryList');
+            
+            if (!userRef) return;
+
+            // 1. Listener for Today's List (Date-specific path)
+            groceryListRef.child(todayDateString).on('value', (snapshot) => {
+                const items = snapshot.val();
+                todayList.innerHTML = '';
+                todayEmpty.classList.remove('hidden');
+
+                if (items) {
+                    const todayItems = Object.keys(items).map(key => ({ ...items[key], id: key }));
+                    todayItems.sort((a, b) => a.timestamp - b.timestamp);
+                    
+                    if (todayItems.length > 0) {
+                        todayEmpty.classList.add('hidden');
+                        todayItems.forEach(item => todayList.appendChild(createItemElement(item, todayDateString)));
+                    }
+                }
+                if (!todayEmpty.classList.contains('hidden')) {
+                    todayList.appendChild(todayEmpty);
+                }
+            });
+
+
+            // 2. Listener for Upcoming & Past Completed (All dates)
+            groceryListRef.on('value', (snapshot) => {
+                const allItemsByDate = snapshot.val();
+                upcomingList.innerHTML = '';
+                completedList.innerHTML = '';
+                
+                upcomingEmpty.classList.remove('hidden');
+                completedEmpty.classList.remove('hidden');
+
+                let upcomingDays = [];
+                let completedItems = [];
+                
+                if (allItemsByDate) {
+                    const dateKeys = Object.keys(allItemsByDate).sort();
+
+                    dateKeys.forEach(dateKey => {
+                        const itemsForDate = allItemsByDate[dateKey];
+                        
+                        Object.keys(itemsForDate).forEach(itemId => {
+                            const item = { ...itemsForDate[itemId], id: itemId, dateKey: dateKey };
+                            
+                            if (item.completed) {
+                                completedItems.push(item);
+                            } 
+                            
+                            // Filter for upcoming (dates after today) AND uncompleted
+                            if (dateKey > todayDateString && !item.completed) {
+                                if (!upcomingDays.some(day => day.type === 'header' && day.date === dateKey)) {
+                                    upcomingDays.push({ type: 'header', date: dateKey });
+                                }
+                                upcomingDays.push({ type: 'item', ...item });
+                            }
+                        });
+                    });
+
+                    // Populate Upcoming List
+                    if (upcomingDays.length > 0) {
+                        upcomingEmpty.classList.add('hidden');
+                        
+                        upcomingDays.sort((a, b) => {
+                            if (a.date < b.date) return -1;
+                            if (a.date > b.date) return 1;
+                            return (a.timestamp || 0) - (b.timestamp || 0);
+                        });
+
+                        let currentHeader = null;
+                        upcomingDays.forEach(entry => {
+                            if (entry.type === 'header' && entry.date !== currentHeader) {
+                                 const headerDiv = document.createElement('h3');
+                                 headerDiv.className = 'text-xl font-medium text-yellow-600 mt-4 mb-2 pt-2 border-t border-dashed border-gray-300';
+                                 headerDiv.textContent = formatDate(entry.date);
+                                 upcomingList.appendChild(headerDiv);
+                                 currentHeader = entry.date;
+                            } else if (entry.type === 'item') {
+                                 upcomingList.appendChild(createItemElement(entry, entry.dateKey));
+                            }
+                        });
+                    } else {
+                         upcomingList.appendChild(upcomingEmpty);
+                    }
+
+                    // 3. Populate Completed List (Grouped by Scheduled Date)
+                    completedItems.sort((a, b) => {
+                        // Primary sort: Scheduled date (dateKey) ascending
+                        if (a.dateKey < b.dateKey) return -1;
+                        if (a.dateKey > b.dateKey) return 1;
+                        // Secondary sort: completion time (completedAt) descending
+                        return b.completedAt - a.completedAt; 
+                    });
+
+                    if (completedItems.length > 0) {
+                        completedEmpty.classList.add('hidden');
+                        let currentDateHeader = null;
+
+                        completedItems.forEach(item => {
+                            // Only add header if the scheduled date has changed
+                            if (item.dateKey !== currentDateHeader) {
+                                 const headerDiv = document.createElement('h3');
+                                 headerDiv.className = 'text-lg font-medium text-primary-indigo mt-4 mb-2 pt-2 border-t border-dashed border-gray-300';
+                                 headerDiv.textContent = `Scheduled Date: ${formatDate(item.dateKey)}`;
+                                 completedList.appendChild(headerDiv);
+                                 currentDateHeader = item.dateKey;
+                            }
+                            completedList.appendChild(createItemElement(item, item.dateKey, true)); 
+                        });
+                    } else {
+                        completedList.appendChild(completedEmpty);
+                    }
+                } else {
+                    upcomingList.appendChild(upcomingEmpty);
+                    completedList.appendChild(completedEmpty);
+                }
+            });
+        };
+
+
+        // =========================================================
+        // --- FIREBASE AUTH LISTENER AND INITIALIZATION (FIXED) ---
+        // =========================================================
+
+        auth.onAuthStateChanged((user) => {
+            const defaultPhoto = 'https://via.placeholder.com/40';
+            
+            if (user) {
+                currentUserId = user.uid;
+                userRef = db.ref('users/' + currentUserId);
+                
+                const displayName = user.displayName || 'Guest User';
+                const email = user.email || 'No Email';
+                const photoURL = user.photoURL || defaultPhoto;
+
+                // Update navigation elements (Desktop and Mobile)
+                document.getElementById('userName').textContent = displayName;
+                document.getElementById('userEmail').textContent = email;
+                document.getElementById('userPhoto').src = photoURL;
+                document.getElementById('mobileUserName').textContent = displayName;
+                document.getElementById('mobileUserEmail').textContent = email;
+
+                setupGroceryListListener();
+
+            } else {
+                // Mock user for local testing if not using a real auth flow
+                currentUserId = "user_123"; 
+                userRef = db.ref('users/' + currentUserId);
+                
+                document.getElementById('userName').textContent = 'Signed Out';
+                document.getElementById('userEmail').textContent = 'Please log in';
+                document.getElementById('userPhoto').src = defaultPhoto;
+                document.getElementById('mobileUserName').textContent = 'Signed Out';
+                document.getElementById('mobileUserEmail').textContent = 'Please log in';
+
+                setupGroceryListListener();
+            }
+        });
+
+
+        // =========================================================================
+        // --- GLOBAL WINDOW FUNCTIONS (CRUD & UTILITY) ---
+        // =========================================================================
+
+        window.completeItem = (dateKey, itemId) => {
+            if (!checkAuth()) return;
+            const itemRef = userRef.child('groceryList').child(dateKey).child(itemId);
+            itemRef.update({ completed: true, completedAt: Date.now() })
+                .then(() => console.log(`Item ${itemId} completed.`))
+                .catch(error => console.error("Error completing item:", error));
+        };
+
+        window.uncompleteItem = (dateKey, itemId) => {
+            if (!checkAuth()) return;
+            const itemRef = userRef.child('groceryList').child(dateKey).child(itemId);
+            itemRef.update({ completed: false, completedAt: null })
+                .then(() => console.log(`Item ${itemId} uncompleted.`))
+                .catch(error => console.error("Error uncompleting item:", error));
+        };
+
+        window.deleteItem = async (dateKey, itemId, photoURL) => {
+            if (!checkAuth() || !confirm("Are you sure you want to delete this grocery item?")) return;
+            
+            const itemRef = userRef.child('groceryList').child(dateKey).child(itemId);
+            
+            try {
+                await itemRef.remove();
+                if (photoURL && !photoURL.includes('placeholder')) {
+                    const storageRef = storage.refFromURL(photoURL);
+                    await storageRef.delete().catch(e => { console.warn("Could not delete photo:", e); });
+                }
+                console.log(`Item ${itemId} deleted successfully.`);
+            } catch (error) {
+                console.error("Error deleting item:", error);
+                alert("Error deleting item. Check console.");
+            }
+        };
+
+        window.editItem = (dateKey, itemId) => {
+            if (!checkAuth()) return;
+            
+            userRef.child('groceryList').child(dateKey).child(itemId).once('value')
+                .then(snapshot => {
+                    const item = snapshot.val();
+                    if (!item) return;
+
+                    const newName = prompt(`Edit item name (Date: ${formatDate(dateKey)}):`, item.name);
+                    if (newName === null || newName.trim() === item.name) return;
+
+                    const newQtyVal = prompt(`Edit quantity value (currently: ${item.quantityValue || 'none'}):`, item.quantityValue || '');
+                    
+                    const updates = {
+                        name: newName.trim(),
+                        quantityValue: newQtyVal !== null ? newQtyVal.trim() : item.quantityValue,
+                    };
+
+                    userRef.child('groceryList').child(dateKey).child(itemId).update(updates)
+                        .then(() => console.log(`Item ${itemId} updated.`))
+                        .catch(error => console.error("Error updating item:", error));
+                })
+                .catch(error => console.error("Error fetching item for edit:", error));
+        };
+
+        window.scrollToAddItem = () => {
+            document.getElementById('addItemContainer').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+
+
+        // 6. SHARE FUNCTION (Reduced font/text complexity for sharing)
+        window.shareList = (listId, filename) => {
+            if (!navigator.share) {
+                alert("Web Share API is not supported in your browser. Use the Download PDF option instead.");
+                return;
+            }
+
+            const listElement = document.getElementById(listId);
+            
+            // Collects items based on the data structure managed by Firebase for a cleaner list
+            const dateRef = listId === 'today-list' ? userRef.child('groceryList').child(getTodayDateString()) : userRef.child('groceryList');
+            
+            dateRef.once('value', (snapshot) => {
+                const allItemsByDate = snapshot.val() || {};
+                let itemsToShare = [];
+
+                if (listId === 'today-list') {
+                    // Process only today's items
+                    Object.keys(allItemsByDate).forEach(itemId => {
+                        const item = allItemsByDate[itemId];
+                        let text = formatItemText(item);
+                        if (item.completed) text += ' (COMPLETED)';
+                        itemsToShare.push(`- ${text}`);
+                    });
+                } else {
+                    // Process Upcoming/Completed by iterating over all dates
+                    Object.keys(allItemsByDate).sort().forEach(dateKey => {
+                        const itemsForDate = allItemsByDate[dateKey];
+                        Object.keys(itemsForDate).forEach(itemId => {
+                            const item = itemsForDate[itemId];
+                            
+                            if (listId === 'upcoming-list' && dateKey > getTodayDateString() && !item.completed) {
+                                let text = formatItemText(item);
+                                text += ` (Scheduled: ${formatDate(dateKey)})`;
+                                itemsToShare.push(`- ${text}`);
+                            } else if (listId === 'completed-list' && item.completed) {
+                                let text = formatItemText(item);
+                                text += ` (Scheduled: ${formatDate(dateKey)}, COMPLETED)`;
+                                itemsToShare.push(`- ${text}`);
+                            }
+                        });
+                    });
+                }
+                
+                if (itemsToShare.length === 0) {
+                     alert("The list is empty. Cannot share.");
+                     return;
+                }
+
+                const title = filename.replace(/_/g, ' ') + (listId === 'today-list' ? ` (${formatDate(getTodayDateString())})` : '');
+                const shareText = `${title}:\n\n${itemsToShare.join('\n')}`;
+
+                navigator.share({
+                    title: title,
+                    text: shareText
+                })
+                .then(() => console.log('Successful share'))
+                .catch((error) => console.log('Error sharing', error));
+            });
+        };
+
+
+        // 7. PDF DOWNLOAD FUNCTION (Reduced max font size for items)
+        window.downloadPDF = async (listId, filename) => {
+            const listElement = document.getElementById(listId);
+            
+            const listContainer = listElement.closest('div');
+            const listTitleElement = listContainer.querySelector('h2') || listContainer.querySelector('h1');
+            const listTitle = listTitleElement ? listTitleElement.textContent.trim() : filename.replace(/_/g, ' ');
+            
+            if (listElement.children.length === 1 && listElement.children[0].id.endsWith('-empty')) {
+                alert("The list is empty. Cannot generate PDF.");
+                return;
+            }
+            
+            // Temporary printable area to generate content as HTML/CSS
+            const printableArea = document.createElement('div');
+            printableArea.style.width = '700px'; 
+            printableArea.style.padding = '20px';
+            printableArea.style.backgroundColor = 'white';
+            printableArea.style.position = 'absolute';
+            printableArea.style.left = '-9999px'; 
+            
+            // Header: Max font size 22px (20pt)
+            let headerHtml = `<h1 style="font-size: 18pt; font-weight: bold; margin-bottom: 5px; color: #1f2937;">${listTitle}</h1>`;
+            if (listId === 'today-list') {
+                headerHtml += `<p style="font-size: 10pt; margin-bottom: 20px; color: #4b5563;">Date: ${formatDate(getTodayDateString())}</p>`;
+            }
+            printableArea.innerHTML = headerHtml;
+            
+            // Content Generation with reduced item font size (11pt)
+            const printContent = document.createElement('div');
+            printContent.style.fontFamily = 'Arial, sans-serif';
+            
+            Array.from(listElement.children).forEach(child => {
+                if (child.tagName === 'H3') {
+                    // Date Header for Completed/Upcoming
+                    const header = document.createElement('h4');
+                    header.textContent = child.textContent;
+                    header.style.fontSize = '10pt';
+                    header.style.fontWeight = 'bold';
+                    header.style.marginTop = '15px';
+                    header.style.marginBottom = '5px';
+                    header.style.color = '#4f46e5';
+                    printContent.appendChild(header);
+                } else if (child.classList.contains('flex')) {
+                    // Item Row
+                    const item = {};
+                    const itemTextEl = child.querySelector('.text-lg');
+                    const completedEl = child.querySelector('.text-sm.font-medium.text-green-700');
+                    const dateEl = child.querySelector('.text-xs.text-red-500');
+
+                    if (itemTextEl) {
+                        item.text = itemTextEl.textContent.trim();
+                        item.completed = completedEl ? completedEl.textContent.trim() : '';
+                        item.date = dateEl ? dateEl.textContent.trim().replace('Scheduled: ', '') : '';
+                    }
+
+                    if (item.text) {
+                        const itemDiv = document.createElement('div');
+                        itemDiv.style.display = 'flex';
+                        itemDiv.style.justifyContent = 'space-between';
+                        itemDiv.style.alignItems = 'center';
+                        itemDiv.style.borderBottom = '1px dashed #eee';
+                        itemDiv.style.padding = '5px 0';
+
+                        // Main Text (Reduced to 11pt)
+                        const mainText = document.createElement('span');
+                        mainText.textContent = item.text;
+                        mainText.style.fontSize = '11pt'; 
+                        mainText.style.color = item.completed ? '#4b5563' : '#1f2937'; 
+                        mainText.style.flexGrow = '1';
+                        itemDiv.appendChild(mainText);
+
+                        // Status/Date
+                        const statusDiv = document.createElement('div');
+                        statusDiv.style.fontSize = '9pt';
+                        statusDiv.style.textAlign = 'right';
+
+                        if (item.completed) {
+                            statusDiv.innerHTML += `<span style="color: #047857; font-weight: bold;">${item.completed}</span>`;
+                        }
+                        if (item.date && listId !== 'completed-list') {
+                            statusDiv.innerHTML += `<span style="color: #b91c1c; display: block;">(Scheduled: ${item.date})</span>`;
+                        }
+
+                        itemDiv.appendChild(statusDiv);
+                        printContent.appendChild(itemDiv);
+                    }
+                }
+            });
+
+            // Append the content to the printable area (not directly to document body)
+            printableArea.appendChild(printContent);
+            document.body.appendChild(printableArea);
+
+            // Use html2canvas and jsPDF for PDF generation (assuming these libraries are included)
+            const canvas = await html2canvas(printableArea, { scale: 2 });
+            const imgData = canvas.toDataURL('image/jpeg', 1.0);
+            
+            // A4 size in points (595.28 x 841.89)
+            const pdf = new jspdf.jsPDF('p', 'pt', 'a4'); 
+            
+            // Calculate dimensions
+            const imgHeight = canvas.height * 595.28 / canvas.width;
+            let heightLeft = imgHeight;
+            let position = 0;
+
+            // Add the image (which contains all the formatted HTML content)
+            pdf.addImage(imgData, 'JPEG', 0, position, 595.28, imgHeight);
+            heightLeft -= 841.89; // Subtract one page height
+
+            while (heightLeft >= 0) {
+                position = heightLeft - imgHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'JPEG', 0, position, 595.28, imgHeight);
+                heightLeft -= 841.89;
+            }
+
+            // Save the PDF
+            pdf.save(`${filename}_${getTodayDateString()}.pdf`);
+            
+            // Clean up the temporary element
+            document.body.removeChild(printableArea);
+        };
+</script>

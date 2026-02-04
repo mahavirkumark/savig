@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Data | My Personal Website</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <style>
+        /* Custom Tailwind Color */
+        .text-primary-indigo { color: #4f46e5; }
+        .bg-primary-indigo { background-color: #4f46e5; }
+        .hover\:bg-indigo-600:hover { background-color: #4338ca; }
+        .data-card { transition: all 0.3s ease-in-out; }
+
+        /* Custom max font size (22px) for primary headers/titles */
+        .text-max-2xl { font-size: 1.375rem; } /* ~22px */
+        .text-max-xl { font-size: 1.25rem; }  /* 20px */
+        
+        /* Fixed max height and scrollbar for containers */
+        .max-h-500 { max-height: 500px; }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1; /* gray-300 */
+            border-radius: 4px;
+        }
+        /* Fix for button hover scaling */
+        .action-button {
+            transition: all 0.2s ease-in-out;
+        }
+        .action-button:hover {
+            transform: scale(1.1);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+    <nav class="bg-white shadow-lg fixed w-full z-50 top-0">
+        <div class="container mx-auto flex justify-between items-center p-4 md:px-8">
+            <div class="flex items-center gap-2 text-max-2xl font-bold text-gray-800">
+                <i class="fas fa-user-circle" style="font-size: 28px; color: #4f46e5;"></i>
+                <span style="font-size: 22px;">My Personal Website</span>
+            </div>
+            
+            <div class="hidden md:flex space-x-6 font-medium">
+                <a href="home.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-house"></i> Home</a>
+                <a href="birthday.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-birthday-cake"></i> Birthday</a>
+                <a href="password.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-key"></i> Passwords</a>
+                <a href="income.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-wallet"></i> Income</a>
+                <a href="links.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-link"></i> Links</a>
+                <a href="calendar.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-calendar-alt"></i> Calendar</a>
+            </div>
+
+            <div id="user-info-desktop" class="hidden md:flex items-center gap-4">
+                <div class="text-right">
+                    <p id="userName" class="font-bold text-gray-900">Loading...</p>
+                    <p id="userEmail" class="text-sm text-gray-500">Loading...</p>
+                </div>
+                <img id="userPhoto" src="https://via.placeholder.com/40" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #4f46e5;">
+                <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-full hover:bg-red-600 transition duration-300">Logout</button>
+            </div>
+            <button id="menu-btn" class="md:hidden text-gray-700 text-2xl"><i class="fas fa-bars"></i></button>
+        </div>
+    </nav>
+    <main class="container mx-auto mt-24 p-4 md:p-8 flex-grow">
+        <h1 class="text-max-2xl font-extrabold text-gray-900 mb-8 flex items-center gap-3">
+            <i class="fas fa-car text-primary-indigo"></i> Manage Vehicles
+        </h1>
+        
+        <div id="auth-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-8" role="alert">
+            <strong class="font-bold">Access Denied!</strong>
+            <span class="block sm:inline">Please log in to view and manage your vehicle data.</span>
+        </div>
+
+        <div id="main-content-area" class="flex flex-col lg:flex-row gap-8 hidden">
+            
+            <div class="lg:w-1/3">
+                <div class="bg-white p-6 rounded-xl shadow-2xl transition duration-300 hover:shadow-primary-indigo/50 max-h-500 overflow-y-auto custom-scrollbar">
+                    <h2 id="form-title" class="text-max-xl font-semibold text-gray-800 mb-6 sticky top-0 bg-white pt-1 pb-3 border-b border-gray-200 z-10">Add New Vehicle 📝</h2>
+                    <form id="vehicleForm" class="space-y-5">
+                        <div>
+                            <label for="ownerName" class="block text-sm font-medium text-gray-700 mb-1">Owner Name <span class="text-red-500">*</span></label>
+                            <input type="text" id="ownerName" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-indigo focus:border-primary-indigo transition duration-200" placeholder="e.g., Jane Doe">
+                        </div>
+                        <div>
+                            <label for="vehicleNo" class="block text-sm font-medium text-gray-700 mb-1">Vehicle Number <span class="text-red-500">*</span></label>
+                            <input type="text" id="vehicleNo" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-indigo focus:border-primary-indigo transition duration-200" placeholder="e.g., MH-12-AB-1234">
+                        </div>
+                        
+                        <div class="space-y-5 border-t pt-5 border-gray-200">
+                            <h3 class="text-md font-medium text-gray-600">Basic Details</h3>
+                            <div>
+                                <label for="vehicleType" class="block text-sm font-medium text-gray-700 mb-1">Fuel Type</label>
+                                <select id="vehicleType" class="w-full px-4 py-2 border border-gray-300 bg-white rounded-lg focus:ring-primary-indigo focus:border-primary-indigo transition duration-200">
+                                    <option value="">-- Select Type (Optional) --</option>
+                                    <option value="Petrol">Petrol</option>
+                                    <option value="Electric">Electric</option>
+                                    <option value="CNG">CNG</option>
+                                    <option value="Hydrogen">Hydrogen</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="companyName" class="block text-sm font-medium text-gray-700 mb-1">Company Name</label>
+                                <input type="text" id="companyName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-indigo focus:border-primary-indigo transition duration-200" placeholder="e.g., Tesla, Maruti Suzuki">
+                            </div>
+                            <div>
+                                <label for="modelName" class="block text-sm font-medium text-gray-700 mb-1">Model Name</label>
+                                <input type="text" id="modelName" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-indigo focus:border-primary-indigo transition duration-200" placeholder="e.g., Model 3, Swift">
+                            </div>
+                        </div>
+
+                        <div id="extraDetails" class="space-y-5 border-t pt-5 border-gray-200">
+                            <h3 class="text-md font-medium text-gray-600">Compliance Details</h3>
+                            <div>
+                                <label for="pucDate" class="block text-sm font-medium text-gray-700 mb-1">PUC Done Date</label>
+                                <input type="date" id="pucDate" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-indigo focus:border-primary-indigo transition duration-200">
+                            </div>
+                            <div>
+                                <label for="licenseNo" class="block text-sm font-medium text-gray-700 mb-1">License No.</label>
+                                <input type="text" id="licenseNo" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-indigo focus:border-primary-indigo transition duration-200">
+                            </div>
+                            <div>
+                                <label for="chassisNo" class="block text-sm font-medium text-gray-700 mb-1">Chassis No.</label>
+                                <input type="text" id="chassisNo" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-indigo focus:border-primary-indigo transition duration-200">
+                            </div>
+                            <div>
+                                <label for="engineNo" class="block text-sm font-medium text-gray-700 mb-1">Engine No.</label>
+                                <input type="text" id="engineNo" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-primary-indigo focus:border-primary-indigo transition duration-200">
+                            </div>
+                        </div>
+
+                        <div class="pb-1">
+                            <button type="submit" id="submitButton" class="w-full bg-primary-indigo text-white font-semibold py-3 rounded-lg hover:bg-indigo-600 transition duration-300 ease-in-out transform hover:scale-[1.01] shadow-lg">
+                                <i class="fas fa-plus mr-2"></i> Add Vehicle Data
+                            </button>
+                            <button type="button" id="cancelEditButton" onclick="resetForm()" class="hidden w-full text-gray-600 font-semibold py-2 rounded-lg hover:text-red-500 transition duration-300">
+                                Reset Form
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <div class="lg:w-2/3">
+                <h2 class="text-max-xl font-semibold text-gray-800 mb-6 flex items-center gap-3">
+                    <i class="fas fa-database text-green-500"></i> Saved Vehicles
+                </h2>
+                
+                <div class="mb-4 sticky top-0 bg-gray-50 pt-1 pb-3 z-10">
+                    <div class="flex items-center border border-gray-300 rounded-lg bg-white shadow-sm">
+                        <i class="fas fa-search text-gray-400 ml-4"></i>
+                        <input type="text" id="searchBar" onkeyup="filterVehicleData()"
+                               class="w-full px-4 py-2 focus:outline-none rounded-r-lg"
+                               placeholder="Search by Owner Name or Vehicle Number...">
+                    </div>
+                </div>
+
+                <div id="vehicleDataListContainer" class="max-h-500 overflow-y-auto custom-scrollbar">
+                    <div id="vehicleDataList" class="space-y-4">
+                        <p id="loadingMessage" class="text-gray-500 text-center p-8 bg-white rounded-xl shadow-lg">
+                            <i class="fas fa-spinner fa-spin mr-2"></i> Loading vehicle data...
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="mt-auto bg-white text-gray-600 text-center p-4 border-t text-sm border-t border-gray-200">
+        &copy; 2025 Personal Website | All rights reserved
+    </footer>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    
+    <script>
+        // ** 1. YOUR FIREBASE CONFIGURATION **
+        const firebaseConfig = {
+            apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc",
+            authDomain: "sk12-58e9e.firebaseapp.com",
+            databaseURL: "https://sk12-58e9e-default-rtdb.firebaseio.com", 
+            projectId: "sk12-58e9e",
+            storageBucket: "sk12-58e9e.appspot.com",
+            messagingSenderId: "470207874652",
+            appId: "1:470207874652:web:67ba1cf3629b7e5b144899"
+        };
+        
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const database = firebase.database();
+        
+        let currentUserId = null;
+        let vehiclesRef = null;
+        let currentEditKey = null;
+        let allVehiclesData = []; 
+
+        // ** UI and Form Handling **
+        window.resetForm = () => {
+            currentEditKey = null;
+            document.getElementById('vehicleForm').reset();
+            document.getElementById('form-title').innerHTML = 'Add New Vehicle 📝';
+            document.getElementById('submitButton').innerHTML = '<i class="fas fa-plus mr-2"></i> Add Vehicle Data';
+            document.getElementById('submitButton').classList.remove('bg-yellow-500', 'hover:bg-yellow-600');
+            document.getElementById('submitButton').classList.add('bg-primary-indigo');
+            document.getElementById('cancelEditButton').classList.add('hidden');
+        };
+
+        // ** Authentication **
+        function updateUI(user) {
+            const authMessage = document.getElementById('auth-message');
+            const mainContent = document.getElementById('main-content-area');
+
+            if (user) {
+                currentUserId = user.uid;
+                vehiclesRef = database.ref(`vehicles/${currentUserId}`);
+                
+                document.getElementById('userName').textContent = user.displayName || 'User Name';
+                document.getElementById('userEmail').textContent = user.email;
+                document.getElementById('userPhoto').src = user.photoURL || 'https://via.placeholder.com/40';
+                
+                authMessage.classList.add('hidden');
+                mainContent.classList.remove('hidden');
+
+                fetchVehicleData();
+
+            } else {
+                currentUserId = null;
+                vehiclesRef = null;
+                
+                document.getElementById('userName').textContent = 'Guest';
+                document.getElementById('userEmail').textContent = 'Not logged in';
+                document.getElementById('userPhoto').src = 'https://via.placeholder.com/40';
+                
+                mainContent.classList.add('hidden');
+                authMessage.classList.remove('hidden');
+            }
+            resetForm(); 
+        }
+
+        window.logout = () => {
+            auth.signOut().then(() => {
+                alert("You have been signed out.");
+            }).catch((error) => {
+                console.error("Logout error:", error);
+            });
+        };
+
+        auth.onAuthStateChanged(updateUI);
+
+        // ** CRUD and Data Functions **
+        
+        const getValues = () => ({
+            ownerName: document.getElementById('ownerName').value.trim(),
+            vehicleNo: document.getElementById('vehicleNo').value.trim().toUpperCase(),
+            vehicleType: document.getElementById('vehicleType').value.trim(),
+            companyName: document.getElementById('companyName').value.trim(),
+            modelName: document.getElementById('modelName').value.trim(),
+            pucDate: document.getElementById('pucDate').value.trim(),
+            licenseNo: document.getElementById('licenseNo').value.trim(),
+            chassisNo: document.getElementById('chassisNo').value.trim(),
+            engineNo: document.getElementById('engineNo').value.trim(),
+            timestamp: Date.now()
+        });
+
+        document.getElementById('vehicleForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (!vehiclesRef) return;
+
+            const data = getValues();
+            
+            if (currentEditKey) {
+                vehiclesRef.child(currentEditKey).update(data)
+                    .then(() => resetForm())
+                    .catch(error => console.error("Update failed: ", error));
+            } else {
+                vehiclesRef.push(data)
+                    .then(() => document.getElementById('vehicleForm').reset())
+                    .catch(error => console.error("Save failed: ", error));
+            }
+        });
+
+        window.editData = (key, data) => {
+            currentEditKey = key;
+            
+            document.getElementById('ownerName').value = data.ownerName || '';
+            document.getElementById('vehicleNo').value = data.vehicleNo || '';
+            document.getElementById('vehicleType').value = data.vehicleType || '';
+            document.getElementById('companyName').value = data.companyName || '';
+            document.getElementById('modelName').value = data.modelName || '';
+            document.getElementById('pucDate').value = data.pucDate || '';
+            document.getElementById('licenseNo').value = data.licenseNo || '';
+            document.getElementById('chassisNo').value = data.chassisNo || '';
+            document.getElementById('engineNo').value = data.engineNo || '';
+            
+            document.getElementById('form-title').innerHTML = 'Edit Vehicle Data <i class="fas fa-edit text-yellow-500"></i>';
+            document.getElementById('submitButton').innerHTML = '<i class="fas fa-save mr-2"></i> Update Vehicle Data';
+            document.getElementById('submitButton').classList.remove('bg-primary-indigo');
+            document.getElementById('submitButton').classList.add('bg-yellow-500', 'hover:bg-yellow-600');
+            document.getElementById('cancelEditButton').classList.remove('hidden');
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        };
+
+        window.deleteData = (key, vehicleNo) => {
+            if (!vehiclesRef) return;
+            if (confirm(`Are you sure you want to delete the data for vehicle ${vehicleNo}?`)) {
+                vehiclesRef.child(key).remove()
+                    .catch(error => console.error("Delete failed: ", error));
+            }
+        };
+
+        window.shareData = (data) => {
+            const getShareValue = (label, val) => (val && val.trim() !== '' ? `${label}: ${val}\n` : '');
+
+            const shareText = 
+                `--- Vehicle Info ---\n` +
+                getShareValue('Owner Name', data.ownerName) +
+                getShareValue('Vehicle No', data.vehicleNo) +
+                getShareValue('Fuel Type', data.vehicleType) +
+                getShareValue('Company', data.companyName) +
+                getShareValue('Model', data.modelName) +
+                getShareValue('PUC Date', data.pucDate) +
+                getShareValue('License No', data.licenseNo) +
+                getShareValue('Chassis No', data.chassisNo) +
+                getShareValue('Engine No', data.engineNo);
+                
+            navigator.clipboard.writeText(shareText)
+                .then(() => alert("Vehicle info copied to clipboard!"))
+                .catch(err => console.error('Could not copy text: ', err));
+        };
+        
+        // ** Search Functionality **
+        function filterVehicleData() {
+            const searchBar = document.getElementById('searchBar');
+            const filter = searchBar.value.toUpperCase();
+            const filteredData = allVehiclesData.filter(vehicle => {
+                const owner = vehicle.ownerName ? vehicle.ownerName.toUpperCase() : '';
+                const vehicleNo = vehicle.vehicleNo ? vehicle.vehicleNo.toUpperCase() : '';
+                return owner.includes(filter) || vehicleNo.includes(filter);
+            });
+            renderVehicleCards(filteredData);
+        }
+        window.filterVehicleData = filterVehicleData;
+
+        // ** Rendering Function **
+        function renderVehicleCards(vehicleList) {
+            const vehicleDataList = document.getElementById('vehicleDataList');
+            vehicleDataList.innerHTML = '';
+            
+            if (vehicleList.length === 0) {
+                 vehicleDataList.innerHTML = `
+                    <p class="text-gray-500 text-center p-8 bg-white rounded-xl shadow-lg">
+                        <i class="fas fa-frown mr-2"></i> No matching vehicles found.
+                    </p>
+                `;
+                return;
+            }
+
+            // Helper to conditionally display data
+            const getDataRow = (label, value) => {
+                if (!value || value.trim() === '') return '';
+                // text-gray-900 ensures black font
+                return `<p class="text-sm text-gray-900"><strong class="font-semibold">${label}:</strong> ${value}</p>`;
+            };
+
+            vehicleList.forEach(vehicle => {
+                const card = document.createElement('div');
+                card.className = "data-card bg-white p-5 rounded-xl shadow-lg border-l-4 border-primary-indigo hover:shadow-xl transition duration-300 transform";
+                
+                const fuelIcon = {
+                    'Petrol': 'fa-gas-pump text-red-500',
+                    'Electric': 'fa-bolt text-blue-500',
+                    'CNG': 'fa-seedling text-green-500',
+                    'Hydrogen': 'fa-flask text-sky-500',
+                    '': 'fa-question-circle text-gray-400'
+                }[vehicle.vehicleType] || 'fa-question-circle text-gray-400';
+
+                // Collect all optional fields
+                const optionalDetails = [
+                    getDataRow('Fuel Type', vehicle.vehicleType),
+                    getDataRow('Company Name', vehicle.companyName),
+                    getDataRow('Model Name', vehicle.modelName),
+                    getDataRow('PUC Date', vehicle.pucDate),
+                    getDataRow('License No', vehicle.licenseNo),
+                    getDataRow('Chassis No', vehicle.chassisNo),
+                    getDataRow('Engine No', vehicle.engineNo),
+                    getDataRow('Saved On', new Date(vehicle.timestamp).toLocaleDateString())
+                ].filter(Boolean).join('');
+
+
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-3">
+                        <div class="flex-grow">
+                            <p class="text-max-xl font-bold text-gray-900"><strong class="font-semibold">Owner Name:</strong> ${vehicle.ownerName}</p>
+                            <p class="text-lg font-extrabold text-gray-900 mb-2"><strong class="font-semibold">Vehicle No:</strong> <span class="text-primary-indigo">${vehicle.vehicleNo}</span></p>
+                            
+                            <div class="grid grid-cols-2 gap-x-4 gap-y-1 mt-3 border-t pt-3">
+                                ${optionalDetails}
+                            </div>
+                        </div>
+                        
+                        <div class="flex flex-col space-y-2 ml-4 flex-shrink-0 items-center">
+                            <span class="text-2xl text-center mb-1"><i class="fas ${fuelIcon}"></i></span>
+                            <div class="flex space-x-2">
+                                <button onclick="editData('${vehicle.key}', ${JSON.stringify(vehicle)})" 
+                                    class="action-button text-sm px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 hover:bg-yellow-500 hover:text-white" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button onclick="shareData(${JSON.stringify(vehicle)})" 
+                                    class="action-button text-sm px-2 py-1 rounded-full bg-blue-100 text-blue-700 hover:bg-blue-500 hover:text-white" title="Share">
+                                    <i class="fas fa-share-alt"></i>
+                                </button>
+                                <button onclick="deleteData('${vehicle.key}', '${vehicle.vehicleNo}')" 
+                                    class="action-button text-sm px-2 py-1 rounded-full bg-red-100 text-red-700 hover:bg-red-500 hover:text-white" title="Delete">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                vehicleDataList.appendChild(card);
+            });
+        }
+
+
+        // 8. Fetch Real-time Data
+        function fetchVehicleData() {
+            if (!vehiclesRef) return; 
+
+            vehiclesRef.on('value', (snapshot) => {
+                const data = snapshot.val();
+
+                if (!data) {
+                    allVehiclesData = [];
+                    document.getElementById('vehicleDataList').innerHTML = `
+                        <p class="text-gray-500 text-center p-8 bg-white rounded-xl shadow-lg">
+                            <i class="fas fa-info-circle mr-2"></i> No vehicle data saved yet.
+                        </p>
+                    `;
+                    return;
+                }
+
+                allVehiclesData = Object.keys(data).map(key => ({ key, ...data[key] }));
+                allVehiclesData.sort((a, b) => b.timestamp - a.timestamp); 
+
+                filterVehicleData(); 
+
+            }, (error) => {
+                console.error("Firebase read error: ", error);
+                if (currentUserId) {
+                     document.getElementById('vehicleDataList').innerHTML = `<p class="text-red-500 text-center p-8 bg-white rounded-xl shadow-lg">Error: Could not load data. Check console for details.</p>`;
+                }
+            });
+        }
+    </script>
+</body>
+</html>

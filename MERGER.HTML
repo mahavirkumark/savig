@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link Manager | My Personal Website</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    
+    <style>
+        /* Global Font Change */
+        body {
+            font-family: 'Times New Roman', Times, serif;
+            color: black;
+        }
+        
+        /* Link Manager Custom Styles */
+        .copied-badge {
+            display: inline-block;
+            margin-left: 0.5rem;
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem; 
+            line-height: 1;
+            background: #10B981;
+            color: white;
+            box-shadow: 0 2px 4px rgba(16, 185, 129, 0.2);
+            opacity: 0;
+            transform: translateY(-4px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            pointer-events: none;
+        }
+        .copied-badge.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .link-list-container {
+            max-height: 60vh; 
+            overflow-y: auto;
+        }
+        .link-list-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        .link-list-container::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 4px;
+        }
+        .modern-btn {
+            border-radius: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transition: all 0.15s ease-in-out;
+        }
+        .modern-btn:hover {
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.15);
+            transform: translateY(-1px);
+        }
+
+        /* --- Gemini Chatbot Custom Styles --- */
+        #chat-float-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+            transition: transform 0.2s, background-color 0.2s;
+        }
+        #chat-float-btn:hover {
+            transform: scale(1.05);
+        }
+
+        #chatbot-window {
+            position: fixed;
+            bottom: 90px;
+            right: 20px;
+            width: 100%;
+            max-width: 350px;
+            height: 450px;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            z-index: 999;
+            transform: translateY(10px) scale(0.95);
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease-in-out;
+        }
+        #chatbot-window.open {
+            visibility: visible;
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        /* Chat Window components */
+        #chat-box { 
+            flex-grow: 1; 
+            padding: 15px; 
+            overflow-y: auto; 
+            background-color: #e9eef2;
+            scroll-behavior: smooth; 
+        }
+        .message { 
+            margin-bottom: 8px; 
+            padding: 8px 12px; 
+            border-radius: 16px; 
+            max-width: 90%; 
+            word-wrap: break-word;
+            font-size: 0.95rem;
+        }
+        .user-message { 
+            background-color: #007bff; 
+            color: white; 
+            margin-left: auto; 
+            border-bottom-right-radius: 4px;
+        }
+        .gemini-message { 
+            background-color: #dceaf7;
+            color: #333; 
+            margin-right: auto; 
+            border-bottom-left-radius: 4px;
+        }
+        #chat-input-form { 
+            display: flex; 
+            padding: 10px; 
+            border-top: 1px solid #ccc; 
+            background-color: #ffffff;
+        }
+        #chat-user-input { 
+            flex-grow: 1; 
+            padding: 8px; 
+            border: 1px solid #ddd; 
+            border-radius: 20px; 
+            margin-right: 8px; 
+            font-size: 0.9rem;
+        }
+        #chat-send-button { 
+            padding: 8px 15px; 
+            border: none; 
+            background-color: #28a745; 
+            color: white; 
+            border-radius: 20px; 
+            cursor: pointer; 
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+        #chat-send-button:disabled { 
+            background-color: #90ee90; 
+            cursor: not-allowed; 
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen flex flex-col">
+
+<nav class="hidden lg:flex bg-white shadow-md px-8 py-4 justify-between items-center sticky top-0 z-10">
+    <div class="text-2xl font-extrabold flex items-center gap-1">
+        <i class="fas fa-user-circle text-2xl text-blue-600"></i>
+        <span class="font-extrabold text-black">My Personal Website</span>
+    </div>
+    
+    <div class="flex items-center gap-x-6 text-gray-600">
+        <a href="home.html" class="flex items-center gap-2 hover:text-indigo-500 transition duration-300 whitespace-nowrap" style="font-size: 18px;"><i class="fas fa-house"></i> Home</a>
+        <a href="adress.html" class="flex items-center gap-2 hover:text-indigo-500 transition duration-300 whitespace-nowrap" style="font-size: 18px;"><i class="fas fa-tasks"></i> Address</a>
+        <a href="password.html" class="flex items-center gap-2 hover:text-indigo-500 transition duration-300 whitespace-nowrap" style="font-size: 18px;"><i class="fas fa-key"></i> Passwords</a>
+        <a href="income.html" class="flex items-center gap-2 hover:text-indigo-500 transition duration-300 whitespace-nowrap" style="font-size: 18px;"><i class="fas fa-wallet"></i> Income</a>
+        <a href="links.html" class="flex items-center gap-2 text-indigo-500 border-b-2 border-indigo-500 pb-1 transition duration-300 whitespace-nowrap" style="font-size: 18px;"><i class="fas fa-link"></i> Links</a>
+        <a href="calendar.html" class="flex items-center gap-2 hover:text-indigo-500 transition duration-300 whitespace-nowrap" style="font-size: 18px;"><i class="fas fa-calendar-alt"></i> Calendar</a>
+        <a href="birthday.html" class="flex items-center gap-2 hover:text-indigo-500 transition duration-300 whitespace-nowrap" style="font-size: 18px;"><i class="fas fa-cake-candles"></i> Birthday</a>
+    </div>
+
+    <div class="flex items-center space-x-4">
+        <div class="text-right hidden sm:block">
+            <p id="userName" class="font-bold text-gray-900 text-lg">User Name</p>
+            <p id="userEmail" class="text-base text-gray-500 break-all">user@example.com</p>
+        </div>
+        <img id="userPic" class="rounded-full w-12 h-12 object-cover border-2 border-blue-400" />
+        <button id="logoutBtn" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 modern-btn text-base font-medium">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+    </div>
+</nav>
+
+<nav class="lg:hidden bg-white shadow-md px-4 py-4 flex justify-between items-center sticky top-0 z-10">
+    <div class="text-xl font-bold flex items-center gap-1">
+        <i class="fas fa-user-circle text-2xl text-blue-600"></i>
+        <span class="font-bold text-black">My Personal Website</span>
+    </div>
+    <button id="menu-btn" class="text-3xl text-gray-700 hover:text-blue-600 transition duration-150"><i class="fas fa-bars"></i></button>
+</nav>
+
+<div id="mobile-menu" class="hidden lg:hidden bg-white shadow-lg px-6 py-6 flex flex-col space-y-4 text-xl absolute w-full z-20">
+    <a href="home.html" class="hover:text-indigo-500 flex items-center gap-3 py-2 border-b border-gray-100"><i class="fas fa-house w-6"></i> Home</a>
+    <a href="adress.html" class="hover:text-indigo-500 flex items-center gap-3 py-2 border-b border-gray-100"><i class="fas fa-tasks w-6"></i> Address</a>
+    <a href="password.html" class="hover:text-indigo-500 flex items-center gap-3 py-2 border-b border-gray-100"><i class="fas fa-key w-6"></i> Passwords</a>
+    <a href="income.html" class="hover:text-indigo-500 flex items-center gap-3 py-2 border-b border-gray-100"><i class="fas fa-wallet w-6"></i> Income</a>
+    <a href="links.html" class="text-indigo-500 flex items-center gap-3 py-2 border-b border-gray-100"><i class="fas fa-link w-6"></i> Links</a>
+    <a href="calendar.html" class="hover:text-indigo-500 flex items-center gap-3 py-2 border-b border-gray-100"><i class="fas fa-calendar-alt w-6"></i> Calendar</a>
+    <a href="birthday.html" class="hover:text-indigo-500 flex items-center gap-3 py-2"><i class="fas fa-cake-candles w-6"></i> Birthday</a>
+
+    <div class="flex items-center space-x-4 pt-4 border-t mt-4 border-gray-200">
+        <img id="mobileUserPic" class="rounded-full w-14 h-14 object-cover border-2 border-blue-400" />
+        <div class="text-left flex-grow">
+            <p id="mobileUserName" class="font-bold text-gray-900 text-lg">User Name</p>
+            <p id="mobileUserEmail" class="text-gray-500 break-words text-base">user@example.com</p>
+        </div>
+        <button id="mobileLogout" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 modern-btn text-base font-medium">
+            <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+    </div>
+</div>
+
+<main class="flex-grow max-w-8xl mx-auto mt-8 p-4 md:p-6 flex flex-col lg:flex-row gap-6">
+
+    <div class="w-full lg:w-5/12 bg-white shadow-xl p-6 rounded-xl h-fit border border-gray-100">
+        <h2 class="text-2xl font-extrabold text-gray-800 mb-4 border-b pb-2">Add a New Link</h2>
+        <input id="linkInput" type="url" placeholder="Enter URL (e.g., https://google.com)"
+            class="w-full p-3 text-base border border-gray-300 rounded-lg mb-3 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150" required/>
+        <textarea id="descInput" rows="3" placeholder="Enter a brief description for this link"
+            class="w-full p-3 text-base border border-gray-300 rounded-lg mb-4 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150" required></textarea>
+        <button id="addLinkBtn"
+            class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 w-full modern-btn text-base">
+            <i class="fas fa-plus-circle mr-2"></i> Save Link
+        </button>
+    </div>
+
+    <div class="w-full lg:w-7/12 bg-white shadow-xl p-6 rounded-xl border border-gray-100">
+        <h2 class="text-2xl font-extrabold text-gray-800 mb-4">Your Saved Links</h2>
+
+        <div class="mb-4 relative">
+            <input id="searchBar" type="text" placeholder="Search by link or description..."
+                class="w-full p-2.5 pl-9 text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition duration-150" />
+            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-lg text-gray-400"></i>
+        </div>
+
+        <div id="linkList" class="space-y-4 link-list-container">
+            </div>
+    </div>
+</main>
+
+<footer class="bg-white shadow mt-8 py-4">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-base text-gray-600 flex justify-center">
+        &copy; 2025 My Personal Website Link Manager. All rights reserved.
+    </div>
+</footer>
+
+<div id="chat-float-btn" class="bg-indigo-600 hover:bg-indigo-700 text-white">
+    <i class="fas fa-comment-dots text-3xl" id="chat-icon"></i>
+</div>
+
+<div id="chatbot-window">
+    <div class="flex items-center justify-between p-3 bg-indigo-600 text-white shadow-md">
+        <span class="text-lg font-bold">Personal Chatbot</span>
+        <button id="chat-close-btn" class="text-xl hover:text-gray-200"><i class="fas fa-times"></i></button>
+    </div>
+    <div id="chat-box">
+        <div class="message gemini-message">Hello! I'm the official chatbot for this website. Ask me anything about the creator or their projects!</div>
+    </div>
+    <form id="chat-input-form">
+        <input type="text" id="chat-user-input" placeholder="Type your message..." required>
+        <button type="submit" id="chat-send-button">Send</button>
+    </form>
+</div>
+
+<script>
+    // --- Link Manager & Firebase Logic ---
+    
+    // Mobile menu toggle logic
+    const menuBtn = document.getElementById('menu-btn');
+    const mobileMenu = document.getElementById('mobile-menu');
+    menuBtn.addEventListener('click', () => {
+        mobileMenu.classList.toggle('hidden');
+        const icon = menuBtn.querySelector('i');
+        icon.classList.toggle('fa-bars');
+        icon.classList.toggle('fa-times');
+    });
+
+    // Firebase config (PLACEHOLDER - **Replace with your actual Firebase config**)
+    const firebaseConfig = {
+        apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc", // Link Manager API Key
+        authDomain: "sk12-58e9e.firebaseapp.com",
+        databaseURL: "https://sk12-58e9e-default-rtdb.firebaseio.com",
+        projectId: "sk12-58e9e",
+        storageBucket: "sk12-58e9e.appspot.com",
+        messagingSenderId: "470207874652",
+        appId: "1:470207874652:web:67ba1cf3629b7e5b144899"
+    };
+
+    // Init Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    // Link Manager Element references
+    const userName = document.getElementById("userName");
+    const userEmail = document.getElementById("userEmail");
+    const userPic = document.getElementById("userPic");
+    const logoutBtn = document.getElementById("logoutBtn");
+    const mobileUserName = document.getElementById("mobileUserName");
+    const mobileUserEmail = document.getElementById("mobileUserEmail");
+    const mobileUserPic = document.getElementById("mobileUserPic");
+    const mobileLogout = document.getElementById("mobileLogout");
+    const linkInput = document.getElementById("linkInput");
+    const descInput = document.getElementById("descInput");
+    const addLinkBtn = document.getElementById("addLinkBtn");
+    const linkList = document.getElementById("linkList");
+    const searchBar = document.getElementById("searchBar");
+
+    let currentUserId = "";
+    let allLinks = [];
+
+    // Auth state check
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            currentUserId = user.uid;
+            // Set user info
+            userName.textContent = user.displayName || "My Account";
+            userEmail.textContent = user.email;
+            userPic.src = user.photoURL || "https://ui-avatars.com/api/?name=" + (user.displayName || "User") + "&background=0D8ABC&color=fff";
+            // Set mobile user info
+            mobileUserName.textContent = user.displayName || "My Account";
+            mobileUserEmail.textContent = user.email;
+            mobileUserPic.src = user.photoURL || "https://ui-avatars.com/api/?name=" + (user.displayName || "User") + "&background=0D8ABC&color=fff";
+            
+            loadLinks();
+        } else {
+            window.location.href = "index.html"; // Redirect to login
+        }
+    });
+
+    // Add link logic
+    addLinkBtn.addEventListener("click", () => {
+        const link = linkInput.value.trim();
+        const desc = descInput.value.trim();
+
+        try { new URL(link); } catch (e) { alert("Please enter a valid URL."); return; }
+        if (!link || !desc) { alert("Please enter both a valid link and a description."); return; }
+
+        addLinkBtn.disabled = true;
+        addLinkBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i> Adding...';
+        addLinkBtn.classList.add('opacity-75');
+
+        const newRef = db.ref(`users/${currentUserId}/links`).push();
+        newRef
+            .set({ link, desc, timestamp: firebase.database.ServerValue.TIMESTAMP })
+            .then(() => {
+                linkInput.value = "";
+                descInput.value = "";
+                addLinkBtn.innerHTML = '<i class="fas fa-plus-circle mr-2"></i> Save Link';
+                addLinkBtn.disabled = false;
+                addLinkBtn.classList.remove('opacity-75');
+            })
+            .catch(err => {
+                alert("Error saving link: " + err.message);
+                addLinkBtn.innerHTML = '<i class="fas fa-plus-circle mr-2"></i> Save Link';
+                addLinkBtn.disabled = false;
+                addLinkBtn.classList.remove('opacity-75');
+            });
+    });
+
+    // Load and filter links logic
+    function loadLinks() {
+        db.ref(`users/${currentUserId}/links`).on("value", snapshot => {
+            const links = [];
+            snapshot.forEach(child => {
+                links.push({ id: child.key, ...child.val() });
+            });
+            allLinks = links.sort((a, b) => (b.timestamp || 0) - (a.timestamp || 0));
+            renderLinks(allLinks);
+        });
+        
+        searchBar.addEventListener('input', filterLinks);
+    }
+
+    function filterLinks() {
+        const query = searchBar.value.toLowerCase().trim();
+        const filteredLinks = allLinks.filter(item => 
+            item.link.toLowerCase().includes(query) || 
+            item.desc.toLowerCase().includes(query)
+        );
+        renderLinks(filteredLinks);
+    }
+
+    function renderLinks(links) {
+        linkList.innerHTML = "";
+
+        if (links.length === 0) {
+            linkList.innerHTML = `<p class='text-gray-500 text-lg p-4 bg-gray-50 rounded-lg'>
+                ${searchBar.value.trim() ? "No results found for your search." : "No links found. Add your first link above!"}
+            </p>`;
+            return;
+        }
+
+        links.forEach(item => {
+            const div = document.createElement("div");
+            div.className = "border border-gray-200 bg-white p-4 rounded-xl shadow-sm hover:shadow-md transition duration-150";
+
+            const encodedLink = encodeURIComponent(item.link);
+            const encodedDesc = encodeURIComponent(item.desc);
+
+            div.innerHTML = `
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3">
+                    <a href="${item.link}" target="_blank" rel="noopener noreferrer"
+                        class="text-blue-600 hover:text-blue-800 font-semibold truncate text-lg block w-full sm:w-auto break-all mr-4">
+                        <i class="fas fa-external-link-alt text-sm mr-2"></i> ${item.link}
+                    </a>
+                </div>
+
+                <p class="font-sans text-gray-600 text-base mb-4 border-l-4 border-gray-300 pl-3">${item.desc}</p>
+                
+                <div class="flex flex-wrap gap-2">
+                    <button class="copy-btn bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-medium px-3 py-1.5 modern-btn flex items-center gap-1"
+                            data-copy="${encodedLink}">
+                        <i class="fas fa-copy text-xs"></i> Copy Link
+                        <span class="copied-badge">Copied!</span>
+                    </button>
+
+                    <button class="share-btn bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-medium px-3 py-1.5 modern-btn flex items-center gap-1"
+                            data-share="${encodeURIComponent('Link: ' + item.link + '\nDescription: ' + item.desc)}">
+                        <i class="fas fa-share-alt text-xs"></i> Share
+                        <span class="copied-badge">Copied!</span>
+                    </button>
+
+                    <button onclick="editLink('${item.id}', '${encodedLink}', '${encodedDesc}')"
+                            class="bg-yellow-500 hover:bg-yellow-600 text-white text-xs font-medium px-3 py-1.5 modern-btn">
+                        <i class="fas fa-edit text-xs mr-1"></i> Edit
+                    </button>
+                    <button onclick="deleteLink('${item.id}')"
+                            class="bg-red-500 hover:bg-red-600 text-white text-xs font-medium px-3 py-1.5 modern-btn flex items-center gap-1">
+                        <i class="fas fa-trash-alt text-xs"></i> Delete
+                    </button>
+                </div>
+            `;
+
+            linkList.appendChild(div);
+
+            // Copy button listener
+            const copyBtn = div.querySelector(".copy-btn");
+            const copyBadge = copyBtn.querySelector(".copied-badge");
+            copyBtn.addEventListener("click", () => {
+                const text = decodeURIComponent(copyBtn.getAttribute("data-copy") || "");
+                navigator.clipboard.writeText(text)
+                    .then(() => showCopiedAnimation(copyBadge))
+                    .catch(err => console.error("Copy failed:", err));
+            });
+
+            // Share button listener
+            const shareBtn = div.querySelector(".share-btn");
+            const shareBadge = shareBtn.querySelector(".copied-badge");
+            shareBtn.addEventListener("click", () => {
+                const text = decodeURIComponent(shareBtn.getAttribute("data-share") || "");
+                if (navigator.share) {
+                    navigator.share({
+                        title: 'Shared Link from My Personal Website',
+                        text: text,
+                        url: item.link
+                    }).catch((error) => {
+                        // Fallback to clipboard if share fails
+                        navigator.clipboard.writeText(text)
+                            .then(() => showCopiedAnimation(shareBadge))
+                            .catch(err => console.error("Share fallback failed:", err));
+                    });
+                } else {
+                    // Fallback for browsers without Web Share API
+                    navigator.clipboard.writeText(text)
+                        .then(() => showCopiedAnimation(shareBadge))
+                        .catch(err => console.error("Share fallback failed:", err));
+                }
+            });
+        });
+    }
+
+    function showCopiedAnimation(badgeElement) {
+        badgeElement.classList.add('visible');
+        setTimeout(() => {
+            badgeElement.classList.remove('visible');
+        }, 1500);
+    }
+
+    function editLink(id, oldLinkEncoded, oldDescEncoded) {
+        const oldDesc = decodeURIComponent(oldDescEncoded);
+        const newDesc = prompt("Edit description:", oldDesc);
+        if (newDesc !== null && newDesc.trim() !== "" && newDesc.trim() !== oldDesc.trim()) {
+            db.ref('users/' + currentUserId + '/links/' + id).update({ desc: newDesc.trim() })
+                .then(() => console.log("Link description updated."))
+                .catch(err => alert("Error updating link: " + err.message));
+        }
+    }
+
+    function deleteLink(id) {
+        if (confirm("Are you sure you want to delete this link? This action cannot be undone.")) {
+            db.ref('users/' + currentUserId + '/links/' + id).remove()
+                .then(() => console.log("Link deleted."))
+                .catch(err => alert("Error deleting link: " + err.message));
+        }
+    }
+
+    // Logout
+    logoutBtn.addEventListener("click", () =>
+        auth.signOut().then(() => (window.location.href = "index.html"))
+    );
+    mobileLogout.addEventListener("click", () =>
+        auth.signOut().then(() => (window.location.href = "index.html"))
+    );
+
+    
+    // ----------------------------------------------------------------------
+    // --- Gemini Chatbot Logic ---
+    // ----------------------------------------------------------------------
+    
+    // ⚠️ CRITICAL: REPLACE THIS EXPOSED KEY WITH YOUR NEW, PRIVATE KEY!
+       const API_KEY = "AIzaSyAx9Jo2cGzFqPSuWr-zjoMh_5taBpwONOA"; // <--- REPLACE THIS KEY
+    
+    // Use the correctly named variable
+    const CHAT_API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + CHAT_API_KEY; 
+    
+    const chatFloatBtn = document.getElementById('chat-float-btn');
+    const chatbotWindow = document.getElementById('chatbot-window');
+    const chatCloseBtn = document.getElementById('chat-close-btn');
+    const chatBox = document.getElementById('chat-box');
+    const chatInputForm = document.getElementById('chat-input-form');
+    const chatUserInput = document.getElementById('chat-user-input');
+    const chatSendButton = document.getElementById('chat-send-button');
+
+    let chatHistory = []; 
+
+    // CHATBOT TRAINING/PERSONALITY (System Instruction)
+    // 🟢 FIX APPLIED: This is now a single-line string to prevent the 400 INVALID_ARGUMENT error.
+    const systemInstruction = "You are a friendly, knowledgeable, and professional AI chatbot for a personal portfolio website. Your main goal is to introduce the creator and detail their work. Creator's Name: **[Insert Your Name Here]**. Creator's Focus: **[Insert your primary field, e.g., Full-Stack Web Development and AI Integration]**. Key Projects: 1. Project 1: **[Short description of your biggest project.]**. 2. Project 2: **[Short description of a second project.]**. 3. Blog: **[Summary of your blog's focus.]**. Maintain a concise and helpful tone. If asked a question unrelated to the creator or their website, politely state that your purpose is only to discuss the website's content.";
+
+    // Chat widget toggle
+    chatFloatBtn.addEventListener('click', () => {
+        chatbotWindow.classList.toggle('open');
+        // Change icon on toggle
+        const icon = document.getElementById('chat-icon');
+        icon.classList.toggle('fa-comment-dots');
+        icon.classList.toggle('fa-times');
+    });
+
+    chatCloseBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        chatbotWindow.classList.remove('open');
+        // Reset icon
+        const icon = document.getElementById('chat-icon');
+        icon.classList.remove('fa-times');
+        icon.classList.add('fa-comment-dots');
+    });
+
+    /**
+     * Appends a message to the chat box.
+     */
+    function appendChatMessage(text, sender) {
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message');
+        messageDiv.classList.add(sender === 'user' ? 'user-message' : 'gemini-message');
+        messageDiv.innerText = text;
+        chatBox.appendChild(messageDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    /**
+     * Sends the user's message to the Gemini API with the correctly trimmed payload.
+     */
+    async function sendChatMessage() {
+        const userText = chatUserInput.value.trim();
+        if (!userText) return;
+
+        appendChatMessage(userText, 'user');
+        
+        chatHistory.push({ 
+            role: "user", 
+            parts: [{ text: userText }] 
+        });
+
+        chatUserInput.value = '';
+        chatSendButton.disabled = true;
+
+        try {
+            const response = await fetch(CHAT_API_URL, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    // 1. Conversation History
+                    contents: chatHistory, 
+                    
+                    // 2. System Instruction (clean, single-line string)
+                    systemInstruction: systemInstruction 
+                })
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                // Log full error detail from API response
+                console.error('Error sending message to Gemini (Status:', response.status, '):', errorText);
+                throw new Error(`API Request failed with status ${response.status}`);
+            }
+
+            const data = await response.json();
+            
+            if (data.candidates && data.candidates.length > 0) {
+                const geminiText = data.candidates[0].content.parts[0].text;
+                
+                appendChatMessage(geminiText, 'gemini');
+                
+                chatHistory.push({ 
+                    role: "model", 
+                    parts: [{ text: geminiText }] 
+                });
+            } else {
+                // Handle cases where API returns status 200 but no candidates (e.g., safety block)
+                appendChatMessage("Error: The response from the AI was empty. This may be due to content policy filters or an issue with the prompt.", 'gemini');
+            }
+
+        } catch (error) {
+            console.error('Caught error in sendChatMessage:', error);
+            // Provide a user-friendly error message in the chat window
+            appendChatMessage("Sorry, the chat service ran into a critical error. Please check your **API Key** or network connection.", 'gemini');
+            // Remove the last user message from history so the conversation isn't broken
+            if (chatHistory.length > 0) chatHistory.pop(); 
+        } finally {
+            chatSendButton.disabled = false;
+        }
+    }
+
+    // Event listener for the chat form submission
+    chatInputForm.addEventListener('submit', (e) => {
+        e.preventDefault(); 
+        sendChatMessage();
+    });
+</script>
+
+</body>
+</html>

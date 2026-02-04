@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Image Uploader</title>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <style>
+    body {
+      font-family: Arial;
+      margin: 0;
+      padding: 0;
+      background: #f3f3f3;
+    }
+    nav, footer {
+      background-color: #2c3e50;
+      color: white;
+      text-align: center;
+      padding: 1rem;
+    }
+    .container {
+      padding: 20px;
+      max-width: 800px;
+      margin: auto;
+      background: white;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    input, button {
+      margin: 10px 0;
+      padding: 10px;
+      width: 100%;
+    }
+    .image-list img {
+      height: 100px;
+      margin: 10px;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <nav>
+    <h2>Image URL Uploader</h2>
+  </nav>
+
+  <div class="container">
+    <div id="user-info"></div>
+
+    <button onclick="googleLogin()">Login with Google</button><br>
+    <input type="text" id="imageUrl" placeholder="Enter Image URL">
+    <button onclick="uploadImage()">Upload Image</button>
+
+    <h3>Uploaded Images</h3>
+    <div id="imageList" class="image-list"></div>
+  </div>
+
+  <footer>
+    &copy; 2025 Sagar's Project
+  </footer>
+
+  <script>
+    // Firebase config
+    const firebaseConfig = {
+        apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc",
+    authDomain: "sk12-58e9e.firebaseapp.com",
+    projectId: "sk12-58e9e",
+    storageBucket: "sk12-58e9e.appspot.com",
+    messagingSenderId: "470207874652",
+    appId: "1:470207874652:web:67ba1cf3629b7e5b144899"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    let userEmailKey = "";
+
+    function googleLogin() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      firebase.auth().signInWithPopup(provider).then(result => {
+        const user = result.user;
+        document.getElementById("user-info").innerText = `Logged in as ${user.email}`;
+        userEmailKey = user.email.replace(/\./g, "_");
+        loadImages();
+      }).catch(err => {
+        alert("Login Error: " + err.message);
+      });
+    }
+
+    function uploadImage() {
+      const url = document.getElementById("imageUrl").value.trim();
+      if (!url || !userEmailKey) return alert("Please login and enter a valid image URL.");
+
+      const dbRef = firebase.database().ref(`uploads/${userEmailKey}`);
+      const imageData = {
+        url: url,
+        timestamp: Date.now()
+      };
+      dbRef.push(imageData).then(() => {
+        document.getElementById("imageUrl").value = "";
+        loadImages();
+      }).catch(err => {
+        alert("Upload failed: " + err.message);
+      });
+    }
+
+    function loadImages() {
+      if (!userEmailKey) return;
+      const dbRef = firebase.database().ref(`uploads/${userEmailKey}`);
+      dbRef.once("value", snapshot => {
+        const listDiv = document.getElementById("imageList");
+        listDiv.innerHTML = "";
+        snapshot.forEach(child => {
+          const data = child.val();
+          const img = document.createElement("img");
+          img.src = data.url;
+          img.alt = "Uploaded Image";
+          listDiv.appendChild(img);
+        });
+      });
+    }
+  </script>
+</body>
+</html>

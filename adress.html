@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Personal Website</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+   <style>
+    /* --- 1. BASE STYLES & ANIMATIONS --- */
+    @keyframes spin {
+        to { transform: rotate(360deg); }
+    }
+    .spinner {
+        animation: spin 1s linear infinite;
+    }
+
+    body {
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        background-color: #f8fafc; /* Tailwind gray-50 */
+        padding-top: 5rem; /* Standard space for fixed nav */
+        transition: padding 0.3s ease;
+    }
+
+    /* --- 2. ADDRESS LIST & EDITING STATES --- */
+    .address-item {
+        transition: all 0.3s ease;
+    }
+
+    /* Dim other items when editing one */
+    #addressList.editing .address-item {
+        opacity: 0.3;
+        pointer-events: none;
+    }
+
+    #addressList.editing .address-item.is-editing {
+        opacity: 1;
+        pointer-events: auto;
+        transform: scale(1.02);
+        border-color: greenyellow;
+        box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.2);
+    }
+
+    /* Prevent iOS zoom on input focus */
+    input, textarea {
+        font-size: 16px !important;
+    }
+
+
+    /* --- 3. MOBILE STYLES (Below 768px) --- */
+    @media (max-width: 767px) {
+        /* Mobile Search Overlay Logic */
+        body.search-active {
+            overflow: hidden; /* Prevent background from scrolling */
+            padding-top: 0;
+        }
+
+        /* HIDE UI ELEMENTS IN SEARCH MODE */
+        body.search-active .left-container,
+        body.search-active .right-container h2,
+        body.search-active footer {
+            display: none !important;
+        }
+
+        /* PIN SEARCH BAR EXACTLY BELOW NAV (56px is standard height) */
+        body.search-active #searchWrapper {
+            position: fixed;
+            top: 56px; 
+            left: 0;
+            width: 100%;
+            z-index: 100;
+            background: white;
+            padding: 10px 16px;
+            margin: 0 !important;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex !important;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* SCROLLABLE RESULTS AREA */
+        body.search-active .right-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100vh;
+            background: #f8fafc;
+            z-index: 40;
+            /* Pushes list down: Nav (56px) + Search (approx 60px) + Buffer */
+            padding-top: 125px !important; 
+            overflow-y: auto;
+        }
+
+        /* Improved readability for mobile address details */
+        .address-item p.text-sm {
+            font-size: 15px;
+            line-height: 1.5;
+        }
+    }
+
+    /* --- 4. DESKTOP STYLES (768px and up) --- */
+    @media (min-width: 768px) {
+        /* Desktop Search remains in flow, no fixed positioning */
+        #searchWrapper {
+            position: relative;
+            top: auto;
+        }
+
+        #addressList {
+            height: 450px; /* Fixed height for scrollable container */
+            overflow-y: auto;
+            padding-right: 8px;
+        }
+
+        /* Custom Scrollbar */
+        #addressList::-webkit-scrollbar {
+            width: 6px;
+        }
+        #addressList::-webkit-scrollbar-thumb {
+            background-color: #e2e8f0;
+            border-radius: 10px;
+        }
+
+        /* Increased detail font size for desktop */
+        .right-container .address-item .text-sm {
+            font-size: 18px; 
+            color: #036f09; /* gray-600 */
+        }
+
+        /* Sidebar Form Sticky Position */
+        .left-container {
+            position: sticky;
+            top: 6rem;
+        }
+    }
+/* --- LAPTOP OPTIMIZATIONS --- */
+@media (min-width: 768px) {
+    /* Set the best professional background */
+    body {
+        background-color: #f8fafc; /* bg-slate-50 */
+    }
+
+    /* Professional Desktop detail size */
+    .right-container .address-item .text-sm {
+        font-size: 18px !important;
+        color: #334155; /* Slate 700 */
+    }
+
+    /* Button Hover Depth */
+    .address-item button:hover, .address-item a:hover {
+        transform: translateY(-1px);
+        filter: brightness(90%);
+    }
+    a[href*="google.com/maps"] {
+        border-color: #e2e8f0;
+        color: #475569; /* slate-600 */
+    }
+    
+    a[href*="google.com/maps"]:hover {
+        background-color: #f1f5f9; /* slate-100 */
+        border-color: #cbd5e1;
+    }
+}
+@media (max-width: 767px) {
+    /* ... your existing search-active styles ... */
+
+    /* Hide the footer entirely when mobile search is focused */
+    body.search-active footer {
+        display: none !important;
+    }
+}
+</style>
+</head>
+<body class="bg-gray-100 font-sans antialiased">
+
+    <nav class="bg-white shadow-lg fixed w-full top-0 z-20">
+<div class="container mx-auto flex justify-between items-center p-2 md:px-4">
+            <div class="flex items-center gap-2 text-lg md:text-xl font-bold text-gray-800 -ml-[4px]">
+                <i class="fas fa-user-circle text-indigo-500 text-3xl md:text-3xl"></i>
+                <span class="text-xl md:text-2xl">My Personal Website</span>
+            </div>
+
+
+
+            <div class="hidden md:flex space-x-6 text-gray-700 font-medium">
+                <a href="home.html" class="flex items-center gap-2 hover:text-indigo-600 transition duration-300 hover:-translate-y-0.5 text-lg"><i class="fas fa-house"></i> Home</a>
+                
+                <a href="password.html" class="flex items-center gap-2 hover:text-indigo-600 transition duration-300 hover:-translate-y-0.5 text-lg"><i class="fas fa-key"></i> Passwords</a>
+                <a href="income.html" class="flex items-center gap-2 hover:text-indigo-600 transition duration-300 hover:-translate-y-0.5 text-lg"><i class="fas fa-wallet"></i> Income</a>
+                <a href="links.html" class="flex items-center gap-2 hover:text-indigo-600 transition duration-300 hover:-translate-y-0.5 text-lg"><i class="fas fa-link"></i> Links</a>
+                <a href="calendar.html" class="flex items-center gap-2 hover:text-indigo-600 transition duration-300 hover:-translate-y-0.5 text-lg"><i class="fas fa-calendar-alt"></i> Calendar</a>
+            </div>
+
+            <div class="hidden md:flex items-center gap-4">
+                <div class="text-right">
+                    <p id="userName" class="font-bold text-gray-900">Loading...</p>
+                    <p id="userEmail" class="text-sm text-gray-500">Loading...</p>
+                    <p id="userId" class="hidden"></p>
+                </div>
+                <img id="userPhoto" src="https://via.placeholder.com/40" class="w-10 h-10 rounded-full border-2 border-indigo-500">
+                <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-full hover:bg-red-600 transition duration-300 text-sm">Logout</button>
+            </div>
+            
+            <button id="menu-btn" class="md:hidden text-gray-700 text-2xl"><i class="fas fa-bars"></i></button>
+        </div>
+        
+        <div id="mobileMenu" class="hidden md:hidden flex flex-col px-4 pb-4 space-y-2 text-sm text-gray-700 font-medium bg-gray-50">
+            <a href="home.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200"><i class="fas fa-house"></i> Home</a>
+
+            <a href="password.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200"><i class="fas fa-key"></i> Passwords</a>
+            <a href="income.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200"><i class="fas fa-wallet"></i> Income</a>
+            <a href="links.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200"><i class="fas fa-link"></i> Links</a>
+            <a href="calendar.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200"><i class="fas fa-calendar-alt"></i> Calendar</a>
+            <div class="border-t border-gray-300 mt-2 pt-2">
+                <p id="mobileUserName" class="font-bold text-gray-900">Loading...</p>
+                <p id="mobileUserEmail" class="text-xs text-gray-500">Loading...</p>
+                <button onclick="logout()" class="bg-red-500 text-white px-3 py-2 rounded-full hover:bg-red-600 mt-2 w-full">Logout</button>
+            </div>
+        </div>
+    </nav>
+    <div>
+<div id="searchWrapper" class="flex items-center gap-2 mb-[17px] ml-[4px] w-[340px] transition-all duration-300 overflow-hidden">
+    <button id="backBtn" onclick="toggleMobileSearchFocus(false)" class="hidden text-gray-600 text-xl p-2 hover:bg-gray-100 rounded-full transition">
+        <i class="fas fa-arrow-left"></i>
+    </button>
+    
+    <input type="text" id="searchInput" placeholder="Search..." 
+            class="flex-grow p-3 border border-gray-300 rounded-lg outline-none transition shadow-sm text-lg 
+                   hover:border-amber-400 focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
+            oninput="filterAddresses()"
+            onfocus="toggleMobileSearchFocus(true)" />
+</div></div>
+<div class="max-w-7xl mx-auto px-4 py-[14px] md:px-[30px] md:py-[30px] grid md:grid-cols-2 gap-8 -mt-[9px]">
+
+    <div class="bg-white p-6 rounded-xl shadow-lg h-fit md:sticky md:top-24 left-container">
+        <h2 class="text-2xl font-bold mb-4 text-indigo-700 border-b pb-2">➕ Save New Address</h2>
+        
+        <div class="space-y-4">
+            <div>
+                <label for="placeInput" class="block text-sm font-medium text-gray-700 mb-1">Place Name (e.g., Home, Office)</label>
+                <input type="text" id="placeInput" placeholder="Enter place name..." 
+                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition" />
+            </div>
+
+            <div>
+                <label for="landmarkInput" class="block text-sm font-medium text-gray-700 mb-1">Landmark / Details</label>
+                <textarea id="landmarkInput" 
+                          placeholder="Enter building number, street, or full address details..." 
+                          rows="2"
+                          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition resize-y"></textarea>
+            </div>
+
+            <div>
+                <label for="mapInput" class="block text-sm font-medium text-gray-700 mb-1">Google Map Location (Optional)</label>
+                <input type="url" id="mapInput" placeholder="Paste Google Maps URL or coordinates here..." 
+                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 outline-none transition mb-2" />
+                
+                <a href="https://www.google.com/maps" target="_blank" 
+                   class="w-full flex items-center justify-center gap-2 bg-white text-gray-700 border border-gray-300 py-2.5 rounded-lg hover:bg-gray-50 transition duration-300 font-medium text-sm shadow-sm">
+                    <img src="https://www.gstatic.com/images/branding/product/1x/maps_96dp.png" alt="Google Maps" class="w-5 h-5">
+                    Find Location on Google Maps
+                </a>
+            </div>
+
+            <button id="saveAddressBtn" class="w-full bg-indigo-600 text-white font-semibold py-3 rounded-lg hover:bg-indigo-700 transition duration-300 flex items-center justify-center shadow-md">
+                <i class="fas fa-save mr-2"></i> Save Address
+            </button>
+        </div>
+    </div>
+
+    <div class="right-container">
+        <h2 class="text-2xl font-bold mb-4 text-indigo-700">🏠 Your Saved Addresses</h2>
+   
+
+        <div id="addressList" class="space-y-4">
+             <div id="loadingIndicator" class="text-center p-10 text-gray-500">
+                <i class="fas fa-sync fa-2x spinner text-indigo-500 mb-3"></i>
+                <div class="text-center p-10 text-gray-400">
+                    <i class="fas fa-map-marked-alt fa-3x mb-3"></i>
+                    <p>Your saved locations will appear here.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="mt-12 pt-6 pb-6 bg-white text-gray-600 text-center text-sm border-t">
+    &copy; 2025 Personal Website | All rights reserved
+</footer>
+
+  <script>
+        // --- FIREBASE CONFIGURATION (Keep as is) ---
+        var firebaseConfig = {
+            apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc",
+            authDomain: "sk12-58e9e.firebaseapp.com",
+            databaseURL: "https://sk12-58e9e-default-rtdb.firebaseio.com",
+            projectId: "sk12-58e9e",
+            storageBucket: "sk12-58e9e.appspot.com",
+            messagingSenderId: "470207874652",
+            appId: "1:470207874652:web:67ba1cf3629b7e5b144899"
+        };
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        
+        // --- GLOBAL VARIABLES & UI ELEMENTS ---
+        let allAddresses = []; 
+        const addressListEl = document.getElementById("addressList");
+        const menuBtn = document.getElementById("menu-btn");
+        const mobileMenu = document.getElementById("mobileMenu");
+        const searchInputEl = document.getElementById("searchInput");
+
+        // --- HELPER FUNCTION: Capitalize first letter of each word ---
+        function capitalizeWords(str) {
+            if (!str) return '';
+            return str.toLowerCase().split(' ').map(word => {
+                if (word.length === 0) return '';
+                return word.charAt(0).toUpperCase() + word.slice(1);
+            }).join(' ');
+        }
+
+        // === MOBILE FOCUS LOGIC ===
+        function toggleMobileSearchFocus(isFocused) {
+            if (window.innerWidth < 768) {
+                document.body.classList.toggle('search-active', isFocused);
+                
+                if (!isFocused && searchInputEl.value.trim() === '') {
+                    setTimeout(() => document.body.classList.remove('search-active'), 100); 
+                }
+            }
+        }
+        // ==============================
+        
+        // --- UI EVENT LISTENERS ---
+        document.getElementById("saveAddressBtn").addEventListener("click", saveAddress);
+        
+        menuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('hidden');
+        });
+
+        // --- AUTHENTICATION STATE & UI UPDATE ---
+        firebase.auth().onAuthStateChanged(function(user) {
+            if (user) {
+                document.getElementById("userName").innerText = user.displayName || "My Account";
+                document.getElementById("userEmail").innerText = user.email;
+                document.getElementById("userPhoto").src = user.photoURL || "https://via.placeholder.com/40";
+                document.getElementById("mobileUserName").innerText = user.displayName || "My Account";
+                document.getElementById("mobileUserEmail").innerText = user.email;
+                
+                loadAddresses(user.uid);
+            } else {
+                window.location.href = "index.html";
+            }
+        });
+        
+        function logout() {
+            firebase.auth().signOut().then(() => window.location.href = "index.html");
+        }
+
+        // --- CRUD FUNCTIONS ---
+
+        function saveAddress() {
+            const user = firebase.auth().currentUser;
+            if (!user || !user.uid) {
+                console.error("User not logged in or UID missing. Cannot save data.");
+                alert("Error: Please Log In Again To Save Data.");
+                return;
+            }
+            
+            const place = document.getElementById("placeInput").value.trim();
+            const landmark = document.getElementById("landmarkInput").value.trim();
+            const mapLink = document.getElementById("mapInput").value.trim();
+            
+            if (!place || !landmark) {
+                alert("Please Fill Both Place Name And Landmark/Details.");
+                return;
+            }
+
+            const newRef = firebase.database().ref("addresses/" + user.uid).push();
+            newRef.set({
+                id: newRef.key,
+                place: capitalizeWords(place), 
+                landmark: capitalizeWords(landmark),
+                mapLink: mapLink, 
+                timestamp: firebase.database.ServerValue.TIMESTAMP
+            }).then(() => {
+                // Clear all input fields
+                document.getElementById("placeInput").value = "";
+                document.getElementById("landmarkInput").value = "";
+                document.getElementById("mapInput").value = "";
+                
+            }).catch(error => {
+                console.error("Error Saving Address: ", error);
+                alert("Failed To Save Address. Check Console For Details.");
+            });
+        }
+
+        function loadAddresses(uid) {
+            firebase.database().ref("addresses/" + uid).on("value", (snapshot) => {
+                allAddresses = [];
+                snapshot.forEach((child) => {
+                    allAddresses.push(child.val());
+                });
+                filterAddresses(); 
+            });
+        }
+        
+        // --- NEW FUNCTION: Toggle Edit Form ---
+        
+    
+ function toggleEditForm(id) {
+            const form = document.getElementById(`edit-form-${id}`);
+            const itemContainer = form ? form.closest('.address-item') : null; 
+            const displayView = document.getElementById(`display-view-${id}`);
+
+            if (form && itemContainer && displayView) {
+                form.classList.toggle('hidden'); 
+                
+                const isFormVisible = !form.classList.contains('hidden');
+
+                displayView.classList.toggle('hidden', isFormVisible);
+                addressListEl.classList.toggle('editing', isFormVisible);
+                itemContainer.classList.toggle('is-editing', isFormVisible);
+                searchInputEl.classList.toggle('hidden', isFormVisible);
+
+                if (isFormVisible) {
+                    const data = allAddresses.find(item => item.id === id);
+                    if (data) {
+                         document.getElementById(`edit-place-${id}`).value = data.place;
+                         document.getElementById(`edit-landmark-${id}`).value = data.landmark;
+                         document.getElementById(`edit-map-${id}`).value = data.mapLink || '';
+                    }
+
+                    itemContainer.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'nearest'
+                    });
+                }
+            }
+        }
+
+        function saveEditedAddress(id) {
+            const user = firebase.auth().currentUser;
+            if (!user) return;
+
+            const newPlace = document.getElementById(`edit-place-${id}`).value.trim();
+            const newLandmark = document.getElementById(`edit-landmark-${id}`).value.trim();
+            const newMapLink = document.getElementById(`edit-map-${id}`).value.trim();
+
+            if (!newPlace || !newLandmark) {
+                alert("Place Name And Landmark Cannot Be Empty.");
+                return;
+            }
+
+            // --- FIX: Ensure the edit form is hidden before the Firebase call ---
+            const editForm = document.getElementById(`edit-form-${id}`);
+            const itemContainer = editForm.closest('.address-item'); 
+            const displayView = document.getElementById(`display-view-${id}`);
+            
+            // Hide the edit form and show the display view (it will be refreshed by Firebase)
+            editForm.classList.add('hidden');
+            displayView.classList.remove('hidden'); 
+
+            // Reset global editing state
+            addressListEl.classList.remove('editing');
+            itemContainer.classList.remove('is-editing');
+            searchInputEl.classList.remove('hidden');
+            // ---------------------------------------------------------------------
+
+
+            firebase.database().ref("addresses/" + user.uid + "/" + id).update({
+                place: capitalizeWords(newPlace),
+                landmark: capitalizeWords(newLandmark),
+                mapLink: newMapLink
+            }).then(() => {
+                // Success: The listener will now automatically re-render the list with updated data.
+                
+            }).catch(error => {
+                console.error("Update Failed:", error);
+                alert("Failed to save changes. Check console for details.");
+                
+                // If it fails, restore the edit form view manually
+                const editForm = document.getElementById(`edit-form-${id}`);
+                const displayView = document.getElementById(`display-view-${id}`);
+                
+                if (displayView && editForm) {
+                    editForm.classList.remove('hidden'); 
+                    displayView.classList.add('hidden'); 
+                }
+                
+                addressListEl.classList.add('editing');
+                itemContainer.classList.add('is-editing');
+                searchInputEl.classList.add('hidden'); 
+            });
+        }
+
+        function deleteAddress(uid, id) {
+            if (confirm("Are You Sure You Want To Permanently Delete This Address?")) {
+                firebase.database().ref("addresses/" + uid + "/" + id).remove()
+                    .catch(error => console.error("Deletion Failed:", error));
+            }
+        }
+function shareAddress(place, landmark, mapLink, method = 'system') {
+    let text = `Check Out This Address:\n*Place:* ${place}\n*Details:* ${landmark}`;
+    if (mapLink) {
+        text += `\n*Map Link:* ${mapLink}`;
+    }
+
+    if (method === 'whatsapp') {
+        // Direct protocol 'whatsapp://' opens the app immediately bypassing the browser landing page
+        const whatsappAppUrl = `whatsapp://send?text=${encodeURIComponent(text)}`;
+        window.location.href = whatsappAppUrl;
+    } else {
+        // Standard System Share for all other options (Email, Teams, etc.)
+        if (navigator.share) {
+            navigator.share({
+                title: `Address: ${place}`,
+                text: text,
+            }).catch(error => console.log('Error sharing', error));
+        } else {
+            navigator.clipboard.writeText(text).then(() => alert('Copied to clipboard!'));
+        }
+    }
+}
+        // --- FILTERING & RENDERING (Renders full details always) ---
+          function displayFilteredAddresses(dataList) {
+    addressListEl.innerHTML = "";
+
+    if (dataList.length === 0) {
+        addressListEl.innerHTML = '<div class="text-center p-6 text-gray-500 bg-gray-100 rounded-lg">No Addresses Found Matching Your Search.</div>';
+        return;
+    }
+
+    dataList.forEach((data) => {
+        const uid = firebase.auth().currentUser.uid;
+        const div = document.createElement("div");
+        div.id = `item-${data.id}`;
+        div.className = "address-item bg-white p-4 border border-gray-200 rounded-xl shadow-md hover:shadow-lg transition duration-300";
+
+        const mapButtonHTML = data.mapLink ? `
+            <a href="${data.mapLink}" target="_blank" class="bg-indigo-500 text-white px-3 py-1 rounded-full hover:bg-indigo-600 transition text-sm flex items-center">
+                <i class="fas fa-map-marker-alt mr-1"></i> View Map
+            </a>` : '';
+
+        div.innerHTML = `
+            <div id="display-view-${data.id}" class="">
+                <div class="flex justify-between items-start">
+                    <div class="flex-grow">
+                        <p class="text-lg font-bold text-gray-800">${data.place}</p>
+                        <p class="text-sm text-gray-600 whitespace-pre-wrap">${data.landmark}</p>
+                    </div>
+                </div>
+                <div class="flex flex-wrap justify-end gap-2 mt-3"> 
+                    ${mapButtonHTML}
+                    
+                    <button class="bg-orange-500 text-white px-3 py-1 rounded-full hover:bg-green-700 transition text-sm flex items-center" 
+                            onclick="shareAddress('${data.place}', '${data.landmark}', '${data.mapLink || ''}', 'whatsapp')">
+                        <i class="fab fa-whatsapp mr-1"></i> WhatsApp
+                    </button>
+
+                    <button class="bg-blue-500 text-white px-3 py-1 rounded-full hover:bg-blue-600 transition text-sm flex items-center" 
+                            onclick="shareAddress('${data.place}', '${data.landmark}', '${data.mapLink || ''}', 'system')">
+                        <i class="fas fa-share-alt mr-1"></i> Share
+                    </button>
+
+                    <button class="bg-yellow-500 text-white px-3 py-1 rounded-full hover:bg-yellow-600 transition text-sm flex items-center" 
+                            onclick="toggleEditForm('${data.id}')">
+                        <i class="fas fa-edit mr-1"></i> Edit
+                    </button>
+                    <button class="bg-purple-500 text-white px-3 py-1 rounded-full hover:bg-red-600 transition text-sm flex items-center" 
+                            onclick="deleteAddress('${uid}', '${data.id}')">
+                        <i class="fas fa-trash-alt mr-1"></i> Delete
+                    </button>
+                </div>
+            </div>
+            <div id="edit-form-${data.id}" class="hidden space-y-3 pt-3 border-t mt-3">
+                <h4 class="font-bold text-gray-700">Editing: ${data.place}</h4>
+                <label class="block text-xs font-medium text-gray-500">Place Name</label>
+                <input type="text" id="edit-place-${data.id}" value="${data.place}" class="w-full p-2 border border-gray-300 rounded-lg text-sm" />
+                <label class="block text-xs font-medium text-gray-500">Details</label>
+                <textarea id="edit-landmark-${data.id}" rows="2" class="w-full p-2 border border-gray-300 rounded-lg text-sm">${data.landmark}</textarea>
+                <label class="block text-xs font-medium text-gray-500">Map Link</label>
+                <input type="url" id="edit-map-${data.id}" value="${data.mapLink || ''}" class="w-full p-2 border border-gray-300 rounded-lg text-sm" />
+                <div class="flex justify-end gap-2 mt-3">
+                    <button class="bg-green-500 text-white px-3 py-1 rounded-full text-sm" onclick="saveEditedAddress('${data.id}')">Save</button>
+                    <button class="bg-gray-500 text-white px-3 py-1 rounded-full text-sm" onclick="toggleEditForm('${data.id}')">Cancel</button>
+                </div>
+            </div>
+        `;
+        addressListEl.appendChild(div);
+    });
+}
+
+  function filterAddresses() {
+            if (!addressListEl.classList.contains('editing')) {
+                const query = document.getElementById("searchInput").value.toLowerCase();
+                const filtered = allAddresses.filter(item =>
+                    item.place.toLowerCase().includes(query) || item.landmark.toLowerCase().includes(query)
+                );
+                displayFilteredAddresses(filtered);
+            }
+        }
+function toggleMobileSearchFocus(isFocused) {
+    const searchWrapper = document.getElementById("searchWrapper");
+    const backBtn = document.getElementById("backBtn");
+    const leftContainer = document.querySelector(".left-container");
+    const rightHeader = document.querySelector(".right-container h2");
+    const navBar = document.querySelector("nav");
+
+    if (window.innerWidth < 768) {
+        if (isFocused) {
+            // 1. Hide everything else
+            leftContainer.classList.add("hidden");
+            rightHeader.classList.add("hidden");
+            navBar.classList.add("hidden");
+            
+            // 2. Move Search to the very top
+            searchWrapper.classList.add("fixed", "top-0", "left-0", "w-full", "bg-white", "z-50", "p-4", "shadow-md");
+            backBtn.classList.remove("hidden");
+            
+            // 3. Add padding to list so it's not hidden under fixed search
+            addressListEl.style.marginTop = "80px";
+        } else {
+            // Restore everything
+            leftContainer.classList.remove("hidden");
+            rightHeader.classList.remove("hidden");
+            navBar.classList.remove("hidden");
+            
+            searchWrapper.classList.remove("fixed", "top-0", "left-0", "w-full", "bg-white", "z-50", "p-4", "shadow-md");
+            backBtn.classList.add("hidden");
+            
+            addressListEl.style.marginTop = "0px";
+            searchInputEl.value = ""; // Clear search on back
+            filterAddresses();
+        }
+    }
+}
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+

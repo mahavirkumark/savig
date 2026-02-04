@@ -1,0 +1,621 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daily Tasks - My Personal Website</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+
+    <style>
+        /* Custom CSS for Animations and Modern UI */
+        .task-list-item {
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        .task-list-item:hover {
+            transform: translateY(-2px) scale(1.01);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        /* Animation for Check/Delete buttons */
+        .control-btn {
+            transition: transform 0.15s ease-out;
+        }
+        .control-btn:active {
+            transform: scale(0.9);
+        }
+        /* Style for the main container cards */
+        .task-card {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+        }
+        /* Custom class to prevent text cutting */
+        .task-completed .task-name {
+            text-decoration: none !important; /* Override line-through */
+        }
+    </style>
+</head>
+<body class="bg-gray-50">
+
+    <nav class="bg-white shadow-lg fixed w-full z-50">
+        <div class="container mx-auto flex justify-between items-center p-4 md:px-8">
+            <div class="flex items-center gap-2 text-xl font-bold text-gray-800">
+                <i class="fas fa-user-circle text-indigo-500" style="font-size: 28px;"></i>
+                <span style="font-size: 22px;">My Personal Website</span>
+            </div>
+            <div class="hidden md:flex space-x-6 text-gray-600 font-medium">
+                <a href="home.html" class="flex items-center gap-2 hover:text-indigo-500 transition duration-300" style="font-size: 18px;"><i class="fas fa-house"></i> Home</a>
+                <a href="adress.html" class="flex items-center gap-2 hover:text-indigo-500 transition duration-300" style="font-size: 18px;"><i class="fas fa-tasks"></i> Address</a>
+                <a href="password.html" class="flex items-center gap-2 hover:text-indigo-500 transition duration-300" style="font-size: 18px;"><i class="fas fa-key"></i> Passwords</a>
+                <a href="income.html" class="flex items-center gap-2 hover:text-indigo-500 transition duration-300" style="font-size: 18px;"><i class="fas fa-wallet"></i> Income</a>
+                <a href="links.html" class="flex items-center gap-2 hover:text-indigo-500 transition duration-300" style="font-size: 18px;"><i class="fas fa-link"></i> Links</a>
+            
+                <a href="calendar.html" class="flex items-center gap-2 hover:text-indigo-500 transition duration-300" style="font-size: 18px;"><i class="fas fa-calendar-alt"></i> Calendar</a>
+            </div>
+            <div class="hidden md:flex items-center gap-4">
+                <div class="text-right">
+                    <p id="userName" class="font-bold text-gray-900">Loading...</p>
+                    <p id="userEmail" class="text-sm text-gray-500">Loading...</p>
+                </div>
+                <img id="userPhoto" src="https://via.placeholder.com/40" class="w-10 h-10 rounded-full border-2 border-indigo-500">
+                <button id="desktopLogout" onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-full hover:bg-red-600 transition duration-300 control-btn">Logout</button>
+            </div>
+            <button id="menu-btn" class="md:hidden text-gray-700 text-2xl control-btn"><i class="fas fa-bars"></i></button>
+        </div>
+        <div id="mobileMenu" class="hidden md:hidden flex flex-col px-4 pb-4 space-y-2 text-sm text-gray-700 font-medium bg-gray-50">
+            <a href="home.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200"><i class="fas fa-house"></i> Home</a>
+            <a href="adress.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200"><i class="fas fa-tasks"></i> Address</a>
+            <a href="password.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200"><i class="fas fa-key"></i> Passwords</a>
+            <a href="income.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200"><i class="fas fa-wallet"></i> Income</a>
+            <a href="links.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200"><i class="fas fa-link"></i> Links</a>
+             <a href="birthday.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200"><i class="fas fa-link"></i> Birthday</a>
+            <a href="calendar.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200"><i class="fas fa-calendar-alt"></i> Calendar</a>
+            <div class="border-t border-gray-300 mt-2 pt-2">
+                <p id="mobileUserName" class="font-bold text-gray-900">Loading...</p>
+                <p id="mobileUserEmail" class="text-xs text-gray-500">Loading...</p>
+                <button onclick="logout()" class="bg-red-500 text-white px-3 py-2 rounded-full hover:bg-red-600 mt-2 w-full control-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+    <main class="pt-24 container mx-auto p-4 md:px-8">
+        <h1 class="text-3xl font-extrabold text-gray-900 mb-8 flex items-center gap-3">
+            <i class="fas fa-list-check text-indigo-600"></i> Daily Task Manager
+        </h1>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
+            
+            <div class="bg-white task-card rounded-xl p-6 border border-gray-100 lg:col-span-1">
+                <h2 class="text-xl font-semibold mb-4 text-gray-700 border-b pb-3">Add New Task</h2>
+                <form id="taskForm" class="grid grid-cols-1 gap-4">
+                    <div>
+                        <input type="text" id="taskName" placeholder="What needs to be done?" required 
+                               class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150">
+                    </div>
+                    <div>
+                        <label for="taskDate" class="text-sm font-medium text-gray-600 block mb-1">Due Date</label>
+                        <input type="date" id="taskDate" required 
+                               class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150">
+                    </div>
+                    <div>
+                        <label for="taskTime" class="text-sm font-medium text-gray-600 block mb-1">Time (e.g., 9:00 AM)</label>
+                        <input type="text" id="taskTime" placeholder="Optional: e.g., 1:30 PM"
+                               class="w-full p-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition duration-150">
+                    </div>
+                    <div>
+                        <button type="submit" class="w-full bg-indigo-600 text-white p-3 rounded-xl font-bold hover:bg-indigo-700 transition duration-300 control-btn mt-4">
+                            <i class="fas fa-plus mr-2"></i> Add Task
+                        </button>
+                    </div>
+                </form>
+            </div>
+
+            <div class="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-8">
+
+                <div class="bg-white task-card rounded-xl p-6 border border-indigo-200/50">
+                    <h2 class="text-xl font-bold mb-4 text-indigo-600 flex items-center gap-2 border-b-2 border-indigo-100 pb-3">
+                        <i class="fas fa-sun"></i> Today's Tasks (<span id="todayDateDisplay"></span>)
+                    </h2>
+                    <ul id="todayTaskList" class="space-y-3 pt-3">
+                        <li class="text-gray-500">Loading tasks...</li>
+                    </ul>
+                </div>
+
+                <div class="bg-white task-card rounded-xl p-6 border border-yellow-200/50">
+                    <h2 class="text-2xl font-bold mb-4 text-yellow-600 flex items-center gap-2 border-b-2 border-yellow-100 pb-3">
+                        <i class="fas fa-calendar-day"></i> Upcoming Tasks
+                    </h2>
+                    <div class="mb-4">
+                        <div class="relative">
+                            <input type="text" id="upcomingSearch" placeholder="Search upcoming tasks..." 
+                                   class="w-full pl-10 pr-4 py-2 border border-yellow-300 rounded-lg focus:ring-yellow-500 focus:border-yellow-500 transition">
+                            <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-yellow-500"></i>
+                        </div>
+                    </div>
+                    <ul id="upcomingTaskList" class="space-y-3 pt-3">
+                        <li class="text-gray-500">Loading tasks...</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bg-white task-card rounded-xl p-6 border border-green-200/50">
+            <h2 class="text-2xl font-bold mb-4 text-green-600 flex items-center gap-2 border-b-2 border-green-100 pb-3">
+                <i class="fas fa-check-double"></i> Completed Tasks
+            </h2>
+            <div class="mb-4">
+                <div class="relative">
+                    <input type="text" id="completedSearch" placeholder="Search completed tasks..." 
+                           class="w-full pl-10 pr-4 py-2 border border-green-300 rounded-lg focus:ring-green-500 focus:border-green-500 transition">
+                    <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-green-500"></i>
+                </div>
+            </div>
+            <ul id="completedTaskList" class="space-y-3 pt-3">
+                <li class="text-gray-500">No tasks completed yet.</li>
+            </ul>
+        </div>
+        
+    </main>
+
+    <script type="module">
+        // =================================================================
+        // 1. CONFIGURATION AND INITIALIZATION
+        // =================================================================
+
+        // --- Firebase Configuration (REPLACE WITH YOUR OWN CONFIG) ---
+        const firebaseConfig = {
+            apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc",
+            authDomain: "sk12-58e9e.firebaseapp.com",
+            projectId: "sk12-58e9e",
+            storageBucket: "sk12-58e9e.appspot.com",
+            messagingSenderId: "470207874652",
+            appId: "1:470207874652:web:67ba1cf3629b7e5b144899"
+        };
+        if (!firebase.apps.length) {
+            firebase.initializeApp(firebaseConfig);
+        }
+        const auth = firebase.auth();
+        const database = firebase.database(); 
+
+        // Global state variables
+        let currentUserId = null;
+        let allTasks = {}; 
+
+        // Date constants
+        const TODAY_DATE = new Date();
+        const TODAY_DATE_KEY = TODAY_DATE.toISOString().split('T')[0]; // YYYY-MM-DD format
+        const TASK_LAST_NOTIFIED_KEY = 'lastDailyTaskNotificationDate';
+        const AUTO_DELETE_DAYS = 30; // Tasks completed more than 30 days ago will be deleted.
+
+        // Date formatting utility function: 2 Jan 2025 (Wed)
+        function formatDateForDisplay(dateString) {
+            if (!dateString) return '';
+            try {
+                // Parse date string in YYYY-MM-DD format as UTC to prevent local timezone offset issues
+                const dateParts = dateString.split('-');
+                // Using new Date(year, monthIndex, day) constructor to correctly handle date without time
+                const date = new Date(Date.UTC(dateParts[0], dateParts[1] - 1, dateParts[2]));
+
+                const options = { 
+                    year: 'numeric', 
+                    month: 'short', 
+                    day: 'numeric', 
+                    weekday: 'short',
+                    timeZone: 'UTC' // Explicitly use UTC for consistent output
+                };
+                
+                const day = date.getUTCDate();
+                const month = date.toLocaleDateString('en-US', { month: 'short', timeZone: 'UTC' });
+                const year = date.toLocaleDateString('en-US', { year: 'numeric', timeZone: 'UTC' });
+                const weekday = date.toLocaleDateString('en-US', { weekday: 'short', timeZone: 'UTC' }).replace(/\.$/, '');
+
+                return `${day} ${month} ${year} (${weekday})`;
+
+            } catch (e) {
+                console.error("Date formatting failed:", e);
+                return dateString;
+            }
+        }
+
+
+        // =================================================================
+        // 2. TASK FIREBASE LOGIC
+        // =================================================================
+
+        /**
+         * Checks and removes completed tasks older than 30 days.
+         */
+        function autoCleanupCompletedTasks() {
+            if (!currentUserId || !allTasks) return;
+
+            // Calculate cutoff timestamp (30 days ago)
+            const cutoffTimestamp = TODAY_DATE.getTime() - (AUTO_DELETE_DAYS * 24 * 60 * 60 * 1000);
+            let tasksToDelete = [];
+
+            Object.entries(allTasks).forEach(([taskId, task]) => {
+                // If task is completed and has a timestamp (completion time)
+                if (task.completed && task.timestamp) {
+                    if (task.timestamp < cutoffTimestamp) {
+                        tasksToDelete.push(taskId);
+                    }
+                }
+            });
+
+            if (tasksToDelete.length > 0) {
+                console.log(`Auto-cleanup: Deleting ${tasksToDelete.length} old completed tasks.`);
+                
+                const updates = {};
+                tasksToDelete.forEach(taskId => {
+                    updates[`/users/${currentUserId}/tasks/${taskId}`] = null;
+                });
+
+                database.ref().update(updates)
+                    .then(() => {
+                        console.log("Old completed tasks removed successfully.");
+                    })
+                    .catch(error => {
+                        console.error("Error during auto-cleanup:", error);
+                    });
+            } else {
+                console.log("Auto-cleanup: No old completed tasks found for deletion.");
+            }
+        }
+
+        /**
+         * Adds a new task to Firebase Realtime Database.
+         */
+        function addTaskToFirebase(name, date, time) {
+            if (!currentUserId) {
+                console.error("Task not added: User ID is null.");
+                alert("Cannot add task. Please ensure you are logged in.");
+                return;
+            }
+
+            const newTaskRef = database.ref(`users/${currentUserId}/tasks`).push();
+            newTaskRef.set({
+                name: name,
+                date: date, 
+                time: time || '',
+                completed: false,
+                timestamp: firebase.database.ServerValue.TIMESTAMP 
+            })
+            .then(() => {
+                document.getElementById('taskForm').reset();
+                document.getElementById('taskDate').value = TODAY_DATE_KEY;
+                console.log("Task successfully added to Firebase.");
+            })
+            .catch(error => {
+                console.error("Error adding task:", error);
+                alert("Failed to add task. Check Firebase Rules: " + error.message);
+            });
+        }
+
+        /**
+         * Updates a task's completion status in Firebase.
+         */
+        function toggleTaskCompletion(taskId, isCompleted) {
+            if (!currentUserId) return;
+
+            database.ref(`users/${currentUserId}/tasks/${taskId}`).update({
+                completed: isCompleted,
+                timestamp: firebase.database.ServerValue.TIMESTAMP 
+            })
+            .then(() => {
+                if (isCompleted) {
+                    const li = document.querySelector(`li[data-id="${taskId}"]`);
+                    if (li) {
+                        li.classList.add('animate-pulse', 'border-4', 'border-green-400');
+                        setTimeout(() => {
+                            li.classList.remove('animate-pulse', 'border-4', 'border-green-400');
+                        }, 500);
+                    }
+                    alert('🎉 Task Completed! Great job!');
+                }
+            })
+            .catch(error => {
+                console.error("Error updating task:", error);
+                alert("Failed to update task: " + error.message);
+            });
+        }
+
+        /**
+         * Deletes a task from Firebase.
+         */
+        function deleteTask(taskId) {
+            if (!currentUserId) return;
+
+            if (confirm("Are you sure you want to delete this task?")) {
+                database.ref(`users/${currentUserId}/tasks/${taskId}`).remove()
+                    .then(() => {
+                        console.log("Task deleted.");
+                    })
+                    .catch(error => {
+                        console.error("Error deleting task:", error);
+                    });
+            }
+        }
+        
+        // Placeholder for edit/share functionality
+        function editTask(taskId) {
+            alert(`Edit functionality for Task ID: ${taskId} is not yet implemented.`);
+            // In a real app, this would open a modal/form pre-filled with task data
+        }
+        function shareTask(taskId) {
+            const task = allTasks[taskId];
+            const text = `Check out my completed task: "${task.name}" (Finished on ${formatDateForDisplay(task.date)}).`;
+            if (navigator.share) {
+                navigator.share({
+                    title: 'My Daily Task',
+                    text: text,
+                }).catch(error => console.error('Error sharing:', error));
+            } else {
+                // Fallback for browsers without native share
+                prompt("Copy and paste this to share:", text);
+            }
+        }
+
+
+        /**
+         * Loads the user's task data from Firebase using an active listener.
+         */
+        function loadTaskData() {
+            if (!currentUserId) return;
+
+            const tasksRef = database.ref(`users/${currentUserId}/tasks`);
+            tasksRef.on('value', (snapshot) => {
+                allTasks = snapshot.val() || {};
+                console.log("Task data updated from Firebase.");
+                
+                autoCleanupCompletedTasks(); // Run cleanup after loading data
+                renderTasks(); // Re-render the UI whenever data changes
+            }, (error) => {
+                console.error("Firebase Read Failed:", error);
+            });
+        }
+
+
+        // =================================================================
+        // 3. UI RENDERING AND SEARCH LOGIC
+        // =================================================================
+
+        /**
+         * Renders the list of tasks to the UI based on their status and date, applying optional search filtering.
+         */
+        function renderTasks() {
+            const todayList = document.getElementById('todayTaskList');
+            const upcomingList = document.getElementById('upcomingTaskList');
+            const completedList = document.getElementById('completedTaskList');
+            const todayDateDisplay = document.getElementById('todayDateDisplay');
+
+            // Get search terms
+            const upcomingSearchTerm = document.getElementById('upcomingSearch').value.toLowerCase().trim();
+            const completedSearchTerm = document.getElementById('completedSearch').value.toLowerCase().trim();
+
+            // Clear previous lists
+            todayList.innerHTML = '';
+            upcomingList.innerHTML = '';
+            completedList.innerHTML = '';
+            
+            // Format today's date for display in the heading
+            todayDateDisplay.textContent = formatDateForDisplay(TODAY_DATE_KEY);
+
+            let todayTaskCount = 0;
+            let tasksForNotification = [];
+            
+            // Sort tasks by date/time
+            const sortedTaskIds = Object.keys(allTasks).sort((a, b) => {
+                const dateA = allTasks[a].date + (allTasks[a].time || '23:59'); 
+                const dateB = allTasks[b].date + (allTasks[b].time || '23:59');
+                return dateA.localeCompare(dateB);
+            });
+
+            sortedTaskIds.forEach(taskId => {
+                const task = allTasks[taskId];
+                const taskNameLower = task.name.toLowerCase();
+
+                // --- Task categorization ---
+                let targetList = null;
+                let isFiltered = false;
+
+                if (task.completed) {
+                    if (completedSearchTerm && !taskNameLower.includes(completedSearchTerm)) {
+                        isFiltered = true;
+                    }
+                    targetList = completedList;
+                } else if (task.date === TODAY_DATE_KEY) {
+                    targetList = todayList;
+                    todayTaskCount++;
+                    tasksForNotification.push(task.name + (task.time ? ` (${task.time})` : ''));
+                } else if (task.date > TODAY_DATE_KEY) {
+                    if (upcomingSearchTerm && !taskNameLower.includes(upcomingSearchTerm)) {
+                        isFiltered = true;
+                    }
+                    targetList = upcomingList;
+                }
+
+                if (isFiltered || !targetList) return; 
+
+                // --- Create List Item UI ---
+                const li = document.createElement('li');
+                li.className = 'task-list-item flex items-center justify-between p-4 border-b border-gray-100 last:border-b-0 rounded-lg shadow-sm bg-white hover:shadow-lg'; 
+                li.setAttribute('data-id', taskId);
+
+                // Task details (Name and Date/Time)
+                const details = document.createElement('div');
+                details.className = 'flex-1 min-w-0';
+                
+                // Use the custom CSS class 'task-name' and 'task-completed' to control line-through
+                const taskNameClass = task.completed ? 'text-gray-700 font-semibold task-name' : 'text-gray-800 font-semibold';
+                li.classList.toggle('task-completed', task.completed); // Add task-completed class to li
+                
+                details.innerHTML = `
+                    <p class="${taskNameClass}">${task.name}</p>
+                    <p class="text-xs text-gray-500 mt-1">${formatDateForDisplay(task.date)}${task.time ? ' @ ' + task.time : ''}</p>
+                `;
+
+                // Controls (Check/Uncheck and Delete buttons)
+                const controls = document.createElement('div');
+                controls.className = 'flex space-x-2 ml-4 flex-shrink-0';
+
+                // Check/Uncheck button
+                const checkBtn = document.createElement('button');
+                checkBtn.className = `control-btn w-9 h-9 rounded-full flex items-center justify-center text-white text-lg transition duration-200 shadow-md ${task.completed ? 'bg-green-600 hover:bg-green-700' : 'bg-indigo-400 hover:bg-indigo-500'}`;
+                checkBtn.innerHTML = `<i class="fas ${task.completed ? 'fa-check' : 'fa-check-circle'}"></i>`;
+                checkBtn.onclick = () => toggleTaskCompletion(taskId, !task.completed);
+                
+                // Delete button (Standard for all lists)
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'control-btn w-9 h-9 rounded-full flex items-center justify-center text-red-500 hover:bg-red-100 transition duration-200 text-lg';
+                deleteBtn.innerHTML = `<i class="fas fa-trash-alt"></i>`;
+                deleteBtn.onclick = () => deleteTask(taskId);
+                
+                controls.appendChild(checkBtn);
+
+                // Add Edit and Share buttons for COMPLETED tasks
+                if (targetList === completedList) {
+                    const editBtn = document.createElement('button');
+                    editBtn.className = 'control-btn w-9 h-9 rounded-full flex items-center justify-center text-blue-500 hover:bg-blue-100 transition duration-200 text-lg';
+                    editBtn.innerHTML = `<i class="fas fa-edit"></i>`;
+                    editBtn.onclick = () => editTask(taskId);
+
+                    const shareBtn = document.createElement('button');
+                    shareBtn.className = 'control-btn w-9 h-9 rounded-full flex items-center justify-center text-indigo-500 hover:bg-indigo-100 transition duration-200 text-lg';
+                    shareBtn.innerHTML = `<i class="fas fa-share-alt"></i>`;
+                    shareBtn.onclick = () => shareTask(taskId);
+
+                    controls.appendChild(editBtn);
+                    controls.appendChild(shareBtn);
+                }
+                
+                controls.appendChild(deleteBtn);
+
+                li.appendChild(details);
+                li.appendChild(controls);
+
+                // Add to list and set background color
+                if (targetList === completedList) {
+                    li.classList.add('bg-green-50');
+                } else if (targetList === todayList) {
+                    li.classList.add('bg-indigo-50');
+                } else if (targetList === upcomingList) {
+                    li.classList.add('bg-yellow-50');
+                }
+
+                targetList.appendChild(li);
+            });
+
+            // Handle empty lists (including search results)
+            if (todayList.children.length === 0) todayList.innerHTML = '<li class="text-gray-500 p-4 border border-gray-200 rounded-lg bg-gray-50">🎉 You have no tasks planned for today!</li>';
+            if (upcomingList.children.length === 0) upcomingList.innerHTML = `<li class="text-gray-500 p-4 border border-gray-200 rounded-lg bg-gray-50">${upcomingSearchTerm ? 'No upcoming tasks match your search.' : '🧘‍♀️ No upcoming tasks found. Time to relax!'}</li>`;
+            if (completedList.children.length === 0) completedList.innerHTML = `<li class="text-gray-500 p-4 border border-gray-200 rounded-lg bg-gray-50">${completedSearchTerm ? 'No completed tasks match your search.' : '⏳ Complete a task to see it here.'}</li>`;
+
+            // Trigger notification (kept for completeness)
+            if (todayTaskCount > 0) {
+                const message = tasksForNotification.length === 1
+                    ? `Your task for today: ${tasksForNotification[0]}.`
+                    : `You have ${tasksForNotification.length} tasks today: ${tasksForNotification.slice(0, 3).join(', ')}${tasksForNotification.length > 3 ? '...' : ''}`;
+                    
+                // displayTaskNotification(`Daily Task Reminder! 🔔`, message);
+            }
+        }
+        
+        // Notification logic (kept for completeness)
+        function requestNotificationPermission() {
+            if (!('Notification' in window)) return;
+            Notification.requestPermission().then(permission => {
+                if (permission === 'granted') console.log('Notification permission granted.');
+            });
+        }
+        function displayTaskNotification(title, body) {
+            if (localStorage.getItem(TASK_LAST_NOTIFIED_KEY) === TODAY_DATE_KEY) return;
+            if (Notification.permission === 'granted') {
+                new Notification(title, { body: body, icon: 'https://via.placeholder.com/40', tag: 'daily-task-reminder' });
+                localStorage.setItem(TASK_LAST_NOTIFIED_KEY, TODAY_DATE_KEY);
+            }
+        }
+
+
+        // =================================================================
+        // 4. MAIN APP FLOW & EVENT LISTENERS
+        // =================================================================
+
+        function setupEventListeners() {
+            // Task Form Submission
+            document.getElementById('taskForm').addEventListener('submit', (e) => {
+                e.preventDefault();
+                const taskName = document.getElementById('taskName').value.trim();
+                const taskDate = document.getElementById('taskDate').value;
+                const taskTime = document.getElementById('taskTime').value.trim();
+
+                if (taskName && taskDate) {
+                    addTaskToFirebase(taskName, taskDate, taskTime);
+                } else {
+                    alert('Please enter a task name and a date.');
+                }
+            });
+            
+            // Attach search event listeners
+            document.getElementById('upcomingSearch').addEventListener('input', renderTasks);
+            document.getElementById('completedSearch').addEventListener('input', renderTasks);
+
+            // Set default date to today's date
+            document.getElementById('taskDate').value = TODAY_DATE_KEY;
+
+            // UI and Auth logic
+            const menuBtn = document.getElementById('menu-btn');
+            const mobileMenu = document.getElementById('mobileMenu');
+            const desktopLogoutBtn = document.getElementById('desktopLogout');
+
+            if (menuBtn && mobileMenu) {
+                menuBtn.addEventListener('click', () => {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
+            if (desktopLogoutBtn) {
+                desktopLogoutBtn.addEventListener('click', window.logout);
+            }
+        }
+
+        function updateUI(user) {
+            // Updates the navbar user info (kept for completeness)
+            const userName = user.displayName || 'Task User';
+            const userEmail = user.email || 'user@example.com';
+            let initial = (user.email && user.email.length > 0) ? user.email[0].toUpperCase() : 'U';
+            const photoPlaceholder = `https://via.placeholder.com/100/3b82f6/ffffff?text=${initial}`;
+            const userPhoto = user.photoURL || photoPlaceholder; 
+
+            document.querySelectorAll('#userName, #mobileUserName').forEach(el => el.textContent = userName);
+            document.querySelectorAll('#userEmail, #mobileUserEmail').forEach(el => el.textContent = userEmail);
+            document.querySelectorAll('#userPhoto').forEach(el => el.src = userPhoto);
+            
+            currentUserId = user.uid;
+        }
+        
+        // Expose logout function globally
+        window.logout = function() {
+            auth.signOut().then(() => { 
+                window.location.href = 'index.html'; 
+            }).catch(error => { 
+                console.error('Sign out failed:', error);
+                alert('Sign out failed: ' + error.message); 
+            });
+        }
+
+        // --- AUTH STATE MANAGEMENT (The App Entry Point) ---
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                updateUI(user);
+                requestNotificationPermission(); 
+                loadTaskData(); 
+                setupEventListeners();
+                
+            } else {
+                // User is signed out, redirect to login page
+                window.location.href = 'index.html';
+            }
+        });
+    </script>
+</body>
+</html>

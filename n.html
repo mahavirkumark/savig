@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Secure Login with PIN</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+body { font-family:'Segoe UI',sans-serif; background-color:#f8fafc; overflow-x:hidden; }
+.animate-card { animation:fadeSlideUp 0.8s ease-out forwards; }
+@keyframes fadeSlideUp {0%{opacity:0;transform:translateY(40px) scale(0.95);}100%{opacity:1;transform:translateY(0) scale(1);} }
+.btn-hover { transition: all 0.3s ease; }
+.btn-hover:hover { transform:scale(1.05) translateY(-3px); box-shadow:0 10px 20px rgba(0,0,0,0.2); background-color:#0d6efd; color:white; }
+</style>
+</head>
+<body class="min-h-screen flex flex-col justify-between">
+
+<nav class="bg-white shadow-md p-4">
+  <div class="container mx-auto flex justify-between items-center">
+    <div class="text-xl font-bold text-black flex items-center gap-2">
+      <i class="fas fa-user-circle text-2xl text-blue-500"></i>
+      <span class="text-xl font-bold">My Personal Website</span>
+    </div>
+  </div>
+</nav>
+
+<main class="flex-grow flex items-center justify-center bg-gray-100 px-4 w-full">
+
+  <!-- Google Login -->
+  <div id="loginCard" class="border-2 border-gray-200 rounded-2xl p-8 sm:p-10 shadow-xl bg-white w-full max-w-sm sm:max-w-md text-center animate-card">
+    <h2 class="text-xl sm:text-2xl font-semibold mb-6 text-gray-700">Login with Google</h2>
+    <button id="googleLoginBtn" class="flex items-center justify-center gap-3 text-lg sm:text-xl font-medium px-6 sm:px-8 py-3 sm:py-4 rounded-full bg-white text-gray-800 border-2 border-blue-500 shadow-md btn-hover mx-auto">
+      <img src="https://developers.google.com/identity/images/g-logo.png" class="w-6 h-6 sm:w-7 sm:h-7"> Sign in with Google
+    </button>
+  </div>
+
+  <!-- PIN Card -->
+  <div id="pinCard" class="hidden border-2 border-gray-200 rounded-2xl p-8 sm:p-10 shadow-xl bg-white w-full max-w-sm sm:max-w-md text-center animate-card">
+
+    <h2 id="pinTitle" class="text-xl sm:text-2xl font-semibold mb-6 text-gray-700">Enter PIN</h2>
+
+    <!-- ✅ Message Box -->
+    <div id="messageBox" class="hidden mb-4 p-3 rounded-lg text-sm font-medium"></div>
+
+    <!-- Standard PIN input -->
+    <input id="pinInput" type="password" maxlength="6" placeholder="Enter 4-6 digit PIN" class="w-full p-3 border rounded-lg mb-4 text-center"/>
+
+    <!-- Reset PIN inputs (hidden initially) -->
+    <div id="resetPinInputs" class="hidden flex flex-col gap-3 mb-4">
+      <input id="currentPinInput" type="password" maxlength="6" placeholder="Current PIN" class="w-full p-3 border rounded-lg text-center"/>
+      <input id="newPinInput" type="password" maxlength="6" placeholder="New PIN" class="w-full p-3 border rounded-lg text-center"/>
+      <input id="confirmNewPinInput" type="password" maxlength="6" placeholder="Confirm New PIN" class="w-full p-3 border rounded-lg text-center"/>
+      
+      <!-- ✅ Reset Button -->
+    
+    </div>
+
+    <!-- Main Action Button -->
+    <button id="pinActionBtn" class="w-full py-3 rounded-lg bg-blue-500 text-white font-semibold btn-hover mb-2"></button>
+
+    <!-- Links -->
+    <p class="mt-2 text-sm text-blue-600 cursor-pointer hover:underline" id="forgotPinBtn">Forgot PIN?</p>
+    <p class="mt-1 text-sm text-blue-600 cursor-pointer hover:underline" id="resetPinBtn">Reset PIN</p>
+
+  </div>
+
+</main>
+
+<footer class="bg-white text-gray-700 text-center p-4 border-t text-sm sm:text-base">
+  &copy; 2025 MyFinance Tracker | All Rights Reserved.
+</footer>
+
+</body>
+</html>
+
+
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.11.0/firebase-firestore-compat.js"></script>
+
+<!-- EmailJS -->
+<script src="https://cdn.jsdelivr.net/npm/emailjs-com@3.2.0/dist/email.min.js"></script>
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc",
+  authDomain: "sk12-58e9e.firebaseapp.com",
+  projectId: "sk12-58e9e",
+  storageBucket: "sk12-58e9e.appspot.com",
+  messagingSenderId: "470207874652",
+  appId: "1:470207874652:web:67ba1cf3629b7e5b144899"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const provider = new firebase.auth.GoogleAuthProvider();
+
+let currentUID = null, currentEmail = null, currentPIN = null;
+let isFirstTime = false;
+
+/* -------------------------------
+   ✅ Professional Message Box
+--------------------------------*/
+function showMessage(message, type = "info", duration = 4000) {
+  const box = document.getElementById("messageBox");
+  const icons = { success: "✔️", error: "❌", info: "ℹ️", warning: "⚠️" };
+
+  box.className = "mb-4 p-3 rounded-lg text-sm font-medium flex items-center gap-2 opacity-0 transition-opacity duration-500";
+
+  if (type === "success") box.classList.add("bg-green-100", "text-green-700", "border", "border-green-400");
+  else if (type === "error") box.classList.add("bg-red-100", "text-red-700", "border", "border-red-400");
+  else if (type === "warning") box.classList.add("bg-yellow-100", "text-yellow-700", "border", "border-yellow-400");
+  else box.classList.add("bg-blue-100", "text-blue-700", "border", "border-blue-400");
+
+  box.innerHTML = `<span>${icons[type] || icons.info}</span> <span>${message}</span>`;
+  box.classList.remove("hidden");
+
+  setTimeout(() => box.classList.add("opacity-100"), 50);
+
+  setTimeout(() => {
+    box.classList.remove("opacity-100");
+    setTimeout(() => { box.classList.add("hidden"); }, 500);
+  }, duration);
+}
+
+/* -------------------------------
+   ✅ Google Login
+--------------------------------*/
+document.getElementById("googleLoginBtn").onclick = async () => {
+  try {
+    const result = await auth.signInWithPopup(provider);
+    currentUID = result.user.uid;
+    currentEmail = result.user.email;
+
+    const doc = await db.collection("users").doc(currentUID).get();
+    document.getElementById("loginCard").classList.add("hidden");
+    document.getElementById("pinCard").classList.remove("hidden");
+
+    if (!doc.exists) {
+      isFirstTime = true;
+      document.getElementById("pinTitle").textContent = "Set Your PIN";
+      document.getElementById("pinActionBtn").textContent = "Set PIN";
+    } else {
+      currentPIN = doc.data().pin;
+      document.getElementById("pinTitle").textContent = "Enter PIN";
+      document.getElementById("pinActionBtn").textContent = "Verify PIN";
+    }
+  } catch(e) { showMessage("❌ Login failed: " + e.message, "error"); }
+};
+
+/* -------------------------------
+   ✅ PIN Action Button
+--------------------------------*/
+document.getElementById("pinActionBtn").onclick = async () => {
+  const resetInputs = document.getElementById("resetPinInputs");
+
+  // Reset PIN mode
+  if (!resetInputs.classList.contains("hidden")) {
+    const currentPin = document.getElementById("currentPinInput").value;
+    const newPin = document.getElementById("newPinInput").value;
+
+    if (!currentPin || !newPin) { showMessage("⚠️ Fill all fields", "error"); return; }
+    if (currentPin !== currentPIN) { showMessage("❌ Current PIN is incorrect", "error"); return; }
+    if (newPin.length < 4) { showMessage("⚠️ New PIN must be 4-6 digits", "error"); return; }
+
+    await db.collection("users").doc(currentUID).update({pin: newPin});
+    currentPIN = newPin;
+    sendEmailPin(newPin, currentEmail);
+    showMessage("✅ PIN reset successfully! PIN sent to your email.", "success");
+
+    // Switch back to normal login mode
+    resetInputs.classList.add("hidden");
+    document.getElementById("pinInput").classList.remove("hidden");
+    document.getElementById("pinTitle").textContent = "Enter PIN";
+    document.getElementById("pinActionBtn").textContent = "Verify PIN";
+    document.getElementById("currentPinInput").value = "";
+    document.getElementById("newPinInput").value = "";
+    return;
+  }
+
+  // First-time PIN setup
+  if (isFirstTime) {
+    const pin = document.getElementById("pinInput").value;
+    if (!pin || pin.length < 4) { showMessage("⚠️ Enter 4-6 digit PIN", "error"); return; }
+    await db.collection("users").doc(currentUID).set({pin});
+    currentPIN = pin;
+    sendEmailPin(pin, currentEmail);
+    showMessage("✅ PIN set and sent to your email!", "success");
+    isFirstTime = false;
+    document.getElementById("pinInput").value = "";
+    document.getElementById("pinTitle").textContent = "Enter PIN";
+    document.getElementById("pinActionBtn").textContent = "Verify PIN";
+    return;
+  }
+
+  // Normal PIN verification (🚀 Fast redirect, no message)
+  const pin = document.getElementById("pinInput").value;
+  if (!pin || pin.length < 4) { showMessage("⚠️ Enter 4-6 digit PIN", "error"); return; }
+  const doc = await db.collection("users").doc(currentUID).get();
+  if (doc.exists && doc.data().pin === pin) {
+    window.location.href = "home.html";  // instant redirect
+  } else { showMessage("❌ Wrong PIN", "error"); }
+};
+
+/* -------------------------------
+   ✅ Forgot PIN
+--------------------------------*/
+document.getElementById("forgotPinBtn").onclick = async () => {
+  if (!currentEmail) { 
+    showMessage("⚠️ Login first!", "error");
+    return; 
+  }
+  try {
+    const doc = await db.collection("users").doc(currentUID).get();
+    if (doc.exists) {
+      const storedPin = doc.data().pin;
+      sendEmailPin(storedPin, currentEmail);
+      showMessage("✅ Your PIN has been sent to your email.", "success");
+    } else {
+      showMessage("❌ No PIN found. Please set your PIN first.", "error");
+    }
+  } catch (err) {
+    console.error("Error fetching PIN:", err);
+    showMessage("❌ Error fetching PIN. Try again.", "error");
+  }
+};
+
+/* -------------------------------
+   ✅ Reset PIN
+--------------------------------*/
+document.getElementById("resetPinBtn").onclick = () => {
+  if (!currentPIN) { showMessage("⚠️ Login first!", "error"); return; }
+  document.getElementById("pinInput").classList.add("hidden");
+  document.getElementById("resetPinInputs").classList.remove("hidden");
+  document.getElementById("pinTitle").textContent = "Reset PIN";
+  document.getElementById("pinActionBtn").textContent = "Save New PIN";
+};
+
+/* -------------------------------
+   ✅ Send PIN via EmailJS
+--------------------------------*/
+function sendEmailPin(pin, email) {
+  const templateParams = { user_email: email, user_pin: pin };
+  emailjs.send('service_2ucolxw', 'template_2lc2llr', templateParams)
+    .then(() => { console.log("✅ PIN email sent"); })
+    .catch(err => { console.error("❌ Email send error:", err); showMessage("Failed to send email", "error"); });
+}
+</script>
+make code fatser
+
+make code fatser
+
+</body>
+</html>

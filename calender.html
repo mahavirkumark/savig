@@ -1,0 +1,2037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Personal Website - Calendar</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+<style>
+    /* Global Styles */
+    body {
+        font-family: 'Times New Roman', Times, serif; 
+        color: #334155; /* Charcoal Text */
+        transition: filter 0.3s ease; 
+        background-color: #f8fafc; /* Very light blue-gray background */
+    }
+    .main-content-padding {
+        padding-top: 80px; 
+    }
+    
+    /* Calendar Styles */
+    .calendar-header {
+        display: none; 
+        grid-template-columns: repeat(7, 1fr);
+        text-align: center;
+        font-weight: bold;
+        padding-bottom: 5px;
+        color: #4b5563; 
+        font-size: 18px; 
+    }
+
+    /* Desktop Calendar Grid: 7 Columns */
+    #calendar {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 8px; 
+    }
+    
+    /* MOBILE Calendar Grid: 2 Columns - (FIXED) */
+    @media (max-width: 767px) {
+        .main-content-padding {
+            padding-top: 56px; 
+        }
+        #calendar-controls {
+            width: 100%;
+            padding: 0 1rem;
+        }
+        #calendar {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            padding: 0 1rem; 
+        }
+        .calendar-cell {
+            height: 125px; 
+            padding: 3px; 
+        }
+        .calendar-cell > div:last-child { 
+            min-height: 50px; 
+            line-height: 1.25; 
+        }
+        /* MODAL HEIGHT ADJUSTMENT (Reduced by approx 50px by changing max-height and base padding) */
+        #taskModal, #eventModal, #statusPromptModal, #eventTrackingSection {
+            max-height: 80vh; /* Reduced from 85vh */
+            padding: 16px !important; /* Reduced padding from p-6 (24px) */
+            overflow-y: auto;
+        }
+        #existingTasks {
+            max-height: 300px !important;
+        }
+        
+        #taskTitle, #eventTitle, #rescheduleDate, #rescheduleTime {
+            padding-top: 8px !important;
+            padding-bottom: 8px !important;
+            height: auto !important;
+        }
+        #taskDesc, #eventDesc {
+            min-height: 60px !important; 
+            max-height: 60px !important; 
+            overflow-y: auto !important;
+            resize: none;
+        }
+        #taskModal #saveTaskBtn,
+        #taskModal #cancelTaskBtn,
+        #eventModal #saveEventBtn,
+        #eventModal #cancelEventBtn,
+        #statusPromptModal button {
+             padding-top: 5px !important; 
+             padding-bottom: 5px !important; 
+             font-size: 16px; 
+        }
+        
+        #existingTasks strong {
+            font-size: 17px; 
+        }
+        #existingTasks p.task-desc {
+            font-size: 13px; 
+        }
+
+        .search-active #searchResults {
+            top: 100px; 
+            left: 0; 
+            right: 0;
+            padding-left: 0; 
+            padding-right: 0;
+            margin-top: 5px; 
+        }
+        .search-results-panel {
+            max-height: calc(100vh - 105px); 
+            width: 100%; 
+            margin: 0; 
+            border-radius: 0; 
+        }
+        
+        .search-active .search-controls-row {
+            display: none !important;
+        }
+    }
+    
+    .calendar-cell {
+        border: 1px solid #e5e7eb; 
+        border-radius: 8px;
+        padding: 3px;
+        box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1); 
+        transition: transform 0.2s, box-shadow 0.2s;
+        height: 170px; 
+        overflow: hidden; 
+        background-color: white;
+    }
+    .calendar-cell:hover {
+        border-color: #4f46e5; 
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+        cursor: pointer;
+    }
+ 
+    .sunday-cell {
+        background-color:rosybrown ; 
+        border-color: #f97316; 
+        border-width: 3px;
+    }
+       .today {
+        border: 3px solid #4f46e5; 
+        background-color:lightblue ; 
+    }
+    .today:hover{
+
+        background-color: rgb(76, 188, 213);
+    }
+    .custom-scroll {
+        scrollbar-width: thin;
+        scrollbar-color: #94a3b8 transparent; 
+    }
+    .custom-scroll::-webkit-scrollbar {
+        width: 8px; 
+        height: 8px;
+        background-color: #f1f1f1; 
+        border-radius: 4px;
+    }
+    .custom-scroll::-webkit-scrollbar-thumb {
+        background-color: #94a3b8;
+        border-radius: 8px;
+    }
+
+    .search-overlay-background {
+        display: none; 
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh; 
+        background-color: rgba(255, 255, 255, 0.98); 
+        z-index: 55; 
+        pointer-events: none; 
+    }
+    .search-active .search-overlay-background {
+        display: block;
+        pointer-events: all;
+    }
+    .search-active .search-container {
+        position: fixed; 
+        top: 0;
+        left: 0;
+        width: 100%;
+        padding: 1rem 1rem; 
+        background-color: white; 
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 56; 
+        display: flex !important;
+        flex-direction: row;
+        padding-top: 20px; 
+        padding-bottom: 20px;
+    }
+    
+    #searchResults {
+        position: relative; 
+        z-index: 57; 
+        padding-top: 0; 
+        max-width: 100%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
+    .search-active #searchResults {
+        position: fixed; 
+        top: 100px; 
+        left: 0;
+        right: 0;
+        max-width: 1120px; 
+        margin-left: auto;
+        margin-right: auto;
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
+
+    .search-results-panel {
+        background-color: white;
+        padding: 1rem;
+        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        border-radius: 0.75rem;
+        max-height: calc(100vh - 120px); 
+        overflow-y: auto; 
+        border: 1px solid #e5e7eb;
+    }
+    .search-result-item {
+        border: 1px solid #e5e7eb;
+        background-color: #ffffff;
+        margin-bottom: 0.5rem; 
+        padding: 0.75rem; 
+        border-radius: 0.5rem;
+        transition: all 0.15s;
+    }
+    .search-result-item:hover {
+        background-color: #f3f4f6; 
+    }
+
+
+    #closeModal, #closeEventModal, #closeStatusPromptModal, #closeTrackingModal {
+        color: #ef4444; 
+        transition: all 0.2s;
+    }
+    #closeModal:hover, #closeEventModal:hover, #closeStatusPromptModal:hover, #closeTrackingModal:hover {
+        background-color: #ef4444; 
+        color: white !important;
+        border-radius: 50%;
+        transform: scale(1.1); 
+    }
+    
+    .web-name-text {
+        font-size: 18px; 
+    }
+    @media (min-width: 768px) {
+        .web-name-text {
+            font-size: 25px; 
+        }
+    }
+    
+    /* NEW: Event Display Styling */
+    .event-item {
+        color: #10b981; /* Emerald green for events */
+        font-weight: bold;
+    }
+
+    /* Styling for the action buttons inside the modal list */
+    .modal-action-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        flex-shrink: 0; /* Prevents shrinking */
+        min-width: 100px; /* Ensures minimum width */
+    }
+
+    /* Custom styles for modern input in event modal */
+    .modern-input-group {
+        display: flex;
+        gap: 1rem;
+        padding: 0.75rem;
+        border: 1px solid #e5e7eb;
+        border-radius: 0.5rem;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+        transition: all 0.2s;
+    }
+
+    .modern-input-group:focus-within {
+        border-color: #10b981; /* Emerald */
+        box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.2);
+    }
+    
+    .modern-input-group input[type="date"],
+    .modern-input-group input[type="time"] {
+        /* Remove native borders/backgrounds */
+        border: none;
+        background: transparent;
+        padding: 0;
+        outline: none;
+        flex: 1;
+        font-size: 1rem;
+        color: #334155;
+    }
+</style>
+
+</head>
+<body class="bg-f8fafc">
+   <nav class="bg-white shadow-lg fixed w-full z-50 top-0 mb-[15px]">
+    <div class="container mx-auto flex justify-between items-center p-3 md:px-8 ">
+ 
+            <div class="flex items-center gap-2 text-xl font-bold text-gray-800">
+         <i class="fas fa-user-circle ml-[-20px]" style="font-size: 35px; color: #4f46e5;"></i>
+                <span style="font-size: 25px;">My Personal Website</span>
+            </div>
+            
+            <div class="hidden md:flex space-x-6 font-medium">
+                <a href="home.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-house"></i> Home</a>
+                
+                
+                <a href="password.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-key"></i> Passwords</a>
+                <a href="income.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-wallet"></i> Income</a>
+                <a href="links.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-link"></i> Links</a>
+                <a href="calendar.html" class="flex items-center gap-2 transition duration-300 text-gray-600 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-calendar-alt"></i> Calendar</a>
+            </div>
+
+            <div class="hidden md:flex items-center gap-4">
+                <div class="text-right">
+                    <p id="userName" class="font-bold text-gray-900">Loading...</p>
+                    <p id="userEmail" class="text-sm text-gray-500">Loading...</p>
+                </div>
+                <img id="userPhoto" src="https://via.placeholder.com/40" style="width: 45px; height: 45px; border-radius: 50%; border: 2px solid #4f46e5;">
+                <button onclick="logout()" class="bg-red-500 text-white px-6 py-2 rounded-full hover:bg-red-700 transition duration-300">Logout</button>
+            </div>
+
+            <button id="menu-btn" class="md:hidden text-gray-700 text-2xl"><i class="fas fa-bars"></i></button>
+        </div>
+
+        <div id="mobileMenu" class="hidden md:hidden flex flex-col px-4 pb-4 space-y-2 text-sm text-gray-700 font-medium bg-gray-50">
+            <a href="home.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-house"></i> Home</a>
+            
+            <a href="password.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-key"></i> Passwords</a>
+            <a href="income.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-wallet"></i> Income</a>
+            <a href="links.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-link"></i> Links</a>
+            <a href="calendar.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-calendar-alt"></i> Calendar</a>
+            <div class="border-t border-gray-300 mt-2 pt-2">
+                <p id="mobileUserName" class="font-bold text-gray-900">Loading...</p>
+                <p id="mobileUserEmail" class="text-xs text-gray-500">Loading...</p>
+                <button onclick="logout()" class="bg-red-500 text-white px-3 py-2 rounded-full hover:bg-red-600 mt-2 w-full">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+
+
+<div class="search-overlay-background"></div>
+
+<main class="main-content-padding flex flex-col gap-2 mx-auto w-full max-w-7xl">
+
+    <div class="search-container flex flex-col md:flex-row justify-between items-center gap-3 md:gap-5 px-4 md:px-0 pt-4 md:pt-0">
+        <div class="flex flex-col md:flex-row items-center w-full md:w-auto gap-3">
+            <input type="text" id="searchInput" placeholder="Search tasks..."
+                class="p-3 px-6 md:p-4 md:px-6 md:py-3 rounded-full border border-gray-300 shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition text-base md:text-lg w-full flex-1">
+            
+            <div class="search-controls-row flex flex-row w-full gap-2 items-center justify-between md:w-auto">
+                <select id="searchTimeframe" class="p-3 md:p-4 rounded-full border border-gray-300 shadow-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition text-base w-1/2 text-sm px-2 md:w-auto md:text-base">
+                    <option value="1year">Search Last 1 Year</option>
+                    <option value="alltime">Search All Time</option>
+                </select>
+                
+                <button id="downloadMonthTasks"
+                    class="px-2 py-2 md:px-5 md:py-3 bg-emerald-600 text-white rounded-full shadow-lg hover:bg-emerald-700 transition w-1/2 font-semibold text-xs md:text-lg md:w-auto whitespace-nowrap">
+                    <i class="fas fa-download mr-1"></i> Download Month's Data
+                </button>
+                
+                <button id="openEventModalBtn"
+                    class="px-2 py-2 md:px-5 md:py-3 bg-indigo-600 text-white rounded-full shadow-lg hover:bg-indigo-700 transition w-1/2 font-semibold text-xs md:text-lg md:w-auto whitespace-nowrap">
+                    <i class="fas fa-plus mr-1"></i> Add Event
+                </button>
+
+                 <button id="openCompletedEventsBtn"
+                    class="px-2 py-2 md:px-5 md:py-3 bg-green-600 text-white rounded-full shadow-lg hover:bg-green-700 transition w-1/2 font-semibold text-xs md:text-lg md:w-auto whitespace-nowrap"
+                    onclick="openTrackingModal('completed')">
+                    <i class="fas fa-check-circle mr-1"></i> Completed Events
+                </button>
+
+                <button id="openIncompleteEventsBtn"
+                    class="px-2 py-2 md:px-5 md:py-3 bg-red-600 text-white rounded-full shadow-lg hover:bg-red-700 transition w-1/2 font-semibold text-xs md:text-lg md:w-auto whitespace-nowrap"
+                    onclick="openTrackingModal('incomplete')">
+                    <i class="fas fa-times-circle mr-1"></i> Incomplete Events
+                </button>
+            </div>
+        </div>
+        
+    </div>
+    <div id="searchResults" class="mt-[10px] px-4 md:px-0"></div> 
+
+    <div id="calendar-controls" class="flex justify-between items-center mb-2 px-4 md:px-0">
+        <button onclick="changeMonth(-1)" class="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100 transition shadow-sm font-bold">← Prev</button>
+        <h2 id="monthYear" class="text-xl md:text-2xl font-bold text-center flex-1">Month Year</h2>
+        <button onclick="changeMonth(1)" class="px-3 py-1 border border-gray-300 rounded-lg hover:bg-gray-100 transition shadow-sm font-bold">Next →</button>
+    </div>
+    
+    <div class="calendar-header hidden md:grid">
+        <div>Mon</div>
+        <div>Tue</div>
+        <div>Wed</div>
+        <div>Thu</div>
+        <div>Fri</div>
+        <div class="text-red-500">Sat</div>
+        <div class="text-red-500">Sun</div>
+    </div>
+    <div id="calendar" class="text-base md:text-[22px] pb-8"></div>
+
+</main>
+
+<div id="overlay" class="fixed inset-0 bg-black bg-opacity-50 hidden z-40 text-white text-2xl flex items-center justify-center">
+</div>
+
+<div id="taskModal" 
+    class="fixed bg-white shadow-2xl p-6 text-base rounded-xl w-11/12 md:w-3/4 max-w-7xl z-50 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 hidden h-[90vh] md:h-auto border border-gray-100">
+
+
+    <div class="flex justify-between items-center mb-4 border-b pb-3">
+        <h2 id="modalDate" class="text-xl md:text-2xl font-extrabold text-indigo-700">Tasks for date</h2> 
+        <button id="closeModal" 
+                class="text-red-500 hover:text-white text-[32px] font-bold transition duration-200 p-1 hover:bg-red-500 rounded-full">&times;</button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5"> 
+        
+        <div class="flex flex-col">
+            <input id="taskTitle" type="text" placeholder="Title" 
+                class="border border-gray-300 rounded-lg p-3 w-full mb-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200 text-lg shadow-sm">
+            <textarea id="taskDesc" placeholder="Details (optional)" 
+                     class="border border-gray-300 rounded-lg p-3 w-full mb-3 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200 text-lg flex-1 min-h-[150px] md:min-h-[250px] shadow-sm"></textarea>
+            <div class="flex gap-3 mt-2">
+                <button id="saveTaskBtn" 
+                        class="flex-1 bg-indigo-600 text-white px-4 py-2 rounded-xl shadow-lg hover:bg-indigo-700 transition duration-200 font-bold text-lg transform hover:scale-[1.01]">
+                    Save Task
+                </button>
+                <button id="cancelTaskBtn" 
+                        class="flex-1 bg-gray-400 text-white px-4 py-2 rounded-xl shadow-lg hover:bg-gray-500 transition duration-200 font-bold text-lg transform hover:scale-[1.01]">
+                    Cancel
+                </button>
+            </div>
+        </div>
+
+        <div id="existingTasks" class="border border-gray-200 rounded-xl p-3 bg-gray-50 shadow-inner">
+            <div class="text-center text-gray-500 italic p-3">No tasks or events yet.</div>
+        </div>
+
+    </div>
+</div>
+
+<div id="eventModal" 
+ class="fixed bg-white shadow-2xl p-6 text-base rounded-xl w-11/12 md:w-3/4 max-w-2xl z-50 top-[54%] left-1/2 transform -translate-x-1/2 -translate-y-1/2 hidden h-[570px] border border-gray-100">
+    
+  
+
+
+    <div class="flex justify-between items-center mb-4 border-b pb-3">
+        <h2 id="eventModalTitle" class="text-xl md:text-xl font-extrabold text-black-700">Add New Event</h2> 
+        <button id="closeEventModal" 
+                class="text-red-500 hover:text-white text-[32px] font-bold transition duration-200 p-1 hover:bg-red-500 rounded-full">&times;</button>
+    </div>
+
+    <div class="flex flex-col gap-4"> 
+        <input id="eventTitle" type="text" placeholder="Event Name (e.g., Doctor Appointment)" 
+            class="border border-gray-300 rounded-lg p-3 w-full focus:outline-none focus:ring-2 focus:ring-emerald-500 transition duration-200 text-lg shadow-sm">
+        
+        <h3 class="text-lg font-semibold text-gray-700 mt-2 border-b pb-1">Date and Time Selection</h3>
+        <div class="flex flex-col gap-3">
+            <div class="flex flex-col md:flex-row gap-4">
+                <div class="modern-input-group w-full md:w-1/2">
+                    <i class="fas fa-calendar-alt text-gray-500 self-center"></i>
+                    <input type="date" id="eventDate" required aria-label="Event Date">
+                </div>
+                <div class="modern-input-group w-full md:w-1/2">
+                    <i class="fas fa-clock text-gray-500 self-center"></i>
+                    <input type="time" id="eventTime" required value="09:00" aria-label="Event Time">
+                </div>
+            </div>
+             </div>
+        
+        <h3 class="text-lg font-semibold text-gray-700 mt-2 border-b pb-1">Location and Details</h3>
+        
+        <input id="eventLocation" type="text" placeholder="Location (Optional)" 
+            class="border border-gray-300 rounded-lg p-3 w-full focus:outline-none focus:ring-2 focus:ring-emerald-500 transition duration-200 text-lg shadow-sm">
+            
+        <textarea id="eventDesc" placeholder="Details (Optional)" 
+                 class="border border-gray-300 rounded-lg p-3 w-full focus:outline-none focus:ring-2 focus:ring-emerald-500 transition duration-200 text-lg flex-1 min-h-[10px] shadow-sm resize-none"></textarea>
+                 
+        <div class="flex gap-3 mt-2">
+            <button id="saveEventBtn" 
+                    class="flex-1 bg-emerald-600 text-white px-4 py-2 rounded-xl shadow-lg hover:bg-emerald-700 transition duration-200 font-bold text-lg transform hover:scale-[1.01]">
+                <i class="fas fa-bell mr-2"></i> Save Event
+            </button>
+            <button id="cancelEventBtn" 
+                    class="flex-1 bg-gray-400 text-white px-4 py-2 rounded-xl shadow-lg hover:bg-gray-500 transition duration-200 font-bold text-lg transform hover:scale-[1.01]">
+                Cancel
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="rescheduleModal"
+    class="fixed bg-white shadow-2xl p-6 text-base rounded-xl w-11/12 md:w-1/3 max-w-md z-50 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 hidden">
+    
+    <div class="flex justify-between items-center mb-4 border-b pb-3">
+        <h2 class="text-xl md:text-2xl font-extrabold text-indigo-700">Reschedule Event</h2> 
+        <button id="closeRescheduleModal" 
+                class="text-red-500 hover:text-white text-[32px] font-bold transition duration-200 p-1 hover:bg-red-500 rounded-full">&times;</button>
+    </div>
+    
+    <p class="mb-4 text-lg text-gray-800">
+        Reschedule: <strong id="rescheduleEventTitle" class="text-indigo-600 block my-1">Loading Event...</strong>
+    </p>
+
+    <div class="flex flex-col gap-4">
+        <input type="date" id="rescheduleDate" required 
+            class="border border-gray-300 rounded-lg p-3 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200 text-lg shadow-sm">
+        <input type="time" id="rescheduleTime" required value="09:00"
+            class="border border-gray-300 rounded-lg p-3 w-full focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200 text-lg shadow-sm">
+        
+        <button id="confirmRescheduleBtn" class="bg-indigo-600 text-white px-4 py-2 rounded-xl shadow-lg hover:bg-indigo-700 transition duration-200 font-bold text-lg">
+            Confirm New Date/Time
+        </button>
+    </div>
+</div>
+
+
+<div id="statusPromptModal"
+    class="fixed bg-white shadow-2xl p-6 text-base rounded-xl w-11/12 md:w-1/3 max-w-md z-50 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 hidden">
+    
+    <div class="flex justify-between items-center mb-4 border-b pb-3">
+        <h2 class="text-xl md:text-2xl font-extrabold text-yellow-700">Update Event Status</h2> 
+        <button id="closeStatusPromptModal" 
+                class="text-red-500 hover:text-white text-[32px] font-bold transition duration-200 p-1 hover:bg-red-500 rounded-full">&times;</button>
+    </div>
+    
+    <div id="promptContent">
+        <p class="mb-4 text-lg text-gray-800">
+            Did you complete the event: 
+            <strong id="eventToPromptTitle" class="text-indigo-600 block my-1">Loading Event...</strong>
+        </p>
+        <p class="text-sm text-gray-500 italic mb-4">Date: <span id="eventToPromptDate"></span> | Time: <span id="eventToPromptTime"></span></p>
+
+        <div class="flex flex-col gap-3">
+            <button id="completeEventBtn" class="bg-green-600 text-white px-4 py-2 rounded-xl shadow-lg hover:bg-green-700 transition duration-200 font-bold text-lg">
+                <i class="fas fa-check"></i> Completed Event
+            </button>
+            <button id="incompleteEventBtn" class="bg-red-600 text-white px-4 py-2 rounded-xl shadow-lg hover:bg-red-700 transition duration-200 font-bold text-lg">
+                <i class="fas fa-times"></i> Incomplete Event
+            </button>
+            
+            <hr class="my-2 border-gray-200"/>
+
+            <button id="reschedulePromptBtn" class="bg-indigo-500 text-white px-4 py-2 rounded-xl shadow-lg hover:bg-indigo-600 transition duration-200 font-bold text-lg">
+                <i class="fas fa-calendar-alt"></i> Change Date & Time
+            </button>
+            <button id="cancelPromptBtn" class="bg-gray-500 text-white px-4 py-2 rounded-xl shadow-lg hover:bg-gray-600 transition duration-200 font-bold text-lg">
+                <i class="fas fa-trash-can"></i> Cancel Event Permanently
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="eventTrackingSection"
+    class="fixed bg-white shadow-2xl p-6 text-base rounded-xl w-11/12 md:w-3/4 max-w-4xl z-50 top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 hidden h-[90vh] md:h-auto border border-gray-100">
+
+    <div class="flex justify-between items-center mb-4 border-b pb-3">
+        <h2 id="trackingModalTitle" class="text-xl md:text-2xl font-extrabold text-gray-700">Event History</h2> 
+        <button id="closeTrackingModal" 
+                class="text-red-500 hover:text-white text-[32px] font-bold transition duration-200 p-1 hover:bg-red-500 rounded-full">&times;</button>
+    </div>
+
+    <div id="trackingEventsList" class="max-h-[70vh] overflow-y-auto custom-scroll">
+        <p class="text-center text-gray-500 italic p-3">Loading events...</p>
+    </div>
+</div>
+
+<footer class="mt-12 pt-4 pb-4 bg-white text-gray-500 text-center text-sm border-t shadow-inner">
+    &copy; 2025 Personal Website | All rights reserved
+</footer>
+
+<script>
+// --- Mobile Menu Toggle (from previous code) ---
+const menuBtn = document.getElementById("menu-btn");
+const mobileMenu = document.getElementById("mobileMenu"); 
+if (menuBtn && mobileMenu) {
+    menuBtn.addEventListener("click", () => {
+        mobileMenu.classList.toggle("hidden"); 
+    });
+}
+    
+// --- Firebase Config (NOTE: Use your actual keys) ---
+const firebaseConfig = {
+   apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc",
+     authDomain: "sk12-58e9e.firebaseapp.com",
+     databaseURL: "https://sk12-58e9e-default-rtdb.firebaseio.com",
+     projectId: "sk12-58e9e",
+     storageBucket: "sk12-58e9e.appspot.com",
+     messagingSenderId: "147194239940",
+     appId: "1:147194239940:web:c66474c95c7e2dd8dffada"
+};
+firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.database();
+
+// --- Globals & Enums ---
+let currentUser = null;
+let currentDate = new Date();
+let selectedDate = null;      // Declared once
+let editTaskId = null;        // Declared once
+let editEventId = null;       // Declared once
+let eventsToPrompt = [];      // Queue for status prompts
+let realTimeCheckInterval;    // Reference for the recurring timer
+let currentEventForAction = null; 
+
+const EVENT_STATUS = {
+    PENDING: 'pending',
+    COMPLETED: 'completed',
+    INCOMPLETE: 'incomplete'
+};
+// 24 hours in milliseconds
+const PROMPT_DELAY_MS = 24 * 60 * 60 * 1000; 
+// 12 hours in milliseconds for notification tolerance (12 * 60 * 60 * 1000)
+const NOTIFICATION_TOLERANCE_MS = 12 * 3600000; 
+
+
+// --- DOM Element References (New and Updated) ---
+const searchInput = document.getElementById("searchInput");
+const searchTimeframe = document.getElementById("searchTimeframe");
+const searchResults = document.getElementById("searchResults");
+const body = document.body;
+const downloadButton = document.getElementById("downloadMonthTasks");
+const taskModalElement = document.getElementById("taskModal");
+const eventModalElement = document.getElementById("eventModal");
+const statusPromptModal = document.getElementById("statusPromptModal");
+const eventTrackingSection = document.getElementById("eventTrackingSection");
+const trackingModalTitle = document.getElementById("trackingModalTitle");
+const trackingEventsList = document.getElementById("trackingEventsList");
+const rescheduleModal = document.getElementById("rescheduleModal"); 
+
+const overlayElement = document.getElementById("overlay");
+const closeModalBtn = document.getElementById("closeModal");
+const cancelTaskBtn = document.getElementById("cancelTaskBtn");
+const closeEventModalBtn = document.getElementById("closeEventModal");
+const cancelEventBtn = document.getElementById("cancelEventBtn");
+const openEventModalBtn = document.getElementById("openEventModalBtn");
+const closeStatusPromptModalBtn = document.getElementById("closeStatusPromptModal");
+const completeEventBtn = document.getElementById("completeEventBtn");
+const incompleteEventBtn = document.getElementById("incompleteEventBtn");
+const closeTrackingModalBtn = document.getElementById("closeTrackingModal");
+const reschedulePromptBtn = document.getElementById("reschedulePromptBtn"); 
+const cancelPromptBtn = document.getElementById("cancelPromptBtn"); 
+const searchOverlayBackground = document.querySelector('.search-overlay-background');
+
+// --- Helpers ---
+const toISODate = d => {
+    // Uses UTC methods to ensure date key is YYYY-MM-DD regardless of local timezone
+    const dt = d;
+    return `${dt.getUTCFullYear()}-${String(dt.getUTCMonth() + 1).padStart(2, '0')}-${String(dt.getUTCDate()).padStart(2, '0')}`;
+};
+
+function capitalizeFirstLetter(str) {
+    if (!str) return "";
+    // FIXED: Ensure every word's first letter is capitalized
+    return str.toLowerCase().split(' ').map(word => {
+        if (word.length === 0) return ""; 
+        return word.charAt(0).toUpperCase() + word.slice(1);
+    }).join(' ');
+}
+
+function formatDate(dateISO) {
+    const parts = dateISO.split('-').map(Number);
+    // Create a UTC date object from ISO parts
+    const dt = new Date(Date.UTC(parts[0], parts[1] - 1, parts[2])); 
+    const day = String(dt.getUTCDate()).padStart(2, "0");
+    const month = String(dt.getUTCMonth() + 1).padStart(2, "0");
+    const year = dt.getUTCFullYear();
+    const weekday = dt.toLocaleDateString("en-US", { weekday: "long", timeZone: 'UTC' });
+    return `${day}-${month}-${year} (${weekday})`;
+}
+
+// --- NEW: Real-Time Polling Logic ---
+function startRealTimeChecks() {
+    // Clear any existing interval to prevent duplicates
+    if (realTimeCheckInterval) {
+        clearInterval(realTimeCheckInterval);
+    }
+
+    // Call immediately upon start
+    checkAndShowNotifications();
+    
+    // Set up recurring check every 60 seconds (60000 ms)
+    realTimeCheckInterval = setInterval(() => {
+        checkAndShowNotifications();
+        // Also periodically re-check for overdue prompts
+        checkAndPromptForEventStatus();
+    }, 60000); 
+}
+// --- END Real-Time Polling Logic ---
+
+
+// --- Auth ---
+auth.onAuthStateChanged(user => {
+    if(user){
+        currentUser = user;
+        document.getElementById("userName").textContent = user.displayName || "User Name";
+        document.getElementById("userEmail").textContent = user.email;
+        document.getElementById("mobileUserName").textContent = user.displayName || "User Name";
+        document.getElementById("mobileUserEmail").textContent = user.email;
+        
+        const photoUrl = user.photoURL || "https://via.placeholder.com/40";
+        document.getElementById("userPhoto").src = photoUrl;
+        
+        const mobilePhotoElement = document.getElementById("mobileUserPhoto");
+        if(mobilePhotoElement) {
+            mobileUserPhoto.src = photoUrl;
+        }
+
+        renderCalendar();
+        requestNotificationPermission();
+        // Start continuous checking for notifications
+        startRealTimeChecks(); 
+        // INSTANT PROMPT on page load/login
+        checkAndPromptForEventStatus(); 
+    } else {
+        // Clear interval on logout
+        if (realTimeCheckInterval) {
+            clearInterval(realTimeCheckInterval);
+        }
+        if (window.location.pathname !== '/index.html' && !window.location.pathname.endsWith('/')) {
+            window.location.href = "index.html"; 
+        }
+    }
+});
+
+function logout(){
+    auth.signOut().then(() => {
+        location.href="index.html";
+    }); 
+}
+
+// --- Calendar ---
+function changeMonth(offset){
+    currentDate.setMonth(currentDate.getMonth()+offset);
+    renderCalendar();
+}
+
+function renderCalendar(){
+    if (!currentUser) return; 
+    
+    const cal=document.getElementById("calendar");
+    if(!cal) return;
+
+    cal.innerHTML="";
+    const y=currentDate.getFullYear(), m=currentDate.getMonth();
+    document.getElementById("monthYear").textContent=
+        currentDate.toLocaleString("default",{month:"long",year:"numeric"});
+
+    const firstDay=new Date(y,m,1);
+    const start=(firstDay.getDay()+6)%7; 
+    const days=new Date(y,m+1,0).getDate();
+
+    if (window.innerWidth >= 768) {
+        for(let i=0;i<start;i++) cal.appendChild(document.createElement("div"));
+    }
+
+    for(let d=1;d<=days;d++){
+        const dateObj=new Date(Date.UTC(y, m, d)); 
+        const iso=toISODate(dateObj);
+        const cell=document.createElement("div");
+        cell.className="calendar-cell text-center text-gray-800";
+        
+        const today = new Date();
+        const todayISO = toISODate(today);
+
+        if(iso === todayISO) cell.classList.add("today");
+        
+        const dayOfWeek = dateObj.getUTCDay(); 
+        if(dayOfWeek === 6) cell.classList.add("weekend"); 
+        
+        if(dayOfWeek === 0) { 
+            cell.classList.add("sunday-cell");
+        }
+        
+        let dayOfWeekText = '';
+        if (window.innerWidth < 768) {
+            dayOfWeekText = `<span class="text-base text-gray-600">${dateObj.toLocaleDateString("en-US",{weekday:"short", timeZone: 'UTC'})}</span>`;
+        }
+
+
+        cell.innerHTML=`
+            <div class="flex justify-start items-center gap-2 font-semibold text-gray-800">
+                <span class="text-xl md:text-2xl">${d}</span>
+                ${dayOfWeekText}
+            </div>
+            <div id="tasks-${iso}" class="mt-2 text-sm text-left text-gray-700 min-h-[60px] custom-scroll"></div>
+        `;
+        cell.onclick=()=>openModal(iso); 
+        cal.appendChild(cell);
+        loadTasks(iso);
+    }
+}
+
+// --- Modals ---
+function openModal(dateISO) {
+    if (!currentUser) return alert("Please sign in to manage tasks.");
+    closeEventModal();
+    closeTrackingModal();
+    closeStatusPromptModal();
+
+    document.getElementById("modalDate").textContent = `Tasks & Events for ${formatDate(dateISO)}`;
+    selectedDate = dateISO;
+    editTaskId = null;
+    document.getElementById("taskTitle").value = "";
+    document.getElementById("taskDesc").value = "";
+
+    overlayElement.classList.remove("hidden");
+    taskModalElement.classList.remove("hidden");
+
+    loadModalTasks(dateISO);
+}
+
+function openEventModal(dateISO = null) {
+    if (!currentUser) return alert("Please sign in to manage events.");
+    closeModal(); 
+    closeTrackingModal();
+    closeStatusPromptModal();
+
+    const defaultDate = dateISO || toISODate(new Date()); 
+    document.getElementById("eventDate").value = defaultDate;
+    document.getElementById("eventTime").value = "09:00"; 
+    document.getElementById("eventTitle").value = "";
+    document.getElementById("eventLocation").value = "";
+    document.getElementById("eventDesc").value = "";
+    editEventId = null;
+    
+    document.getElementById("eventModalTitle").textContent = editEventId ? "Edit Event" : "Add New Event";
+    
+    overlayElement.classList.remove("hidden");
+    eventModalElement.classList.remove("hidden");
+}
+
+// NEW: Open Tracking Modal
+function openTrackingModal(status) {
+    if (!currentUser) return alert("Please sign in.");
+    closeModal();
+    closeEventModal();
+    closeStatusPromptModal();
+
+    trackingModalTitle.textContent = status === EVENT_STATUS.COMPLETED ? "Completed Events (Last 30 Days)" : "Incomplete Events (Last 30 Days)";
+
+    overlayElement.classList.remove("hidden");
+    eventTrackingSection.classList.remove("hidden");
+
+    loadTrackingEvents(status);
+}
+
+// NEW: Open Reschedule Modal (Retained as prompt option uses it)
+function openRescheduleModal(event) {
+    closeModal(); // Close task modal if open
+    closeStatusPromptModal(); // Close status prompt if open
+
+    currentEventForAction = event; // Store event data globally
+
+    document.getElementById("rescheduleEventTitle").textContent = event.title;
+    document.getElementById("rescheduleDate").value = event.date; // Use current date for pre-fill
+    document.getElementById("rescheduleTime").value = event.time; // Use current time for pre-fill
+
+    overlayElement.classList.remove("hidden");
+    rescheduleModal.classList.remove("hidden");
+}
+
+
+function closeModal(){
+    selectedDate=null; editTaskId=null;
+    overlayElement.classList.add("hidden");
+    taskModalElement.classList.add("hidden");
+    document.getElementById("existingTasks").innerHTML="";
+    // Reset search view logic... (kept simplified here for brevity)
+    document.body.style.overflow = 'auto'; 
+}
+
+function closeEventModal(){
+    editEventId = null;
+    overlayElement.classList.add("hidden");
+    eventModalElement.classList.add("hidden");
+}
+
+// NEW: Close Status Prompt Modal
+function closeStatusPromptModal() {
+    overlayElement.classList.add("hidden");
+    statusPromptModal.classList.add("hidden");
+    currentEventForAction = null; 
+    // Resume checking the queue
+    if (eventsToPrompt.length > 0) {
+        processNextPendingEvent();
+    }
+}
+
+// NEW: Close Tracking Modal
+function closeTrackingModal() {
+    overlayElement.classList.add("hidden");
+    eventTrackingSection.classList.add("hidden");
+}
+
+
+// Attach event listeners for close buttons
+closeModalBtn.addEventListener("click", closeModal);
+cancelTaskBtn.addEventListener("click", closeModal);
+closeEventModalBtn.addEventListener("click", closeEventModal);
+cancelEventBtn.addEventListener("click", closeEventModal);
+openEventModalBtn.addEventListener("click", () => openEventModal(toISODate(currentDate)));
+closeStatusPromptModalBtn.addEventListener("click", closeStatusPromptModal);
+closeTrackingModalBtn.addEventListener("click", closeTrackingModal);
+searchOverlayBackground.addEventListener("click", closeModal);
+
+
+// NEW: Reschedule Confirmation Logic
+confirmRescheduleBtn.addEventListener('click', () => {
+    if (!currentEventForAction) return alert("Error: No event selected.");
+
+    const newDate = document.getElementById("rescheduleDate").value;
+    const newTime = document.getElementById("rescheduleTime").value;
+
+    if (!newDate || !newTime) return alert("Please select a new date and time.");
+
+    rescheduleEvent(currentEventForAction, newDate, newTime);
+});
+
+
+// --- Save Task (Existing - Applied Capitalization, Optimized Reload) ---
+document.getElementById("saveTaskBtn").addEventListener("click",()=>{
+    if (!currentUser) return alert("User not logged in.");
+
+    let title=document.getElementById("taskTitle").value.trim();
+    let desc=document.getElementById("taskDesc").value.trim();
+    if(!title) return alert("Enter task title.");
+
+    // FIXED: Apply capitalization before saving
+    title = capitalizeFirstLetter(title);
+    desc = capitalizeFirstLetter(desc);
+    
+    const ref=`users/${currentUser.uid}/tasks/${selectedDate}`;
+
+    const taskData = {
+        title: title, 
+        desc: desc
+    };
+
+    if(editTaskId){
+        db.ref(`${ref}/${editTaskId}`).set(taskData).then(()=>{
+            editTaskId=null;
+            loadModalTasks(selectedDate);
+            loadTasks(selectedDate); // Optimized update
+        });
+    } else {
+        db.ref(ref).push(taskData).then(()=>{
+            loadModalTasks(selectedDate);
+            loadTasks(selectedDate); // Optimized update
+        });
+    }
+    document.getElementById("taskTitle").value="";
+    document.getElementById("taskDesc").value="";
+});
+
+
+
+
+function loadTasks(date) {
+    if (!currentUser) return;
+    const c = document.getElementById(`tasks-${date}`);
+    if (!c) return;
+    c.innerHTML = "";
+
+    // Optimization: Single path fetch to increase loading speed
+    db.ref(`users/${currentUser.uid}`).once("value").then(snap => {
+        const data = snap.val() || {};
+        const tasks = data.tasks?.[date] || {};
+        const events = data.events?.[date] || {};
+        
+        let allItems = [];
+        Object.values(tasks).forEach(t => allItems.push({ type: 'task', ...t }));
+        Object.values(events)
+            .filter(e => e.status === EVENT_STATUS.PENDING)
+            .forEach(e => allItems.push({ type: 'event', ...e }));
+
+        // Sort: Events first
+        allItems.sort((a, b) => a.type === 'event' ? -1 : 1);
+
+        allItems.slice(0, 3).forEach(item => { 
+            const isEvent = item.type === 'event';
+            const line = document.createElement("div");
+            
+            // UI Requirement: 16px font, slightly darker but not black
+          line.className = `truncate px-2 py-0.5 mb-1 rounded-md leading-tight text-black ${
+                isEvent ? 'bg-emerald-50 border-l-2 border-emerald-400' : ''
+            }`;
+            line.style.fontSize = "16px"; 
+            
+            const icon = isEvent ? `<i class="fas fa-bell mr-1" style="font-size: 12px;"></i>` : '• ';
+            line.innerHTML = `${icon}${item.title}`;
+            c.appendChild(line);
+        });
+    });
+}
+document.getElementById("saveEventBtn").addEventListener("click",()=>{
+    if (!currentUser) return alert("User not logged in.");
+
+    let title=document.getElementById("eventTitle").value.trim();
+    const date=document.getElementById("eventDate").value.trim();
+    const time=document.getElementById("eventTime").value.trim();
+    const location=document.getElementById("eventLocation").value.trim();
+    const desc=document.getElementById("eventDesc").value.trim();
+
+    if(!title || !date || !time) return alert("Enter event name, date, and time.");
+
+    // FIXED: Apply capitalization before saving
+    title = capitalizeFirstLetter(title);
+    const capitalizedLocation = capitalizeFirstLetter(location);
+    const capitalizedDesc = capitalizeFirstLetter(desc);
+    
+    const eventDateISO = date;
+    
+    // Determine if we are editing an existing event or creating a new one
+    const isEditing = !!editEventId;
+    const refPath = isEditing ? `users/${currentUser.uid}/events/${selectedDate}/${editEventId}` : `users/${currentUser.uid}/events/${eventDateISO}`;
+
+    const timestamp = new Date(`${date}T${time}:00`).getTime(); 
+
+    const eventData = {
+        title: title, 
+        time: time,
+        location: capitalizedLocation,
+        desc: capitalizedDesc,
+        timestamp: timestamp, 
+        savedTimestamp: new Date().getTime(), 
+        status: EVENT_STATUS.PENDING 
+    };
+
+    const savePromise = isEditing 
+        ? db.ref(refPath).update(eventData) 
+        : db.ref(refPath).push(eventData);
+
+    savePromise.then(() => {
+        editEventId=null;
+        closeEventModal();
+        // Optimized updates: only refresh the calendar cell
+        loadTasks(eventDateISO); 
+        checkAndShowNotifications();
+        
+        // If the task modal was open on the relevant date, reload its content (optional, but clean)
+        if(selectedDate === eventDateISO) {
+             loadModalTasks(eventDateISO);
+        }
+    }).catch(err => {
+        console.error("Event save error:", err);
+        alert("Failed to save event.");
+    });
+});
+
+function loadTasks(date) {
+    if (!currentUser) return;
+    const c = document.getElementById(`tasks-${date}`);
+    if (!c) return;
+    c.innerHTML = "";
+
+    // Optimization: Single path fetch to increase loading speed
+    db.ref(`users/${currentUser.uid}`).once("value").then(snap => {
+        const data = snap.val() || {};
+        const tasks = data.tasks?.[date] || {};
+        const events = data.events?.[date] || {};
+        
+        let allItems = [];
+        Object.values(tasks).forEach(t => allItems.push({ type: 'task', ...t }));
+        Object.values(events)
+            .filter(e => e.status === EVENT_STATUS.PENDING)
+            .forEach(e => allItems.push({ type: 'event', ...e }));
+
+        // Sort: Events first
+        allItems.sort((a, b) => a.type === 'event' ? -1 : 1);
+
+        allItems.slice(0, 3).forEach(item => { 
+            const isEvent = item.type === 'event';
+            const line = document.createElement("div");
+            
+            // UI Requirement: 16px font, slightly darker but not black
+          line.className = `truncate px-2 py-0.5 mb-1 rounded-md leading-tight text-black ${
+                isEvent ? 'bg-emerald-50 border-l-2 border-emerald-400' : ''
+            }`;
+            line.style.fontSize = "16px"; 
+            
+            const icon = isEvent ? `<i class="fas fa-bell mr-1" style="font-size: 12px;"></i>` : '• ';
+            line.innerHTML = `${icon}${item.title}`;
+            c.appendChild(line);
+        });
+    });
+}
+
+
+// --- 2. Modal Task List (Vertical Actions, Description Below Title, No Overlap) ---
+function loadModalTasks(date) {
+    if (!currentUser) return;
+    selectedDate = date; 
+    const cont = document.getElementById("existingTasks");
+    if (!cont) return;
+
+    // UI Setup: Reverted to standard modern container weights
+    cont.className = "max-h-[420px] overflow-y-auto custom-scroll px-3 md:px-5 py-4 bg-gray-50/50 rounded-2xl border border-gray-200 mx-auto w-half md:max-w-[99%] shadow-inner";
+    
+    cont.innerHTML = `
+        <div class="flex flex-col items-center justify-center py-12 gap-1">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+            <p class="text-indigo-500 italic text-sm">Syncing schedule...</p>
+        </div>`;
+
+    const taskRef = db.ref(`users/${currentUser.uid}/tasks/${date}`);
+    const eventRef = db.ref(`users/${currentUser.uid}/events/${date}`);
+
+    Promise.all([taskRef.once("value"), eventRef.once("value")]).then(([taskSnap, eventSnap]) => {
+        let allItems = [];
+        const tasks = taskSnap.val() || {};
+        const events = eventSnap.val() || {};
+
+        Object.entries(tasks).forEach(([id, t]) => {
+            allItems.push({ type: 'task', id, date, ...t });
+        });
+        
+        Object.entries(events)
+            .filter(([id, e]) => e.status === EVENT_STATUS.PENDING)
+            .forEach(([id, e]) => {
+                allItems.push({ type: 'event', id, date, ...e });
+            });
+
+        allItems.sort((a, b) => {
+            if (a.type === 'event' && b.type === 'task') return -1;
+            if (a.type === 'task' && b.type === 'event') return 1;
+            return (a.time || "").localeCompare(b.time || "");
+        });
+
+        cont.innerHTML = '';
+        if (allItems.length === 0) {
+            cont.innerHTML = `<div class="text-center py-16 text-slate-400 text-lg italic uppercase tracking-widest">Clear Schedule</div>`;
+            return;
+        }
+
+        allItems.forEach(item => {
+            const isEvent = item.type === 'event';
+            const hasDesc = item.desc && item.desc.trim() !== "";
+            const div = document.createElement("div");
+            
+            div.className = `grid grid-cols-1 md:grid-cols-[1fr_120px] items-start gap-4 p-5 mb-4 rounded-xl border transition-all duration-300 bg-white hover:shadow-md ${
+                isEvent ? 'border-l-[6px] border-l-emerald-500' : 'border-l-[6px] border-l-indigo-500'
+            }`;
+
+            const contentContainer = document.createElement("div");
+            contentContainer.className = "flex flex-col gap-2 min-w-0";
+            contentContainer.innerHTML = `
+                <div class="flex flex-col gap-1">
+                    <div class="flex items-center gap-2">
+                        <span class="text-xl">${isEvent ? '🗓️' : '📝'}</span>
+                        <strong class="text-xl md:text-2xl font-bold text-slate-800 break-words leading-tight">${item.title}</strong>
+                    </div>
+                    ${isEvent ? `<div class="text-sm font-bold text-emerald-600 uppercase tracking-tight ml-8">🕒 ${item.time}</div>` : ''}
+                </div>
+                ${hasDesc ? `<div class="border-t border-slate-100 pt-2 mt-1 ml-8 text-lg text-slate-700 whitespace-pre-wrap">${item.desc}</div>` : ''}
+            `;
+
+            const actionsSection = document.createElement("div");
+            actionsSection.className = "flex flex-col gap-3 shrink-0 md:border-l border-slate-100 md:pl-4 w-full md:w-auto";
+
+            const crudRow = document.createElement("div");
+            crudRow.className = "flex flex-row md:flex-col gap-2";
+
+            // --- INCREASED SIZE EDIT BUTTON ---
+            const editBtn = document.createElement("button");
+            editBtn.innerHTML = `<i class="fa-solid fa-pen-to-square"></i> <span>EDIT</span>`;
+           editBtn.className = "flex-1 md:w-[100px] h-24 flex items-center justify-center gap-2 bg-indigo-500 text-white font-bold tracking-widest text-[16px] rounded-full hover:bg-indigo-600 active:scale-90 transition-all cursor-pointer shadow-sm";
+            editBtn.onclick = () => handleEdit(item.type, item.id, item.date);
+
+            // --- INCREASED SIZE DELETE BUTTON (SOLID RED) ---
+            const delBtn = document.createElement("button");
+            delBtn.innerHTML = `<i class="fa-solid fa-trash-can"></i> <span>DELETE</span>`;
+            delBtn.className = "flex-1 md:w-[100px] h-24 flex items-center justify-center gap-2 bg-pink-600 text-white font-bold tracking-widest text-[14px] rounded-full hover:bg-red-700 active:scale-90 transition-all cursor-pointer shadow-sm";
+            delBtn.onclick = () => handleDelete(item.type, item.id, item.date);
+
+            crudRow.appendChild(editBtn);
+            crudRow.appendChild(delBtn);
+            actionsSection.appendChild(crudRow);
+
+            if (isEvent) {
+                const statusGroup = document.createElement("div");
+                statusGroup.className = "flex flex-col gap-2 w-full pt-2 border-t border-slate-100";
+                statusGroup.innerHTML = `
+                    <button onclick="updateEventStatus({ date: '${item.date}', id: '${item.id}' }, '${EVENT_STATUS.COMPLETED}', true)" 
+                        class="bg-emerald-600 text-white text-[10px] h-10 rounded-lg hover:bg-emerald-700 active:scale-95 transition shadow-sm font-bold uppercase tracking-widest w-full">
+                        <i class="fas fa-check"></i> COMPLETED
+                    </button>
+                    <button onclick="updateEventStatus({ date: '${item.date}', id: '${item.id}' }, '${EVENT_STATUS.INCOMPLETE}', true)" 
+                        class="bg-rose-600 text-white text-[10px] h-10 rounded-lg hover:bg-rose-700 active:scale-95 transition shadow-sm font-bold uppercase tracking-widest w-full">
+                        <i class="fas fa-times"></i> INCOMPLETE
+                    </button>
+                `;
+                actionsSection.appendChild(statusGroup);
+            }
+
+            div.appendChild(contentContainer);
+            div.appendChild(actionsSection);
+            cont.appendChild(div);
+        });
+    }).catch(err => {
+        console.error("Data Load Error:", err);
+        cont.innerHTML = `<div class="text-center text-rose-500 font-bold py-10">Sync Failed.</div>`;
+    });
+}
+
+
+// --- 3. CRUD Action Helpers ---
+function handleEdit(type, id, date) {
+    const isEvent = type === 'event';
+    db.ref(`users/${currentUser.uid}/${isEvent ? 'events' : 'tasks'}/${date}/${id}`).once('value').then(snap => {
+        const item = snap.val();
+        if (isEvent) {
+            editEventId = id;
+            document.getElementById("eventTitle").value = item.title;
+            document.getElementById("eventDate").value = date;
+            document.getElementById("eventTime").value = item.time;
+            document.getElementById("eventDesc").value = item.desc || "";
+            closeModal();
+            eventModalElement.classList.remove("hidden");
+            overlayElement.classList.remove("hidden");
+        } else {
+            editTaskId = id;
+            selectedDate = date;
+            document.getElementById("taskTitle").value = item.title;
+            document.getElementById("taskDesc").value = item.desc || "";
+        }
+    });
+}
+
+function handleDelete(type, id, date) {
+    if (confirm(`Remove this ${type} permanently?`)) {
+        db.ref(`users/${currentUser.uid}/${type === 'event' ? 'events' : 'tasks'}/${date}/${id}`).remove()
+            .then(() => {
+                loadModalTasks(date);
+                loadTasks(date);
+            });
+    }
+}
+
+function handleDelete(type, id, date) {
+    if (confirm(`Remove this ${type} permanently?`)) {
+        db.ref(`users/${currentUser.uid}/${type === 'event' ? 'events' : 'tasks'}/${date}/${id}`).remove()
+            .then(() => {
+                loadModalTasks(date);
+                loadTasks(date);
+            });
+    }
+}
+/**
+ * Permanently deletes an event, typically used from the 24hr prompt modal.
+ */
+function cancelEventPermanent(event) {
+    if (!currentUser) return;
+    closeStatusPromptModal();
+    
+    if (confirm(`Are you sure you want to permanently cancel and delete '${event.title}'? This action cannot be undone.`)) {
+        const refPath = `users/${currentUser.uid}/events/${event.date}/${event.id}`;
+        db.ref(refPath).remove().then(() => {
+            alert(`Event '${event.title}' has been permanently cancelled.`);
+            renderCalendar();
+        }).catch(err => {
+            console.error("Cancellation error:", err);
+            alert("Failed to cancel event.");
+        });
+    }
+}
+
+
+
+
+// --- 1. CHECK AND PROMPT LOGIC ---
+async function checkAndPromptForEventStatus() {
+    if (!currentUser) return;
+    
+    try {
+        const snapshot = await db.ref(`users/${currentUser.uid}/events`).once("value");
+        const allEvents = snapshot.val() || {};
+        
+        eventsToPrompt = []; 
+        const now = new Date().getTime();
+        
+        Object.entries(allEvents).forEach(([dateISO, dayEvents]) => {
+            Object.entries(dayEvents).forEach(([id, event]) => {
+                // Logic: Pending AND 24 hours (PROMPT_DELAY_MS) have passed
+                const savedTime = event.savedTimestamp || event.timestamp; 
+                const promptTime = savedTime + PROMPT_DELAY_MS;
+                
+                if (event.status === EVENT_STATUS.PENDING && promptTime < now) {
+                    eventsToPrompt.push({ date: dateISO, id, ...event });
+                }
+            });
+        });
+
+        if (eventsToPrompt.length > 0) {
+            processNextPendingEvent();
+        }
+    } catch (error) {
+        console.error("Error checking pending events:", error);
+    }
+}
+
+function processNextPendingEvent() {
+    if (!eventsToPrompt.length) {
+        closeStatusPromptModal(); 
+        return;
+    }
+    
+    const event = eventsToPrompt[0]; 
+    currentEventForAction = event; 
+
+    document.getElementById("eventToPromptTitle").textContent = event.title;
+    document.getElementById("eventToPromptDate").textContent = formatDate(event.date);
+    document.getElementById("eventToPromptTime").textContent = event.time;
+    
+    // Set listeners for prompt actions
+    completeEventBtn.onclick = () => updateEventStatus(event, EVENT_STATUS.COMPLETED);
+    incompleteEventBtn.onclick = () => updateEventStatus(event, EVENT_STATUS.INCOMPLETE);
+    reschedulePromptBtn.onclick = () => openRescheduleModal(event);
+    cancelPromptBtn.onclick = () => cancelEventPermanent(event);
+
+    overlayElement.classList.remove("hidden");
+    statusPromptModal.classList.remove("hidden");
+}
+
+// --- 2. THE CENTRAL UPDATE FUNCTION (Fixed Date/Path Issues) ---
+function updateEventStatus(event, status, calledFromModal = false) {
+    if (!currentUser || !event.date || !event.id) {
+        console.error("Missing Event Data:", event);
+        return;
+    }
+
+    const eventPath = `users/${currentUser.uid}/events/${event.date}/${event.id}`;
+
+    db.ref(eventPath)
+      .update({ status: status })
+      .then(() => {
+          console.log(`Successfully updated ${event.id} to ${status}`);
+          
+          // ALWAYS refresh the main calendar cell
+          if (typeof loadTasks === "function") loadTasks(event.date);
+
+          if (calledFromModal) {
+              // Refresh the specific day/modal view
+              if (typeof loadModalTasks === "function") loadModalTasks(event.date);
+          } else {
+              // Logic for 24hr Prompt Queue
+              // Only remove from queue if this event is the one being prompted
+              if (eventsToPrompt.length > 0 && eventsToPrompt[0].id === event.id) {
+                  eventsToPrompt.shift();
+                  closeStatusPromptModal();
+                  processNextPendingEvent();
+              }
+              
+              // Refresh Tracking Modal if it is currently visible
+              const isTrackingOpen = !eventTrackingSection.classList.contains('hidden');
+              if (isTrackingOpen) {
+                  const currentStatusInView = trackingModalTitle.textContent.includes("Incomplete") 
+                      ? EVENT_STATUS.INCOMPLETE 
+                      : EVENT_STATUS.COMPLETED;
+                  loadTrackingEvents(currentStatusInView); 
+              }
+          }
+      })
+      .catch(err => {
+          console.error("Update failed:", err);
+          alert("Could not update status. Please try again.");
+      });
+}
+
+// --- 3. TRACKING EVENTS LOGIC ---
+function loadTrackingEvents(status) {
+    if (!currentUser) return;
+
+    trackingEventsList.innerHTML = `<p class="text-center text-indigo-500 italic p-3"><i class="fas fa-spinner fa-spin mr-2"></i> Loading ${status} events...</p>`;
+
+    db.ref(`users/${currentUser.uid}/events`).once("value").then(snapshot => {
+        const allEvents = snapshot.val() || {};
+        let filteredEvents = [];
+
+        const cutoffDate = new Date();
+        cutoffDate.setUTCDate(cutoffDate.getUTCDate() - 30);
+        cutoffDate.setUTCHours(0, 0, 0, 0); 
+
+        Object.entries(allEvents).forEach(([dateISO, dayEvents]) => {
+            Object.entries(dayEvents).forEach(([id, event]) => {
+                const eventDate = new Date(dateISO); 
+                
+                if (event.status === status && eventDate >= cutoffDate) {
+                    filteredEvents.push({ date: dateISO, id: id, ...event });
+                }
+            });
+        });
+
+        filteredEvents.sort((a, b) => b.timestamp - a.timestamp);
+
+        if (filteredEvents.length === 0) {
+            trackingEventsList.innerHTML = `<p class="text-center text-gray-500 italic p-3">No ${status} events found in the last 30 days.</p>`;
+            return;
+        }
+
+        trackingEventsList.innerHTML = ''; 
+
+        filteredEvents.forEach(event => {
+            const isCompleted = event.status === EVENT_STATUS.COMPLETED;
+            const bgColor = isCompleted ? 'bg-green-50' : 'bg-red-50';
+            const icon = isCompleted ? 'fa-check-circle text-green-700' : 'fa-times-circle text-red-700';
+            const locationText = (event.location && event.location.trim() !== '') ? `Location: ${event.location}` : 'Location: N/A';
+
+            const eventDiv = document.createElement("div");
+            eventDiv.className = `p-4 my-2 rounded-xl shadow-md ${bgColor} border border-gray-200`;
+            
+            let completeButton = '';
+            if (status === EVENT_STATUS.INCOMPLETE) {
+                 // Escape title for the onclick string
+                 const safeTitle = event.title.replace(/'/g, "\\'");
+                 completeButton = `
+                     <button onclick="updateEventStatus({ date: '${event.date}', id: '${event.id}', title: '${safeTitle}' }, '${EVENT_STATUS.COMPLETED}', false)"
+                             class="bg-green-600 text-white text-sm px-4 py-2 rounded-full hover:bg-green-700 transition shadow-md whitespace-nowrap font-semibold">
+                         <i class="fas fa-check"></i> Complete Event
+                     </button>
+                 `;
+            }
+            
+            eventDiv.innerHTML = `
+                <div class="flex items-start justify-between">
+                    <div class="flex-1 min-w-0">
+                        <strong class="text-xl text-gray-800 block">
+                            <i class="fas ${icon} mr-3"></i> ${event.title}
+                        </strong>
+                        <span class="text-sm text-gray-600 block">${formatDate(event.date)} at ${event.time}</span>
+                    </div>
+                    <div class="ml-4">${completeButton}</div>
+                </div>
+                <p class="mt-2 text-gray-600">${event.desc || 'No Description'}</p>
+                <p class="text-sm text-gray-500 mt-1 italic">${locationText}</p>
+            `;
+            trackingEventsList.appendChild(eventDiv);
+        });
+
+    }).catch(err => {
+        console.error("Error loading tracking events:", err);
+        trackingEventsList.innerHTML = `<p class="text-center text-red-500 italic p-3">Error loading event history.</p>`;
+    });
+}
+
+// --- PDF Download Fix (FIXED: Excludes all event data) ---
+if (downloadButton) {
+    downloadButton.addEventListener("click",async()=>{
+        if(!currentUser) return alert("User not logged in.");
+        
+        const {jsPDF}=window.jspdf || {};
+        if (!jsPDF) return alert("PDF generation failed: jsPDF library is not loaded.");
+
+        const y=currentDate.getFullYear(), m=currentDate.getMonth();
+        const snapTasks = await db.ref(`users/${currentUser.uid}/tasks`).once("value");
+        const tasksData = snapTasks.val()||{};
+        
+        const pdfData=[];
+        
+        // Loop through all days of the current displayed month
+        const daysInMonth = new Date(y,m+1,0).getDate();
+        for(let d=1; d<=daysInMonth; d++){
+            // Create UTC date for consistent ISO and display date
+            const dateObj = new Date(Date.UTC(y, m, d));
+            const iso=toISODate(dateObj);
+            
+            // Format using UTC methods for consistency
+            const dateStr = `${String(dateObj.getUTCDate()).padStart(2,"0")}-${String(dateObj.getUTCMonth()+1).padStart(2,"0")}-${dateObj.getUTCFullYear()}`; 
+            
+            // 1. Collect ONLY Tasks
+            if(tasksData[iso]) {
+                Object.values(tasksData[iso]).forEach(t=>pdfData.push([dateStr, t.title, t.desc||""]));
+            }
+        }
+
+        if(!pdfData.length) return alert("No tasks found for this month.");
+        
+        const doc=new jsPDF();
+        doc.setFontSize(18);
+        doc.text(`Tasks for ${currentDate.toLocaleString("default",{month:"long",year:"numeric"})}`,14,20);
+        
+        doc.autoTable({
+            startY:30,
+            head:[["Date","Task Title","Description"]],
+            body:pdfData,
+            styles: { fontSize: 10, cellPadding: 2, overflow: 'linebreak' },
+            headStyles: { fillColor: [51, 65, 85] } /* Charcoal color for PDF header */
+        });
+        doc.save(`Tasks_${currentDate.toLocaleString("default",{month:"short"})}_${y}.pdf`);
+    });
+}
+
+// --- Notification Logic Fixes (Timezone and Location) ---
+
+function requestNotificationPermission() {
+    if (!("Notification" in window)) {
+        console.warn("Browser does not support desktop notification");
+        return;
+    }
+    
+    if (Notification.permission !== "granted") {
+        Notification.requestPermission().then(permission => {
+            if (permission === "granted") {
+                console.log("Notification permission granted.");
+            } else {
+                console.log("Notification permission denied.");
+            }
+        });
+    }
+}
+
+/**
+ * Checks for pending events and triggers system notifications.
+ * Uses a more robust checking logic and cleaner formatting.
+ */
+async function checkAndShowNotifications() {
+    // 1. Early exits for permissions and auth
+    if (!currentUser || Notification.permission !== "granted") return;
+
+    try {
+        const snapshot = await db.ref(`users/${currentUser.uid}/events`).once("value");
+        const allEvents = snapshot.val();
+        if (!allEvents) return;
+
+        const now = Date.now();
+        
+        // Use flatMap or nested forEach to process events
+        Object.entries(allEvents).forEach(([date, dayEvents]) => {
+            Object.entries(dayEvents).forEach(([id, event]) => {
+                
+                // Logic Guard: Only process PENDING events
+                if (event.status !== EVENT_STATUS.PENDING) return;
+
+                const eventTimestamp = event.timestamp; 
+                
+                // Timing Window: Event is within the past 12 hours (tolerance) up until 'now'
+                const isWithinWindow = eventTimestamp > (now - NOTIFICATION_TOLERANCE_MS) && eventTimestamp <= now;
+
+                if (eventTimestamp && isWithinWindow) {
+                    sendProfessionalNotification(date, id, event);
+                }
+            });
+        });
+    } catch (err) {
+        console.error("Critical: Notification sync failed", err);
+    }
+}
+
+/**
+ * Helper to handle the UI/UX of the notification itself
+ */
+/**
+ * Triggers a professionally formatted system notification
+ */
+function sendProfessionalNotification(date, id, event) {
+    // Header for the body content
+    const header = "EVENT DETAILS";
+    const divider = "───────────────────";
+    
+    // Formatting the content with clean labels and spacing
+    const timeEntry = `⏰ Time:     ${event.time || 'Not specified'}`;
+    const locEntry  = event.location?.trim() ? `📍 Location: ${event.location}` : '';
+    const descEntry = `📝 Note:     ${event.desc || 'No details provided'}`;
+
+    // Construct the body: Only include location if it exists
+    const bodyContent = [
+        header,
+        divider,
+        timeEntry,
+        locEntry,
+        descEntry
+    ].filter(line => line !== '').join('\n');
+
+    const options = {
+        body: bodyContent,
+        // Using a high-quality local asset for a native app feel
+        icon: '/assets/img/calendar-notification-icon.png', 
+        badge: '/assets/img/badge-icon.png', 
+        tag: `event-${date}-${id}`,
+        vibrate: [200, 100, 200],
+        requireInteraction: false // Automatically hides after a few seconds
+    };
+
+    const title = event.title?.toUpperCase() || "EVENT REMINDER";
+
+    try {
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+            navigator.serviceWorker.ready.then(reg => reg.showNotification(title, options));
+        } else {
+            new Notification(title, options);
+        }
+    } catch (e) {
+        console.error("Notification UI Error:", e);
+    }
+}
+// --- Search Functions (OPTIMIZED: Instant response) ---
+let debounceTimeout;
+let isSearchInputFocused = false; 
+
+function closeSearchView() {
+    isSearchInputFocused = false;
+    body.classList.remove("search-active");
+    searchResults.innerHTML = "";
+    if (downloadButton) downloadButton.style.display = 'block'; 
+    if (searchTimeframe) searchTimeframe.style.display = 'block';
+    searchOverlayBackground.style.display = 'none'; 
+    document.body.style.overflow = 'auto'; 
+}
+
+function searchTasks(isFocusEvent = false) {
+    const query = searchInput.value.toLowerCase().trim();
+    const timeframe = searchTimeframe.value;
+    
+    // 1. Instant UI Preparation
+    if (!query) {
+        closeSearchView();
+        return; 
+    }
+    
+    body.classList.add("search-active");
+    searchOverlayBackground.style.display = 'block'; 
+    if (downloadButton) downloadButton.style.display = 'none';
+    document.body.style.overflow = 'hidden';
+
+    // 2. Clear previous timer
+    clearTimeout(debounceTimeout);
+    
+    // 3. Instant feedback if results panel is not already there
+    if (!searchResults.querySelector('.search-results-panel')) {
+        searchResults.innerHTML = `
+            <div class="search-results-panel">
+                 <p class='p-3 text-center text-indigo-500 font-semibold'>
+                     <i class="fas fa-spinner fa-spin mr-2"></i> Searching...
+                 </p>
+            </div>`;
+    }
+
+    // 4. Set the actual search logic (Shortened delay for snappier feel)
+    // If it's a focus event, we run it even faster
+    const delay = isFocusEvent ? 0 : 200; 
+
+    debounceTimeout = setTimeout(() => {
+        const user = firebase.auth().currentUser;
+        if (!user) return;
+
+        // Fetching data
+        const taskPromise = db.ref(`users/${user.uid}/tasks`).once("value");
+        const eventPromise = db.ref(`users/${user.uid}/events`).once("value");
+
+        Promise.all([taskPromise, eventPromise]).then(([taskSnapshot, eventSnapshot]) => {
+            if (!searchInput.value.trim()) return; // User cleared search while loading
+
+            const allTasks = taskSnapshot.val() || {};
+            const allEvents = eventSnapshot.val() || {};
+            const combinedData = {};
+            
+            const processData = (sourceData, typePrefix) => {
+                Object.entries(sourceData).forEach(([date, dayItems]) => {
+                    if (!combinedData[date]) combinedData[date] = {};
+                    Object.entries(dayItems).forEach(([id, item]) => {
+                        combinedData[date][`${typePrefix}-${id}`] = item;
+                    });
+                });
+            };
+
+            processData(allTasks, 'task');
+            processData(allEvents, 'event');
+
+            let cutoffDate = null;
+            if (timeframe === '1year') {
+                cutoffDate = new Date();
+                cutoffDate.setUTCFullYear(cutoffDate.getUTCFullYear() - 1);
+            }
+
+            let found = 0;
+            const addedItems = new Set();
+            const listContainer = document.createElement("div");
+            listContainer.className = "search-results-panel custom-scroll";
+            
+            // Header for Mobile
+            listContainer.innerHTML = `
+                <div class="flex justify-between items-center mb-3 pb-2 border-b border-gray-200 md:hidden">
+                    <h3 class="text-lg font-bold text-gray-700">Search Results</h3>
+                    <button onclick="closeSearchView()" class="text-gray-500 hover:text-red-500 p-1 rounded-full"><i class="fas fa-times"></i> Close</button>
+                </div>`;
+
+            const sortedDates = Object.keys(combinedData).sort((a, b) => new Date(b) - new Date(a));
+
+            sortedDates.forEach(date => {
+                if (cutoffDate && new Date(date) < cutoffDate) return;
+
+                Object.entries(combinedData[date]).forEach(([prefixedId, item]) => {
+                    const title = (item.title || "").toLowerCase();
+                    const desc = (item.desc || "").toLowerCase();
+                    const queryLower = query.toLowerCase();
+
+                    if ((title.includes(queryLower) || desc.includes(queryLower)) && !addedItems.has(`${date}-${prefixedId}`)) {
+                        addedItems.add(`${date}-${prefixedId}`);
+                        found++;
+                        
+                        const isEvent = prefixedId.startsWith('event-'); 
+                        let iconClass = isEvent ? 'fa-bell text-emerald-600' : 'fa-list-check text-indigo-600';
+                        if (isEvent && item.status === EVENT_STATUS.COMPLETED) iconClass = 'fa-check-circle text-green-600';
+                        if (isEvent && item.status === EVENT_STATUS.INCOMPLETE) iconClass = 'fa-times-circle text-red-600';
+                        
+                        const formattedDate = formatDate(date).split('(')[0].trim();
+                        const itemDiv = document.createElement("div");
+                        itemDiv.className = `search-result-item cursor-pointer hover:bg-indigo-50`; 
+                        itemDiv.innerHTML = `
+                            <div class="flex justify-between items-center">
+                                <strong class="text-base font-bold text-gray-800 md:text-xl">
+                                    <i class="fas ${iconClass} mr-2"></i>${item.title || 'Untitled'}
+                                </strong>
+                                <span class="text-sm text-gray-600">${formattedDate}</span>
+                            </div>
+                            <div class="mt-0.5 truncate text-sm text-gray-500 md:text-base">${item.desc || 'No Description'}</div>
+                        `;
+
+                        itemDiv.onclick = () => {
+                            closeSearchView(); 
+                            openModal(date); 
+                        };
+                        listContainer.appendChild(itemDiv);
+                    }
+                });
+            });
+
+            // INSTANT SWAP: Remove loader and show results immediately
+            searchResults.innerHTML = '';
+            if (found > 0) {
+                searchResults.appendChild(listContainer);
+            } else {
+                searchResults.innerHTML = `
+                    <div class='search-results-panel'>
+                        <p class='p-3 bg-yellow-50 rounded-xl text-center text-yellow-700'>No matching data found.</p>
+                    </div>`;
+            }
+        });
+    }, delay);
+}
+
+// Event Listeners for Instant Trigger
+if (searchInput) {
+    searchInput.addEventListener("focus", () => {
+        isSearchInputFocused = true;
+        searchTasks(true); // Pass true for instant 0ms delay
+    }); 
+    
+    searchInput.addEventListener("input", () => searchTasks(false)); 
+    searchTimeframe.addEventListener("change", () => searchTasks(true));
+
+    searchInput.addEventListener("blur", () => {
+        isSearchInputFocused = false;
+        setTimeout(() => {
+            if (searchInput.value.trim() === "") closeSearchView();
+        }, 200);
+    }); 
+}
+// --- 1. CORRECTED DELETE LOGIC (Place this inside loadModalTasks loop) ---
+dBtn.onclick = () => {
+    const isEvent = (item.type === 'event');
+    const path = isEvent ? 'events' : 'tasks';
+    // itemId and itemDate must be correctly captured from the current loop iteration
+    const targetRef = db.ref(`users/${currentUser.uid}/${path}/${itemDate}/${itemId}`);
+
+    if (confirm(`Are you sure you want to delete this ${item.type}?`)) {
+        targetRef.remove()
+            .then(() => {
+                // Success: Refresh the specific calendar cell and the current modal
+                loadTasks(itemDate);
+                loadModalTasks(itemDate);
+                console.log(`${item.type} deleted successfully`);
+            })
+            .catch(err => {
+                console.error("Delete failed:", err);
+                alert("Could not delete item. Check Firebase permissions.");
+            });
+    }
+};
+
+// --- 2. CORRECTED EDIT LOGIC (Place this inside loadModalTasks loop) ---
+e.onclick = () => {
+    if (isEvent) {
+        editEventId = itemId; // Critical: Store the ID for the save function
+        selectedDate = itemDate;
+
+        // Populate the Event Modal fields
+        document.getElementById("eventTitle").value = item.title;
+        document.getElementById("eventDate").value = itemDate;
+        document.getElementById("eventTime").value = item.time;
+        document.getElementById("eventLocation").value = item.location || "";
+        document.getElementById("eventDesc").value = item.desc || "";
+        document.getElementById("eventModalTitle").textContent = "Edit Event";
+
+        // Switch Modals
+        taskModalElement.classList.add("hidden");
+        eventModalElement.classList.remove("hidden");
+        overlayElement.classList.remove("hidden");
+    } else {
+        // Standard Task Edit Logic
+        editTaskId = itemId;
+        document.getElementById("taskTitle").value = item.title;
+        document.getElementById("taskDesc").value = item.desc || "";
+    }
+};
+
+// --- 3. CORRECTED SAVE EVENT LOGIC (Update your saveEventBtn listener) ---
+document.getElementById("saveEventBtn").addEventListener("click", () => {
+    if (!currentUser) return;
+
+    let title = document.getElementById("eventTitle").value.trim();
+    const date = document.getElementById("eventDate").value;
+    const time = document.getElementById("eventTime").value;
+
+    if (!title || !date || !time) return alert("Please fill in Title, Date, and Time.");
+
+    // Determine if we are updating an existing entry or pushing a new one
+    const eventRef = db.ref(`users/${currentUser.uid}/events/${date}`);
+    const finalRef = editEventId ? eventRef.child(editEventId) : eventRef.push();
+
+    const eventData = {
+        title: capitalizeFirstLetter(title),
+        time: time,
+        location: capitalizeFirstLetter(document.getElementById("eventLocation").value),
+        desc: capitalizeFirstLetter(document.getElementById("eventDesc").value),
+        timestamp: new Date(`${date}T${time}:00`).getTime(),
+        savedTimestamp: new Date().getTime(),
+        status: EVENT_STATUS.PENDING
+    };
+
+    // .set() will overwrite the existing data if editEventId is present
+    finalRef.set(eventData)
+        .then(() => {
+            editEventId = null; // Reset edit state
+            closeEventModal();
+            loadTasks(date);
+            // Re-open task modal if the user was originally looking at that date
+            if (selectedDate === date) openModal(date); 
+        })
+        .catch(err => alert("Save failed: " + err.message));
+});
+
+
+</script>
+
+
+
+
+
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const btn = document.getElementById('theme-toggle-btn');
+    const icon = document.getElementById('theme-icon');
+    
+    // 1. Load saved theme immediately on page load
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    icon.textContent = savedTheme === 'dark' ? '☀️' : '🌙';
+
+    // 2. Click Event
+    btn.addEventListener('click', () => {
+        let currentTheme = document.documentElement.getAttribute('data-theme');
+        let newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+
+        // Apply new theme
+        document.documentElement.setAttribute('data-theme', newTheme);
+        
+        // Save to LocalStorage (works across all pages on your site)
+        localStorage.setItem('theme', newTheme);
+        
+        // Update Icon
+        icon.textContent = newTheme === 'dark' ? '☀️' : '🌙';
+    });
+});
+</script>
+      <button id="theme-toggle-btn">
+    <span id="theme-icon">🌙</span>
+</button>
+<style>
+    /* --- 1. THEME VARIABLE DEFINITIONS --- */
+    :root {
+        --bg-body: #f9fafb;
+        --bg-card: #ffffff;
+        --text-main: #1f2937;   /* Deep Gray 800 */
+        --text-bold: #000000;   /* Pure Black */
+        --border: #e5e7eb;
+        
+        /* BOTTOM NAV COLORS (LIGHT) */
+        --nav-bg: #ffffff;
+        --nav-text: #000000;    /* Pure Black for text and icons */
+        --nav-height: 65px;
+    }
+
+    [data-theme="dark"] {
+        --bg-body: #0f172a;     /* Deep Navy/Black */
+        --bg-card: #1e293b;     /* Slate 800 */
+        --text-main: #cbd5e1;   /* Slate 300 */
+        --text-bold: #f8fafc;   /* Slate 50 */
+        --border: #334155;      /* Slate 700 */
+        
+        /* BOTTOM NAV COLORS (DARK) */
+        --nav-bg: #0f172a;
+        --nav-text: #ffffff;    /* Pure White */
+    }
+
+    /* --- 2. GLOBAL OVERRIDES --- */
+    body { background-color: var(--bg-body) !important; color: var(--text-main) !important; transition: background 0.3s; }
+    
+    /* Ensure all text classes inside containers adapt */
+    h1, h2, h3, h4, .font-bold, .font-semibold, 
+    .text-gray-900, .text-gray-800, .text-blue-800, .text-green-800, .text-yellow-800 { 
+        color: var(--text-bold) !important; 
+    }
+
+    p, li, span, .text-gray-700, .text-gray-600 { 
+        color: var(--text-main) !important; 
+    }
+
+    /* Component Surfaces */
+    .bg-white, header, aside, main, #mobile-menu, footer {
+        background-color: var(--bg-card) !important;
+        border-color: var(--border) !important;
+    }
+
+    /* --- 3. SIDEBAR & CORE FEATURES FIXES --- */
+    [data-theme="dark"] .sidebar-desktop, [data-theme="dark"] aside {
+        background-color: var(--bg-card) !important;
+    }
+    
+    /* Muted Sidebar links in dark mode */
+    [data-theme="dark"] .sidebar-nav-internal a { color: #94a3b8 !important; }
+    [data-theme="dark"] .sidebar-nav-internal a:hover,
+    [data-theme="dark"] .sidebar-nav-internal a.active {
+        background-color: #334155 !important;
+        color: #60a5fa !important;
+    }
+
+    /* Core Features Overview Boxes */
+    [data-theme="dark"] .bg-gray-100, 
+    [data-theme="dark"] .bg-yellow-50,
+    [data-theme="dark"] .bg-blue-50,
+    [data-theme="dark"] .bg-green-50 {
+        background-color: #334155 !important;
+        border-color: var(--border) !important;
+    }
+
+    /* Brighter borders for boxes in dark mode */
+    [data-theme="dark"] .border-l-4, [data-theme="dark"] .border-t-4 {
+        border-color: #4f46e5 !important; 
+    }
+
+    /* --- 4. BOTTOM NAV (DARKER FONTS & ICONS) --- */
+    #universal-bottom-nav {
+        background-color: var(--nav-bg) !important;
+        border-top: 1px solid var(--border) !important;
+        height: var(--nav-height);
+    }
+
+    /* This targets the icon specifically */
+    .nav-link i { 
+        color: var(--nav-text) !important; 
+        font-weight: 900 !important; /* Makes icons look thicker/bolder */
+        font-size: 20px !important;  /* Slightly larger for visibility */
+        transition: transform 0.2s;
+    }
+
+    /* This targets the text label specifically */
+    .nav-link div { 
+        color: var(--nav-text) !important; 
+        font-weight: 900 !important; /* Thickest weight for labels */
+        font-size: 11px !important;
+        margin-top: 2px;
+    }
+
+    /* --- 5. THEME TOGGLE (50px ABOVE NAV) --- */
+    #theme-toggle-btn {
+        position: fixed;
+        bottom: 115px; /* 65px height + 50px gap */
+        right: 20px;
+        z-index: 10000;
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        border: none;
+        background: #4f46e5;
+        color: white;
+        cursor: pointer;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.5rem;
+    }
+
+    #theme-toggle-btn:active { transform: scale(0.9); }
+</style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini API Chatbot</title>
+    <style>
+        /* --- General Layout --- */
+        body {
+            font-family: 'Arial', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f7f9fa;
+            margin: 0;
+        }
+
+        .chat-container {
+            width: 100%;
+            max-width: 550px;
+            background: white;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.15);
+            border-radius: 12px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            max-height: 90vh;
+        }
+
+        /* --- Chat Box Area --- */
+        #chat-box {
+            flex-grow: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background-color: #e9eef2;
+            scroll-behavior: smooth;
+        }
+
+        /* --- Individual Messages --- */
+        .message {
+            margin-bottom: 12px;
+            padding: 10px 15px;
+            border-radius: 18px;
+            max-width: 80%;
+            word-wrap: break-word;
+            line-height: 1.4;
+        }
+
+        /* User Message Styling */
+        .user-message {
+            background-color: #007bff;
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 4px; /* Slight design change */
+        }
+
+        /* Gemini Message Styling */
+        .gemini-message {
+            background-color: #dceaf7; /* Light blue for AI */
+            color: #333;
+            margin-right: auto;
+            border-bottom-left-radius: 4px; /* Slight design change */
+        }
+
+        /* --- Input Form --- */
+        #input-form {
+            display: flex;
+            padding: 15px;
+            border-top: 1px solid #ccc;
+            background-color: #ffffff;
+        }
+
+        #user-input {
+            flex-grow: 1;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 25px;
+            margin-right: 10px;
+            font-size: 16px;
+        }
+
+        /* Send Button Styling */
+        #send-button {
+            padding: 12px 20px;
+            border: none;
+            background-color: #28a745;
+            color: white;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background-color 0.2s;
+        }
+
+        #send-button:hover:not(:disabled) {
+            background-color: #1e7e34;
+        }
+
+        #send-button:disabled {
+            background-color: #90ee90;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="chat-container">
+        <div id="chat-box">
+            <div class="message gemini-message">Hello! I'm a Gemini-powered chat assistant. Ask me anything!</div>
+        </div>
+
+        <form id="input-form">
+            <input type="text" id="user-input" placeholder="Type your message..." required>
+            <button type="submit" id="send-button">Send</button>
+        </form>
+    </div>
+
+    <script>
+        // ----------------------------------------------------------------------
+        // ⚠️ CRITICAL STEP ⚠️: PASTE YOUR API KEY HERE
+        // Replace this with your new, safe key after you delete the exposed one.
+        // ----------------------------------------------------------------------
+        const API_KEY = "AIzaSyAx9Jo2cGzFqPSuWr-zjoMh_5taBpwONOA"; // <--- REPLACE THIS KEY
+        
+        const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=" + API_KEY;
+        
+        // DOM Element References
+        const chatBox = document.getElementById('chat-box');
+        const inputForm = document.getElementById('input-form');
+        const userInput = document.getElementById('user-input');
+        const sendButton = document.getElementById('send-button');
+
+        // This array stores the entire conversation history (critical for maintaining context)
+        let history = [];
+
+        /**
+         * Appends a message to the chat box.
+         * @param {string} text - The content of the message.
+         * @param {('user'|'gemini')} sender - The sender of the message.
+         */
+        function appendMessage(text, sender) {
+            const messageDiv = document.createElement('div');
+            messageDiv.classList.add('message');
+            messageDiv.classList.add(sender === 'user' ? 'user-message' : 'gemini-message');
+            messageDiv.innerText = text;
+            chatBox.appendChild(messageDiv);
+            
+            // Scroll to the latest message
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        /**
+         * Sends the user's message to the Gemini API and processes the response.
+         */
+        async function sendMessage() {
+            const userText = userInput.value.trim();
+            if (!userText) return;
+
+            // 1. Display user message and update history
+            appendMessage(userText, 'user');
+            
+            // Add the user message to the history for the API call
+            history.push({
+                role: "user",
+                parts: [{ text: userText }]
+            });
+
+            // Clear input and disable button while waiting for API response
+            userInput.value = '';
+            sendButton.disabled = true;
+
+            try {
+                const response = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        // Send the entire history for context
+                        contents: history,
+                    })
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    throw new Error(`API Request failed with status ${response.status}: ${errorText}`);
+                }
+
+                const data = await response.json();
+                
+                // Check for valid response structure and content
+                if (data.candidates && data.candidates.length > 0 && data.candidates[0].content && data.candidates[0].content.parts) {
+                    const geminiText = data.candidates[0].content.parts[0].text;
+                    
+                    // 2. Display Gemini's response and update history
+                    appendMessage(geminiText, 'gemini');
+                    
+                    // Add the model's response to the history for the next turn
+                    history.push({
+                        role: "model",
+                        parts: [{ text: geminiText }]
+                    });
+                } else {
+                    appendMessage("Error: Could not get a valid response from Gemini. Check the response structure.", 'gemini');
+                }
+
+            } catch (error) {
+                console.error('Error sending message to Gemini:', error);
+                appendMessage("Sorry, I ran into an error. Please check the browser console for details.", 'gemini');
+                // Remove the last user message from history so it doesn't get sent again on the next try
+                history.pop();
+            } finally {
+                // Re-enable the send button
+                sendButton.disabled = false;
+            }
+        }
+
+        // Event listener for the form submission
+        inputForm.addEventListener('submit', (e) => {
+            e.preventDefault(); // Prevents the page from reloading
+            sendMessage();
+        });
+    </script>
+
+
+
+
+
+</body>
+</html>
