@@ -551,24 +551,27 @@ nav .grid-cols-4 {
         class="w-auto bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg py-1.5 px-3 text-slate-700 dark:text-slate-200 font-bold text-xs outline-none">
 </header>
 
-        <div class="grid grid-cols-3 lg:grid-cols-3 gap-1 mb-2">
-            <div class="stat-card border-b-1 border-emerald-500">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Income</p>
-                <h2 id="totalIncome" class="text-base font-black text-emerald-600">₹0</h2>
-            </div>
-            <div class="stat-card border-b-1 border-rose-500">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Expense</p>
-                <h2 id="totalExpense" class="text-base font-black text-rose-500">₹0</h2>
-            </div>
-           <div class="stat-card border-b-4 border-sky-500">
-                <p class="text-[9px] font-bold text-slate-400 uppercase tracking-widest mb-1">Saving</p>
-                <h2 id="monthlySaving" class="text-base font-black text-sky-600">₹0</h2>
-            </div>
-            <div class="stat-card border-b-2 border-amber-500">
-                <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Overall Saving</p>
-                <h2 id="overallSaving" class="text-base font-black text-amber-600">₹0</h2>
-            </div>
-        </div>
+ <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-4 px-0">
+    <div class="stat-card border-b-2 border-emerald-500 !p-2">
+        <p class="text-[8px] font-bold text-slate-400 uppercase tracking-tight mb-0.5">Income</p>
+        <h2 id="totalIncome" class="text-sm font-black text-emerald-600 leading-none">₹0</h2>
+    </div>
+    
+    <div class="stat-card border-b-2 border-rose-500 !p-2">
+        <p class="text-[8px] font-bold text-slate-400 uppercase tracking-tight mb-0.5">Expense</p>
+        <h2 id="totalExpense" class="text-sm font-black text-rose-500 leading-none">₹0</h2>
+    </div>
+
+    <div class="stat-card border-b-2 border-sky-500 !p-2">
+        <p class="text-[8px] font-bold text-slate-400 uppercase tracking-tight mb-0.5">Saving</p>
+        <h2 id="monthlySaving" class="text-sm font-black text-sky-600 leading-none">₹0</h2>
+    </div>
+
+    <div class="stat-card border-b-2 border-amber-500 !p-2">
+        <p class="text-[8px] font-bold text-slate-400 uppercase tracking-tight mb-0.5">Overall</p>
+        <h2 id="overallSaving" class="text-sm font-black text-amber-600 leading-none">₹0</h2>
+    </div>
+</div>
 
         <div id="loader" class="flex flex-col items-center justify-center py-20">
             <div class="spinner"></div>
@@ -918,6 +921,7 @@ firebase.auth().onAuthStateChanged(user => {
 </body>
 
 </html>
+
 
 
 
