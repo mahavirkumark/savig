@@ -539,17 +539,17 @@ nav .grid-cols-4 {
 <body class="p-4 md:p-6">
 
     <div class="max-w-6xl mx-auto">
-        <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-4 py-2">
-            <div class="flex items-center gap-2">
-                <div class="w-1.5 h-4 bg-indigo-600 rounded-full"></div>
-                <h1 class="text-xl font-blue tracking-tighter uppercase transition-colors duration-300">
-                    Finance <span class="text-indigo-600 italic">LIVE</span>
-                </h1>
-            </div>
+<header class="flex flex-row justify-between items-center gap-4 mb-4 py-2">
+    <div class="flex items-center gap-2">
+        <div class="w-1.5 h-4 bg-indigo-600 rounded-full"></div>
+        <h1 class="text-xl font-bold tracking-tighter uppercase transition-colors duration-300">
+            Finance <span class="text-indigo-600 italic">LIVE</span>
+        </h1>
+    </div>
 
-            <input type="month" id="monthSelector" 
-                class="w-full sm:w-auto bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg py-1.5 px-3 text-slate-700 dark:text-slate-200 font-bold text-xs outline-none">
-        </header>
+    <input type="month" id="monthSelector" 
+        class="w-auto bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg py-1.5 px-3 text-slate-700 dark:text-slate-200 font-bold text-xs outline-none">
+</header>
 
         <div class="grid grid-cols-2 lg:grid-cols-2 gap-1 mb-2">
             <div class="stat-card border-b-1 border-emerald-500">
@@ -918,6 +918,7 @@ firebase.auth().onAuthStateChanged(user => {
 </body>
 
 </html>
+
 
 
 
