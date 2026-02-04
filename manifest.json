@@ -1,7 +1,7 @@
 {
   "name": "My Personal Task Manager",
   "short_name": "Tasks",
-  "start_url": "/daily.html",  <-- **Uses your correct page name**
+  "start_url": "/indexmob.html",  <-- **Uses your correct page name**
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#4f46e5",
@@ -17,4 +17,5 @@
       "type": "image/png"
     }
   ]
+
 }
