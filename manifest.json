@@ -1,21 +1,24 @@
 {
-  "name": "My Personal Task Manager",
-  "short_name": "Tasks",
-  "start_url": "/indexmob.html",  <-- **Uses your correct page name**
+  "name": "Savig",
+  "short_name": "Savig",
+  "start_url": "indexmob.html?launcher=true",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#4f46e5",
+  "background_color": "#0d1117",
+  "theme_color": "#2196F3",
   "icons": [
     {
-      "src": "/icon-192x192.png",
+      "src": "icon-192.jpg",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/jpeg",
+      "purpose": "any maskable"
     },
     {
-      "src": "/icon-512x512.png",
+      "src": "icon-512.jpg",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/jpeg",
+      "purpose": "any maskable"
     }
   ]
-
 }
+
