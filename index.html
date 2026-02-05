@@ -301,7 +301,7 @@
 <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
 <script>
-    // --- Firebase Configuration Using Your Provided ID ---
+    // --- Firebase Configuration ---
     const firebaseConfig = {
         apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc",
         authDomain: "sk12-58e9e.firebaseapp.com",
@@ -311,6 +311,7 @@
         appId: "1:470207874652:web:67ba1cf3629b7e5b144899"
     };
 
+    // Initialize Firebase
     if (typeof firebase !== 'undefined' && firebase.apps.length === 0) {
         firebase.initializeApp(firebaseConfig);
     }
@@ -319,58 +320,68 @@
     const db = firebase.firestore();
     const provider = new firebase.auth.GoogleAuthProvider();
 
-    let currentUID = null;
-    let currentEmail = null;
-
     const msgBoxEl = document.getElementById("msgBox");
     const loginCardEl = document.getElementById("loginCard");
-    
-    // --- Helper Function for Toast Messages ---
+
+    // --- 1. PERSISTENCE CHECK (Auto-Login) ---
+    // This checks if the user is already signed in from a previous session
+    auth.onAuthStateChanged((user) => {
+        if (user) {
+            console.log("Active session found for:", user.email);
+            // If user is already logged in, skip login page and go to home
+            window.location.href = "homemob.html";
+        } else {
+            // No user found, make sure the login UI is visible
+            if (loginCardEl) loginCardEl.style.display = "block";
+        }
+    });
+
+    // --- 2. HELPER FUNCTION FOR TOAST MESSAGES ---
     function showMsg(msg, success = true, duration = 6000) {
-        // 1. Clear previous state and determine style class
+        if (!msgBoxEl) return;
+        
         msgBoxEl.className = ''; 
         msgBoxEl.classList.add(success ? 'success' : 'error');
         
-        // 2. Set Content
         const iconClass = success ? 'fas fa-check-circle' : 'fas fa-exclamation-triangle';
-        msgBoxEl.innerHTML = `<i class="${iconClass}"></i><span class="flex-grow">${msg}</span>`;
+        msgBoxEl.innerHTML = `<i class="${iconClass}"></i><span style="margin-left:10px;">${msg}</span>`;
         
-        // 3. Trigger Fade-in and Slide-in
         requestAnimationFrame(() => {
             msgBoxEl.classList.add('show');
         });
 
-        // 4. Set Timeout to Hide
         setTimeout(() => {
             msgBoxEl.classList.remove('show');
-            setTimeout(() => {
-                msgBoxEl.className = '';
-            }, 300); 
         }, duration); 
     }
 
-    // --- Event Handler for Google Login ---
+    // --- 3. GOOGLE LOGIN HANDLER ---
     document.getElementById("googleLoginBtn").onclick = async () => {
         try {
             const result = await auth.signInWithPopup(provider);
-            currentUID = result.user.uid;
-            currentEmail = result.user.email;
+            const user = result.user;
 
-            // Check if user document exists (for new user setup)
-            const doc = await db.collection("users").doc(currentUID).get();
+            // Check if user document exists in Firestore (Savig App User Setup)
+            const userRef = db.collection("users").doc(user.uid);
+            const doc = await userRef.get();
 
             if (!doc.exists) {
-                // First time login: Create the user document (no PIN needed)
-                await db.collection("users").doc(currentUID).set({ 
-                    email: currentEmail,
+                // Register new user data if it's their first time
+                await userRef.set({ 
+                    email: user.email,
+                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
                 });
             }
             
-            // --- IMMEDIATE REDIRECTION FOR FAST SIGN-IN ---
+            showMsg("Success! Redirecting...", true);
             
-            setTimeout(() => { window.location.href = "home.html"; }, 1000); 
+            // Short delay to show success message before redirecting
+            setTimeout(() => { 
+                window.location.href = "homemob.html"; 
+            }, 1000); 
 
         } catch (e) {
+            console.error(e);
             showMsg("Login failed: " + e.message, false);
         }
     };
@@ -575,6 +586,7 @@
 </script>
 </body>
 </html>
+
 
 
 
