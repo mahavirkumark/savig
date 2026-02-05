@@ -310,14 +310,18 @@ nav .grid-cols-4 {
     </div>
 </a>
 
-            <a href="financemob.html" class="animate-pop flex flex-col items-center no-underline" style="animation-delay: 0.2s;">
-                <div class="box-container">
-                    <div class="w-8 h-8 bg-blue-700 rounded-full flex items-center justify-center mb-1">
-                        <span class="text-blue font-bold text-xl">₹</span>
-                    </div>
-                    <span class="font-bold text-black-800 dark:text-black-700 italic text-[14px]">Finance</span>
-                </div>
-            </a>
+    <a href="financemob.html" class="animate-pop flex flex-col items-center no-underline" style="animation-delay: 0.2s;">
+    <div class="box-container flex flex-col items-center">
+        <div class="w-8 h-8 bg-blue-700 rounded-full flex items-center justify-center mb-1">
+       <i class="fas fa-rupee-sign text-white text-sm"></i>
+        </div>
+        
+        <span class="font-bold text-slate-800 dark:text-slate-200 italic text-[14px]">
+            Finance
+        </span>
+    </div>
+</a>
+
 
             <a href="travelmob.html" class="animate-pop flex flex-col items-center no-underline" style="animation-delay: 0.3s;">
                 <div class="box-container">
@@ -938,6 +942,7 @@ firebase.auth().onAuthStateChanged(user => {
 </body>
 
 </html>
+
 
 
 
