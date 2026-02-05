@@ -497,10 +497,110 @@ if ("serviceWorker" in navigator) {
 }
 </style>
 
+<div id="splash-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);">
+    
+    <div class="relative mb-8 flex items-center justify-center">
+        <div class="absolute rounded-full border-2 border-blue-50 hover-glow" style="width: 150px; height: 150px; animation: ping 2.5s infinite;"></div>
+        <div class="absolute rounded-full border-2 border-blue-600 border-t-transparent shadow-lg" style="width: 110px; height: 110px; animation: spin 1s linear infinite;"></div>
+        
+        <div class="relative flex items-center justify-center" style="animation: float 3s ease-in-out infinite;">
+            <i class="fas fa-shield text-blue-600" style="font-size: 70px; filter: drop-shadow(0 4px 6px rgba(37,99,235,0.2));"></i>
+            <i class="fas fa-database text-white absolute" style="font-size: 28px; top: 48%; left: 50%; transform: translate(-50%, -40%);"></i>
+        </div>
+    </div>
+    
+    <div class="text-center mb-4 overflow-hidden">
+        <h1 class="text-5xl font-black text-gray-900 tracking-tighter brand-reveal" style="letter-spacing: -3px;">SAVIG</h1>
+        <p class="text-gray-400 text-[10px] uppercase tracking-[0.4em] mt-2 font-bold opacity-0" style="animation: fadeIn 1s forwards 0.5s;">Secure Personal Hub</p>
+    </div>
+    
+    <div class="h-10 flex flex-col items-center justify-center">
+        <div id="splash-text" class="text-blue-600 font-bold text-[11px] uppercase tracking-[0.2em] text-center transition-all duration-300">
+            Initializing Secure Environment
+        </div>
+    </div>
 
+    <div class="w-60 h-1.5 bg-gray-100 rounded-full mt-4 overflow-hidden relative shadow-inner">
+        <div id="splash-progress" class="h-full bg-blue-600 transition-all duration-300 relative" style="width: 0%;">
+            <div class="absolute top-0 left-0 w-full h-full shimmer-effect"></div>
+        </div>
+    </div>
+
+    <style>
+        /* Core Animations */
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes ping { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(1.6); opacity: 0; } }
+        
+        /* Floating Icon Effect */
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        /* Brand Text Reveal */
+        .brand-reveal {
+            animation: slideUpReveal 1s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+            transform: translateY(100%);
+        }
+
+        @keyframes slideUpReveal {
+            to { transform: translateY(0); }
+        }
+
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
+
+        /* Progress Bar Shimmer */
+        .shimmer-effect {
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+        }
+    </style>
+    <script>
+        // --- Splash Screen Logic ---
+const splashMessages = [
+    "Establishing Secure Connection...",
+    "Encrypting Your Data Vault...",
+    "Finalizing Privacy Protocols...",
+    "Ready to Secure Your Life."
+];
+
+let msgIndex = 0;
+const splashTextEl = document.getElementById("splash-text");
+const splashScreenEl = document.getElementById("splash-screen");
+
+// Change text every 1 second
+const msgInterval = setInterval(() => {
+    msgIndex++;
+    if (splashTextEl && splashMessages[msgIndex]) {
+        splashTextEl.innerText = splashMessages[msgIndex];
+    }
+}, 1000);
+
+// Hide the splash screen after 4 seconds
+window.addEventListener('DOMContentLoaded', () => {
+    setTimeout(() => {
+        clearInterval(msgInterval); // Stop changing text
+        if (splashScreenEl) {
+            splashScreenEl.style.opacity = '0'; // Fade out
+            setTimeout(() => {
+                splashScreenEl.style.display = 'none'; // Remove from view
+            }, 500);
+        }
+    }, 4000); // 4000ms = 4 seconds
+});
+
+    </script>
 
 </body>
 </html>
+
 
 
 
