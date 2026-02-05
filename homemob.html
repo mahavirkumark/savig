@@ -290,6 +290,9 @@ nav .grid-cols-4 {
 [data-theme='dark'] .theme-toggle .fa-moon { display: none !important; }
 [data-theme='light'] .theme-toggle .fa-sun { display: none !important; }
 [data-theme='light'] .theme-toggle .fa-moon { display: block !important; }
+.universal-bottom-nav:hover{
+    color: #2563eb;
+}
 </style>
 </style>
 </head>
@@ -346,25 +349,26 @@ nav .grid-cols-4 {
     </div>
 
     <nav id="universal-bottom-nav">
-        <a href="homemob.html" class="nav-link">
-            <i class="fa-solid fa-house"></i>
-            <div>Home</div>
-        </a>
-        <a href="addressmob.html" class="nav-link">
-            <i class="fa-solid fa-location-dot"></i>
-            <div>Address</div>
-        </a>
-        <a href="passwordmob.html" class="nav-link">
-            <i class="fa-solid fa-key"></i>
-            <div>Passwords</div>
-        </a>
-      
-        <a href="contact.html" class="nav-link">
-            <i class="fa-solid fa-envelope"></i>
-            <div>Contact</div>
-        </a>
-    </nav>
+   <a href="homemob.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
+        <i class="fa-solid fa-house transition-colors duration-300 group-hover:text-indigo-600"></i>
+        <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Home</div>
+    </a>
 
+    <a href="addressmob.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
+        <i class="fa-solid fa-location-dot transition-colors duration-300 group-hover:text-indigo-600"></i>
+        <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Address</div>
+    </a>
+
+    <a href="passwordmob.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
+        <i class="fa-solid fa-key transition-colors duration-300 group-hover:text-indigo-600"></i>
+        <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Passwords</div>
+    </a>
+
+    <a href="contact.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
+        <i class="fa-solid fa-envelope transition-colors duration-300 group-hover:text-indigo-600"></i>
+        <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Contact</div>
+    </a>
+    </nav>
     <script>
         const themeBtn = document.getElementById('theme-btn');
         const icon = themeBtn.querySelector('i');
@@ -868,7 +872,7 @@ async function fetchAndShowTodaysBirthdays() {
         const allBdays = snapshot.val();
 
         if (!allBdays) {
-            listCont.innerHTML = `<div class="no-bday-box">No birthdays saved yet.</div>`;
+            listCont.innerHTML = `<div class="no-bday-box bg-white p-3 rounded-xl border border-dashed text-gray-400 text-xs text-center">No birthdays saved yet.</div>`;
             return;
         }
 
@@ -881,25 +885,28 @@ async function fetchAndShowTodaysBirthdays() {
         });
 
         if (todaysList.length === 0) {
-            listCont.innerHTML = `<div class="no-bday-box">No birthdays today.</div>`;
+            listCont.innerHTML = `<div class="no-bday-box bg-white p-3 rounded-xl border border-dashed text-gray-400 text-xs text-center">No birthdays today.</div>`;
             return;
         }
 
         listCont.innerHTML = todaysList.map(person => {
-            return `
-                <div class="bday-mini-card shadow-sm">
-                 
-                    </div>
-                    <div class="flex-1">
-                        <div class="bday-name">${person.name}</div>
-                    </div>
-             
-            `;
+ return `
+    <div class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700">
+        <div class="w-7 h-7 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-birthday-cake text-indigo-600 dark:text-indigo-400 text-[10px]"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+            <div class="text-[11px] font-bold text-slate-800 dark:text-slate-100 truncate uppercase">
+                ${person.name}
+            </div>
+        </div>
+    </div>
+`;
         }).join('');
 
     } catch (error) {
         console.error("Error fetching birthdays:", error);
-        listCont.innerHTML = `<p class="text-red-500 text-xs text-center">Failed to load birthdays.</p>`;
+        listCont.innerHTML = `<p class="text-red-500 text-xs text-center bg-white p-2 rounded-lg border border-red-100">Failed to load birthdays.</p>`;
     }
 }
 
@@ -926,6 +933,33 @@ firebase.auth().onAuthStateChanged(user => {
 </body>
 
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
