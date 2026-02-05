@@ -818,7 +818,7 @@ async function loadTodaysDashboard() {
         const data = snapshot.val();
 
         if (!data) {
-            listCont.innerHTML = `<div class="p-6 bg-gray-50 rounded-xl text-center text-gray-500 font-medium border border-gray-100">✨ No events for today.</div>`;
+            listCont.innerHTML = `<div class="p-6 bg-gray-50 rounded-xl text-center text-gray-500 font-medium border border-gray-100 text-align-centre">✨ No events for today.</div>`;
             return;
         }
 
@@ -933,6 +933,7 @@ firebase.auth().onAuthStateChanged(user => {
 </body>
 
 </html>
+
 
 
 
