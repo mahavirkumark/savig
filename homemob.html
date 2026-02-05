@@ -818,7 +818,7 @@ async function loadTodaysDashboard() {
         const data = snapshot.val();
 
         if (!data) {
-            listCont.innerHTML = `<div class="p-6 bg-gray-50 rounded-2xl text-center text-gray-500 font-medium border border-gray-100">✨ No events for today.</div>`;
+            listCont.innerHTML = `<div class="p-6 bg-gray-50 rounded-xl text-center text-gray-500 font-medium border border-gray-100">✨ No events for today.</div>`;
             return;
         }
 
@@ -829,7 +829,7 @@ async function loadTodaysDashboard() {
             .sort((a, b) => a.time.localeCompare(b.time));
 
         if (events.length === 0) {
-            listCont.innerHTML = `<div class="p-6 bg-gray-50 rounded-2xl text-center text-gray-500 font-medium border border-gray-100">✅ All events caught up!</div>`;
+            listCont.innerHTML = `<div class="p-6 bg-gray-50 rounded-xl text-center text-gray-500 font-medium border border-gray-100">✅ All events caught up!</div>`;
             return;
         }
 
@@ -933,6 +933,7 @@ firebase.auth().onAuthStateChanged(user => {
 </body>
 
 </html>
+
 
 
 
