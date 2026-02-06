@@ -853,7 +853,7 @@ async function loadTodaysDashboard() {
         
 if (!data) {
     listCont.innerHTML = `
-        <div class="p-4 bg-white dark:bg-slate-800 rounded-xl text-center text-gray-400 dark:text-gray-500 font-medium border border-dashed border-gray-200 dark:border-slate-700">
+        <div class="p-2 bg-white dark:bg-slate-800 rounded-xl text-center text-gray-400 dark:text-gray-500 font-medium border border-dashed border-gray-200 dark:border-slate-700 text-xs">
             ✨ No events for today.
         </div>`;
     return;
@@ -979,6 +979,7 @@ firebase.auth().onAuthStateChanged(user => {
 </body>
 
 </html>
+
 
 
 
