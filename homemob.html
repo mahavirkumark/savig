@@ -910,14 +910,14 @@ async function fetchAndShowTodaysBirthdays() {
         });
 
         if (todaysList.length === 0) {
-            listCont.innerHTML = `<div class="no-bday-box bg-white dark:bg-indigo-800 p-3 rounded-xl border border-dashed text-gray-400 text-xs text-center">No birthdays today.</div>`;
+            listCont.innerHTML = `<div class="no-bday-box bg-white dark:bg-slate-800 p-3 rounded-xl border border-dashed text-gray-400 text-xs text-center">No birthdays today.</div>`;
             return;
         }
 
         listCont.innerHTML = todaysList.map(person => {
              return `
     <div class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700">
-        <div class="w-7 h-7 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+        <div class="w-7 h-7 bg-white dark:bg-slate-900/30 rounded-full flex items-center justify-center flex-shrink-0">
             <i class="fas fa-birthday-cake text-indigo-600 dark:text-indigo-400 text-[10px]"></i>
         </div>
         <div class="flex-1 min-w-0">
@@ -958,6 +958,7 @@ firebase.auth().onAuthStateChanged(user => {
 </body>
 
 </html>
+
 
 
 
