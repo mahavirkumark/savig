@@ -929,7 +929,7 @@ async function fetchAndShowTodaysBirthdays() {
 
 if (todaysList.length === 0) {
     listCont.innerHTML = `
-        <div class="bg-white-800 dark:bg-slate-800 p-3 rounded-xl border border-dashed border-gray-200 dark:border-slate-700 text-gray-400 text-xs text-center">
+        <div class="dark:bg-slate-800 p-3 rounded-xl border border-dashed border-gray-200 dark:border-slate-700 text-gray-400 text-xs text-center bg-white-800 ">
             No birthdays today.
         </div>`;
     return;
@@ -979,6 +979,7 @@ firebase.auth().onAuthStateChanged(user => {
 </body>
 
 </html>
+
 
 
 
