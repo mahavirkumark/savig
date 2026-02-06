@@ -274,7 +274,22 @@ nav .grid-cols-4 {
 }
 
 /* 4. Positioning the Profile Box back to the top right */
+/* 3. Fix the Grid Columns for Mobile */
+nav .grid-cols-4 {
+    display: grid !important; /* Force Grid, not Flex */
+    grid-template-columns: repeat(4, 1fr) !important; /* 4 perfectly equal shares */
+    width: 100%;
+    gap: 8px !important; /* Control the gap here */
+}
 
+/* 4. Positioning the Box Container */
+.box-container {
+    width: 100% !important; /* Allow it to fill the grid cell */
+    max-width: 75px; /* Maximum size so they don't get too huge on tablets */
+    height: 65px; /* Consistent height */
+    margin: 0 auto;
+    flex-shrink: 0;
+}
 
 /* 5. Data Visibility and Contrast */
 .box-container {
@@ -301,46 +316,42 @@ nav .grid-cols-4 {
 </head>
 <body class="flex flex-col items-center">
 
-    <nav class="w-full pt-[5px] px-2"> 
-        <div class="max-w-md mx-auto grid grid-cols-4 gap-1 justify-items-center mt-[-6px]">
-            
-         <a href="homemob.html" class="animate-pop flex flex-col items-center no-underline" style="animation-delay: 0.1s;">
-    <div class="box-container bg-[#ffe11b]">
-        <i class="fas fa-shield text-blue-600 text-2xl"></i>
-        <i class="fas fa-database text-white absolute" style="font-size: 13px; top: 31%; left: 50%; transform: translate(-50%, -50%);"></i>
-        <span class="font-black italic text-[13px] uppercase text-slate-900">Savig</span>
-    </div>
-</a>
-
-    <a href="financemob.html" class="animate-pop flex flex-col items-center no-underline" style="animation-delay: 0.2s;">
-    <div class="box-container flex flex-col items-center">
-        <div class="w-8 h-8 bg-blue-700 rounded-full flex items-center justify-center mb-1">
-       <i class="fas fa-rupee-sign text-white text-sm"></i>
-        </div>
+ <nav class="w-full pt-[5px] px-4"> 
+    <div class="max-w-md mx-auto grid grid-cols-4 gap-2 justify-items-center mt-[-6px]">
         
-        <span class="font-bold text-black-800 dark:text-white-700 italic text-[13px]">
-            Finance
-        </span>
+        <a href="homemob.html" class="animate-pop w-full no-underline" style="animation-delay: 0.1s;">
+            <div class="box-container bg-[#ffe11b] mx-auto">
+                <i class="fas fa-shield text-blue-600 text-2xl"></i>
+                <i class="fas fa-database text-white absolute" style="font-size: 13px; top: 31%; left: 50%; transform: translate(-50%, -50%);"></i>
+                <span class="font-black italic text-[13px] uppercase text-slate-900">Savig</span>
+            </div>
+        </a>
+
+        <a href="financemob.html" class="animate-pop w-full no-underline" style="animation-delay: 0.2s;">
+            <div class="box-container mx-auto">
+                <div class="w-8 h-8 bg-blue-700 rounded-full flex items-center justify-center mb-1">
+                    <i class="fas fa-rupee-sign text-white text-sm"></i>
+                </div>
+                <span class="font-bold text-black-800 italic text-[13px]">Finance</span>
+            </div>
+        </a>
+
+        <a href="travelmob.html" class="animate-pop w-full no-underline" style="animation-delay: 0.3s;">
+            <div class="box-container mx-auto">
+                <i class="fas fa-plane text-blue-700 text-xl mb-1"></i>
+                <span class="font-bold text-black-800 italic text-[13px]">Travel</span>
+            </div>
+        </a>
+
+        <a href="grocerymob.html" class="animate-pop w-full no-underline" style="animation-delay: 0.4s;">
+            <div class="box-container mx-auto">
+                <i class="fas fa-basket-shopping text-orange-500 text-xl mb-1"></i>
+                <span class="font-bold text-black-800 italic text-[13px]">Grocery</span>
+            </div>
+        </a>
+
     </div>
-</a>
-
-
-            <a href="travelmob.html" class="animate-pop flex flex-col items-center no-underline" style="animation-delay: 0.3s;">
-                <div class="box-container">
-                    <i class="fas fa-plane text-blue-700 text-xl mb-1"></i>
-                    <span class="font-bold text-black-800 dark:text-black-700 italic text-[13px]">Travel</span>
-                </div>
-            </a>
-
-            <a href="grocerymob.html" class="animate-pop flex flex-col items-center no-underline" style="animation-delay: 0.4s;">
-                <div class="box-container">
-                    <i class="fas fa-basket-shopping text-orange-500 text-xl mb-1"></i>
-                    <span class="font-bold text-black-800 dark:text-black-700 italic text-[13px]">Grocery</span>
-                </div>
-            </a>
-
-        </div>
-    </nav>
+</nav>
 
     <button class="theme-toggle" id="theme-btn">
 <i class="fa-solid fa-sun bg-yellow"></i>
@@ -944,6 +955,7 @@ firebase.auth().onAuthStateChanged(user => {
 </body>
 
 </html>
+
 
 
 
