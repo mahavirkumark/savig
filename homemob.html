@@ -841,7 +841,7 @@ async function loadTodaysDashboard() {
         
 if (!data) {
     listCont.innerHTML = `
-        <div class="p-6 bg-white dark:bg-slate-800 rounded-xl text-center text-gray-500 dark:text-gray-400 font-medium border border-gray-100 dark:border-slate-700">
+        <div class="p-4 bg-white dark:bg-slate-800 rounded-xl text-center text-gray-400 dark:text-gray-500 font-medium border border-dashed border-gray-200 dark:border-slate-700">
             ✨ No events for today.
         </div>`;
     return;
@@ -853,16 +853,19 @@ if (!data) {
             .filter(ev => ev.status === 'pending')
             .sort((a, b) => a.time.localeCompare(b.time));
 
-        if (events.length === 0) {
-            listCont.innerHTML = `<div class="p-6 bg-gray-50 rounded-xl text-center text-gray-500 font-medium border border-gray-100">✅ All events caught up!</div>`;
-            return;
-        }
+ if (events.length === 0) {
+    listCont.innerHTML = `
+        <div class="p-4 bg-white dark:bg-slate-800 rounded-xl text-center text-emerald-500 font-medium border border-gray-100 dark:border-slate-700">
+            ✅ All events caught up!
+        </div>`;
+    return;
+}
 
         // 4. Render HTML
         listCont.innerHTML = events.map(ev => `
             <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border-l-4 border-indigo-500 flex justify-between items-center transition hover:shadow-md">
                 <div class="min-w-0">
-                    <h3 class="font-bold text-gray-800 dark:text-white truncate">${ev.title}</h3>
+                    <h3 class="font-bold bg-white text-gray-800 dark:text-white truncate">${ev.title}</h3>
                     <div class="flex items-center gap-2 text-xs text-indigo-600 font-bold mt-1">
                         <i class="fas fa-clock"></i> ${ev.time}
                         ${ev.location ? `<span class="text-gray-400 font-normal">| <i class="fas fa-location-dot"></i> ${ev.location}</span>` : ''}
@@ -897,9 +900,12 @@ async function fetchAndShowTodaysBirthdays() {
         const allBdays = snapshot.val();
 
         if (!allBdays) {
-            listCont.innerHTML = `<div class="no-bday-box bg-white p-3 rounded-xl border border-dashed text-gray-400 text-xs text-center">No birthdays saved yet.</div>`;
-            return;
-        }
+    listCont.innerHTML = `
+        <div class="bg-white dark:bg-slate-800 p-3 rounded-xl border border-dashed border-gray-200 dark:border-slate-700 text-gray-400 text-xs text-center">
+            No birthdays saved yet.
+        </div>`;
+    return;
+}
 
         const todaysList = Object.values(allBdays).filter(person => {
             if (!person.birthdate || person.birthdate.length < 5) return false;
@@ -909,10 +915,13 @@ async function fetchAndShowTodaysBirthdays() {
             return m === tMonth && d === tDay;
         });
 
-        if (todaysList.length === 0) {
-            listCont.innerHTML = `<div class="no-bday-box bg-white dark:bg-slate-800 p-3 rounded-xl border border-dashed text-gray-400 text-xs text-center">No birthdays today.</div>`;
-            return;
-        }
+if (todaysList.length === 0) {
+    listCont.innerHTML = `
+        <div class="bg-white dark:bg-slate-800 p-3 rounded-xl border border-dashed border-gray-200 dark:border-slate-700 text-gray-400 text-xs text-center">
+            No birthdays today.
+        </div>`;
+    return;
+}
 
         listCont.innerHTML = todaysList.map(person => {
              return `
@@ -958,6 +967,7 @@ firebase.auth().onAuthStateChanged(user => {
 </body>
 
 </html>
+
 
 
 
