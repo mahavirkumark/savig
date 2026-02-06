@@ -672,7 +672,19 @@ nav .grid-cols-4 {
         border: 2px dashed var(--event-border);
         color: var(--event-text-sub);
     }
-  
+  :root {
+    --bg-body: #ffffff; /* Was #f9fafb (grayish) */
+    --bg-card: #ffffff; /* Was #f8fafc (grayish) */
+    --text-main: #1f2937;
+    --border: #e2e8f0;
+}
+
+[data-theme="dark"] {
+    --bg-body: #0f172a;
+    --bg-card: #1e293b;
+    --text-main: #f1f5f9;
+    --border: #334155;
+}
    
 </style>
 </style>
@@ -967,6 +979,7 @@ firebase.auth().onAuthStateChanged(user => {
 </body>
 
 </html>
+
 
 
 
