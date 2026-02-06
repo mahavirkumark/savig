@@ -840,7 +840,7 @@ async function loadTodaysDashboard() {
         const data = snapshot.val();
 
         if (!data) {
-            listCont.innerHTML = `<div class="p-6 bg-gray-50 rounded-xl text-center text-gray-500 font-medium border border-gray-100 text-align-centre">✨ No events for today.</div>`;
+            listCont.innerHTML = `<div class="p-6 bg-gray-50 rounded-xl bg-white dark:bg-indigo-800 text-center text-gray-500 font-medium border border-gray-100 text-align-centre">✨ No events for today.</div>`;
             return;
         }
 
@@ -907,7 +907,7 @@ async function fetchAndShowTodaysBirthdays() {
         });
 
         if (todaysList.length === 0) {
-            listCont.innerHTML = `<div class="no-bday-box bg-white p-3 rounded-xl border border-dashed text-gray-400 text-xs text-center">No birthdays today.</div>`;
+            listCont.innerHTML = `<div class="no-bday-box bg-white dark:bg-indigo-800 p-3 rounded-xl border border-dashed text-gray-400 text-xs text-center">No birthdays today.</div>`;
             return;
         }
 
@@ -955,6 +955,7 @@ firebase.auth().onAuthStateChanged(user => {
 </body>
 
 </html>
+
 
 
 
