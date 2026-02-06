@@ -838,11 +838,14 @@ async function loadTodaysDashboard() {
         // 2. Fetch data from Firebase
         const snapshot = await firebase.database().ref(`users/${user.uid}/events/${todayISO}`).once("value");
         const data = snapshot.val();
-
-        if (!data) {
-            listCont.innerHTML = `<div class="p-6 bg-gray-50 rounded-xl bg-white dark:bg-slate-800 text-center text-gray-500 font-medium border border-gray-100 text-align-centre">✨ No events for today.</div>`;
-            return;
-        }
+        
+if (!data) {
+    listCont.innerHTML = `
+        <div class="p-6 bg-white dark:bg-slate-800 rounded-xl text-center text-gray-500 dark:text-gray-400 font-medium border border-gray-100 dark:border-slate-700">
+            ✨ No events for today.
+        </div>`;
+    return;
+}
 
         // 3. Process and Filter
         const events = Object.entries(data)
@@ -955,6 +958,7 @@ firebase.auth().onAuthStateChanged(user => {
 </body>
 
 </html>
+
 
 
 
