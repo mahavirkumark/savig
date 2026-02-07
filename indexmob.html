@@ -25,7 +25,143 @@ if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js");
 }
 </script>
-  
+  <script>
+// --- 1. Configuration ---
+const firebaseConfig = {
+    apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc",
+    authDomain: "sk12-58e9e.firebaseapp.com",
+    projectId: "sk12-58e9e",
+    storageBucket: "sk12-58e9e.appspot.com",
+    messagingSenderId: "470207874652",
+    appId: "1:470207874652:web:67ba1cf3629b7e5b144899"
+};
+
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+const auth = firebase.auth();
+const db = firebase.firestore();
+const provider = new firebase.auth.GoogleAuthProvider();
+emailjs.init("NbamX634Y_o570cNw");
+
+let generatedOTP = null;
+let otpExpiryTime = null;
+let timerInterval = null;
+
+// --- 2. Corrected DOM Selectors ---
+// This ensures that whether you named it 'loginCard' or 'step1', the script finds it.
+const getStep1 = () => document.getElementById('step1') || document.getElementById('loginCard');
+const getStep2 = () => document.getElementById('step2') || document.getElementById('pinCard');
+const msgBoxEl = document.getElementById("msgBox");
+
+// --- 3. The Logic Fix (Persistence) ---
+auth.onAuthStateChanged((user) => {
+    if (user) {
+        // If they already finished OTP for this session, go to home
+        if (sessionStorage.getItem('savig_otp_verified') === 'true') {
+            window.location.replace("homemob.html");
+        } else {
+            // Otherwise, show the OTP screen
+            switchToOTPScreen(user);
+        }
+    }
+});
+
+// --- 4. Google Login Trigger ---
+const loginBtn = document.getElementById("googleLoginBtn");
+if (loginBtn) {
+    loginBtn.onclick = async () => {
+        try {
+            const result = await auth.signInWithPopup(provider);
+            showMsg("Google Authenticated!", true);
+            // onAuthStateChanged will handle the screen switch
+        } catch (e) {
+            showMsg(e.message, false);
+        }
+    };
+}
+
+// --- 5. Screen Switching & OTP Generation ---
+function switchToOTPScreen(user) {
+    const s1 = getStep1();
+    const s2 = getStep2();
+
+    if (s1 && s2) {
+        s1.classList.add('hidden');
+        s2.classList.remove('hidden');
+    }
+
+    // Prevent sending multiple emails on page refresh
+    if (!generatedOTP) {
+        generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+        otpExpiryTime = Date.now() + (3 * 60000);
+
+        emailjs.send('service_2ucolxw', 'template_iknmqfs', {
+            user_email: user.email,
+            passcode: generatedOTP,
+            time: new Date(otpExpiryTime).toLocaleTimeString()
+        }).then(() => showMsg("OTP Sent to Email", true))
+          .catch(() => showMsg("Email failed", false));
+
+        startTimer(180);
+    }
+    
+    // Auto-focus first input
+    const inputs = document.querySelectorAll('#otpBox input');
+    if (inputs[0]) setTimeout(() => inputs[0].focus(), 500);
+}
+
+// --- 6. OTP Input & Auto-Verify ---
+const otpInputs = document.querySelectorAll('#otpBox input');
+otpInputs.forEach((input, index) => {
+    input.addEventListener('input', (e) => {
+        if (e.target.value && index < otpInputs.length - 1) {
+            otpInputs[index + 1].focus();
+        }
+        
+        // Auto-check when 6 digits are reached
+        const code = Array.from(otpInputs).map(i => i.value).join('');
+        if (code.length === 6) {
+            if (code === generatedOTP && Date.now() <= otpExpiryTime) {
+                sessionStorage.setItem('savig_otp_verified', 'true');
+                showMsg("Access Granted!", true);
+                setTimeout(() => window.location.replace("homemob.html"), 800);
+            } else {
+                showMsg("Incorrect or Expired OTP", false);
+                otpInputs.forEach(i => i.value = '');
+                otpInputs[0].focus();
+            }
+        }
+    });
+
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !e.target.value && index > 0) {
+            otpInputs[index - 1].focus();
+        }
+    });
+});
+
+// --- 7. UI Helpers ---
+function startTimer(seconds) {
+    clearInterval(timerInterval);
+    let time = seconds;
+    timerInterval = setInterval(() => {
+        const mins = Math.floor(time / 60);
+        const secs = time % 60;
+        const display = document.getElementById('timer');
+        if (display) display.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        if (--time < 0) {
+            clearInterval(timerInterval);
+            generatedOTP = null; // Expire the code
+        }
+    }, 1000);
+}
+
+function showMsg(msg, success) {
+    if (!msgBoxEl) return;
+    msgBoxEl.innerText = msg;
+    msgBoxEl.className = `show ${success ? 'success' : 'error'}`;
+    setTimeout(() => msgBoxEl.classList.remove('show'), 3000);
+}
+</script>
     <style>
         /* --- RESTORED GLOBAL AND ANIMATION STYLES --- */
         body {
@@ -374,165 +510,7 @@ if ("serviceWorker" in navigator) {
 <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
-<script>
-// --- 1. Configuration & Initialization ---
-const firebaseConfig = {
-    apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc",
-    authDomain: "sk12-58e9e.firebaseapp.com",
-    projectId: "sk12-58e9e",
-    storageBucket: "sk12-58e9e.appspot.com",
-    messagingSenderId: "470207874652",
-    appId: "1:470207874652:web:67ba1cf3629b7e5b144899"
-};
 
-// Initialize Firebase (v8 compatibility)
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-
-const auth = firebase.auth();
-const db = firebase.firestore();
-const provider = new firebase.auth.GoogleAuthProvider();
-
-// Initialize EmailJS
-emailjs.init("NbamX634Y_o570cNw");
-
-let generatedOTP = null;
-let otpExpiryTime = null;
-let timerInterval = null;
-
-// DOM Elements
-const step1 = document.getElementById('loginCard'); // Step 1 container
-const step2 = document.getElementById('pinCard');   // Step 2 container (OTP Screen)
-const otpInputs = document.querySelectorAll('#otpBox input');
-const timerDisplay = document.getElementById('timer');
-const msgBoxEl = document.getElementById("msgBox");
-
-// --- 2. Auto-Login Persistence Check ---
-auth.onAuthStateChanged((user) => {
-    if (user) {
-        console.log("Session active. Proceeding to OTP verification.");
-        // If user is logged in via Google but hasn't done OTP, show OTP screen
-        switchToOTPScreen(user);
-    }
-});
-
-// --- 3. Google Login Handler ---
-document.getElementById("googleLoginBtn").onclick = async () => {
-    try {
-        const result = await auth.signInWithPopup(provider);
-        const user = result.user;
-
-        // Save basic user data to Firestore
-        db.collection("users").doc(user.uid).set({
-            email: user.email,
-            lastLogin: firebase.firestore.FieldValue.serverTimestamp()
-        }, { merge: true });
-
-        showMsg("Google Auth Success!", true);
-        switchToOTPScreen(user);
-
-    } catch (e) {
-        console.error(e);
-        showMsg("Login failed: " + e.message, false);
-    }
-};
-
-// --- 4. OTP Transition & Delivery ---
-function switchToOTPScreen(user) {
-    step1.classList.add('hidden');
-    step2.classList.remove('hidden');
-    
-    const infoText = document.getElementById('otp-info');
-    if(infoText) infoText.innerText = `Code sent to ${user.email}`;
-
-    // Auto-focus first digit
-    setTimeout(() => { if(otpInputs[0]) otpInputs[0].focus(); }, 100);
-
-    sendFastOTP(user);
-    startTimer(180); // 3 Minute Timer
-}
-
-async function sendFastOTP(user) {
-    generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
-    otpExpiryTime = Date.now() + (3 * 60000);
-
-    const templateParams = {
-        user_email: user.email,
-        passcode: generatedOTP,
-        time: new Date(otpExpiryTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
-
-    try {
-        await emailjs.send('service_2ucolxw', 'template_iknmqfs', templateParams);
-        showMsg("OTP sent to email", true);
-    } catch (err) {
-        console.error("Email failed", err);
-        showMsg("Failed to send OTP", false);
-    }
-}
-
-// --- 5. OTP Input Logic ---
-otpInputs.forEach((input, index) => {
-    input.addEventListener('input', (e) => {
-        if (e.target.value && index < otpInputs.length - 1) {
-            otpInputs[index + 1].focus();
-        }
-        checkAndVerify();
-    });
-
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Backspace' && !e.target.value && index > 0) {
-            otpInputs[index - 1].focus();
-        }
-    });
-});
-
-function checkAndVerify() {
-    const code = Array.from(otpInputs).map(i => i.value).join('');
-    if (code.length === 6) {
-        if (code === generatedOTP && Date.now() <= otpExpiryTime) {
-            showMsg("OTP Verified!", true);
-            window.location.replace("homemob.html");
-        } else if (code === generatedOTP) {
-            showMsg("OTP Expired", false);
-            setTimeout(() => location.reload(), 1500);
-        } else {
-            // Error feedback
-            otpInputs.forEach(i => { i.value = ''; i.style.borderColor = 'red'; });
-            otpInputs[0].focus();
-            showMsg("Invalid OTP", false);
-        }
-    }
-}
-
-// --- 6. Utilities (Timer, Messages, Theme) ---
-function startTimer(seconds) {
-    clearInterval(timerInterval);
-    let timeRemaining = seconds;
-    timerInterval = setInterval(() => {
-        const mins = Math.floor(timeRemaining / 60);
-        const secs = timeRemaining % 60;
-        if(timerDisplay) timerDisplay.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-        if (--timeRemaining < 0) {
-            clearInterval(timerInterval);
-            if(timerDisplay) timerDisplay.innerText = "EXPIRED";
-        }
-    }, 1000);
-}
-
-function showMsg(msg, success = true) {
-    if (!msgBoxEl) return;
-    msgBoxEl.className = 'show ' + (success ? 'success' : 'error');
-    msgBoxEl.innerHTML = `<i class="fas ${success ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i><span>${msg}</span>`;
-    setTimeout(() => msgBoxEl.classList.remove('show'), 4000);
-}
-
-// Global Theme Persistence
-document.addEventListener('DOMContentLoaded', () => {
-    const savedTheme = localStorage.getItem('theme') || 'light';
-    document.documentElement.setAttribute('data-theme', savedTheme);
-    document.documentElement.classList.toggle('dark', savedTheme === 'dark');
-});
-</script>
      <button id="theme-toggle-btn">
     <span id="theme-icon">🌙</span>
 </button>
@@ -1158,6 +1136,38 @@ window.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
