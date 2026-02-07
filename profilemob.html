@@ -2,260 +2,210 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Personal Website - Profile</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>SAVIG </title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database-compat.js"></script>
-    
-    <style>
-        /* Custom Tailwind Colors (Retained for original links) */
-        .bg-primary-indigo { background-color: #4f46e5; }
-        .text-primary-indigo { color: #4f46e5; }
-        
-        /* Modern Primary Color (Indigo-600) for profile elements */
-        .bg-modern-blue { background-color: #4F46E5; }
-        .text-modern-blue { color: #4F46E5; }
-        .border-modern-blue { border-color: #4F46E5; }
-        
-        body {
-            padding-top: 80px; /* Adjusted back to 80px for the taller original nav */
-            min-height: 100vh;
-            background-color: #f7f7f7; /* Light background */
-            font-family: ui-sans-serif, system-ui;
-        }
-
-        /* Original Nav Styling */
-        nav {
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.06);
-        }
-
-        /* Modal Backdrop */
-        .modal-backdrop {
-            background-color: rgba(0, 0, 0, 0.4);
-        }
-    </style>
-</head>
-<body class="bg-gray-50 flex flex-col">
-
-    <nav class="bg-white shadow-lg fixed w-full z-50 top-0">
-        <div class="container mx-auto flex justify-between items-center p-4 md:px-8">
-            <div class="flex items-center gap-2 text-xl font-bold text-gray-800">
-                <i class="fas fa-user-circle" style="font-size: 28px; color: #4f46e5;"></i>
-                <span style="font-size: 22px;">My Personal Website</span>
-            </div>
-            
-            <div class="hidden md:flex space-x-6 text-gray-600 font-medium">
-                <a href="home.html" class="flex items-center gap-2 transition duration-300 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-house"></i> Home</a>
-                <a href="address.html" class="flex items-center gap-2 transition duration-300 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-tasks"></i> Address</a>
-                <a href="password.html" class="flex items-center gap-2 transition duration-300 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-key"></i> Passwords</a>
-                <a href="income.html" class="flex items-center gap-2 transition duration-300 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-wallet"></i> Income</a>
-                <a href="links.html" class="flex items-center gap-2 transition duration-300 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-link"></i> Links</a>
-                <a href="calendar.html" class="flex items-center gap-2 transition duration-300 hover:text-blue-500 hover:-translate-y-0.5" style="font-size: 18px;"><i class="fas fa-calendar-alt"></i> Calendar</a>
-            </div>
-            
-            <div class="hidden md:flex items-center gap-4">
-                <div class="text-right">
-                    <p id="userName" class="font-bold text-gray-900">Loading...</p>
-                    <p id="userEmail" class="text-sm text-gray-500">Loading...</p>
-                </div>
-                <img id="userPhoto" src="https://via.placeholder.com/40" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid #4f46e5;">
-                <button onclick="logout()" class="bg-red-500 text-white px-4 py-2 rounded-full hover:bg-red-600 transition duration-300">Logout</button>
-            </div>
-            <button id="menu-btn" class="md:hidden text-gray-700 text-2xl"><i class="fas fa-bars"></i></button>
-        </div>
-        
-        <div id="mobileMenu" class="hidden md:hidden flex flex-col px-4 pb-4 space-y-2 text-sm text-gray-700 font-medium bg-gray-50">
-            <a href="home.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-house"></i> Home</a>
-            <a href="address.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-tasks"></i> Address</a>
-            <a href="password.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-key"></i> Passwords</a>
-            <a href="income.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-wallet"></i> Income</a>
-            <a href="links.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-link"></i> Links</a>
-            <a href="calendar.html" class="flex items-center gap-2 p-2 rounded hover:bg-gray-200 hover:text-blue-500 transition duration-300"><i class="fas fa-calendar-alt"></i> Calendar</a>
-            
-            <div class="border-t border-gray-300 mt-2 pt-2">
-                <p id="mobileUserName" class="font-bold text-gray-900">Loading...</p>
-                <p id="mobileUserEmail" class="text-xs text-gray-500">Loading...</p>
-                <button onclick="logout()" class="bg-red-500 text-white px-3 py-2 rounded-full hover:bg-red-600 mt-2 w-full">Logout</button>
-            </div>
-        </div>
-    </nav>
-    
-    <main class="flex-grow container mx-auto p-4 md:px-8 py-10">
-        <div class="max-w-xl mx-auto space-y-6">
-            
-            <h1 class="text-3xl font-extrabold text-gray-900 flex items-center gap-3 mb-6">
-                <i class="fas fa-id-card text-modern-blue"></i> My Profile
-            </h1>
-
-            <div class="bg-white p-8 rounded-xl shadow-lg border-t-4 border-modern-blue">
-                <div class="flex flex-col items-center">
-                    <img id="profilePhotoLarge" src="https://via.placeholder.com/128" class="w-28 h-28 rounded-full object-cover border-4 border-modern-blue p-0.5 mb-4 shadow-md" alt="User Profile Photo">
-                    
-                    <h2 id="profileName" class="text-xl font-bold text-gray-900 mb-1 text-center">Loading Name...</h2>
-                    <p id="profileEmail" class="text-md text-gray-500 font-light text-center mb-6">Loading Email...</p>
-                </div>
-            </div>
-
-            <div class="bg-white p-6 rounded-xl shadow-lg space-y-3">
-                <h3 class="text-lg font-semibold text-gray-800 mb-4 border-b pb-2">Manage Account</h3>
-                
-                <button onclick="openUpdateModal()" class="w-full bg-modern-blue text-white px-4 py-3 rounded-lg hover:bg-indigo-700 transition duration-300 font-semibold flex items-center justify-center gap-2">
-                    <i class="fas fa-user-edit"></i> Update Name & Photo
-                </button>
-                
-                <button onclick="logout()" class="w-full bg-red-600 text-white px-4 py-3 rounded-lg hover:bg-red-700 transition duration-300 font-semibold shadow-md flex items-center justify-center gap-2 mt-4">
-                    <i class="fas fa-sign-out-alt"></i> Log Out
-                </button>
-                
-            </div>
-        </div>
-    </main>
-
-    <footer class="mt-auto bg-white text-gray-600 text-center p-4 border-t text-sm border-t border-gray-200">
-        &copy; 2025 Personal Website | All rights reserved
-    </footer>
-
-    <div id="updateModal" class="fixed inset-0 hidden items-center justify-center z-50 modal-backdrop">
-        <div class="bg-white p-6 rounded-lg shadow-2xl w-full max-w-sm mx-4">
-            <h3 class="text-xl font-bold text-gray-900 mb-4 border-b pb-2">Update Profile</h3>
-            <form onsubmit="event.preventDefault(); updateProfileInfo()">
-                <div class="mb-3">
-                    <label for="updateName" class="block text-sm font-medium text-gray-700 mb-1">Display Name</label>
-                    <input type="text" id="updateName" required class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                </div>
-                <div class="mb-4">
-                    <label for="updatePhotoUrl" class="block text-sm font-medium text-gray-700 mb-1">Photo URL</label>
-                    <input type="url" id="updatePhotoUrl" placeholder="https://..." class="w-full px-3 py-2 border border-gray-300 rounded-md">
-                </div>
-                <div class="flex justify-end space-x-2">
-                    <button type="button" onclick="closeUpdateModal()" class="px-3 py-2 text-gray-700 rounded-md hover:bg-gray-100">Cancel</button>
-                    <button type="submit" class="px-3 py-2 bg-modern-blue text-white rounded-md hover:bg-indigo-700 font-semibold">Save</button>
-                </div>
-            </form>
-        </div>
-    </div>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <script>
-        // ====================================================================
-        // *** 1. FIREBASE CONFIGURATION ***
-        // ====================================================================
+        (function() {
+            const savedTheme = localStorage.getItem('app-theme') || 'light';
+            document.documentElement.className = savedTheme;
+
+            // --- TRANSLATION DICTIONARY ---
+            window.translations = {
+                'English': {
+                    'brand': 'SAVIG', 'welcome': 'Welcome', 'settings': 'Settings',
+                    'dark': 'Dark Mode', 'lang': 'Language', 'logout': 'Logout Account',
+                    'fin_manage': 'Financial Management', 'contacts': 'Secure Contacts',
+                    'notifications': 'Notifications', 'security': 'Security'
+                },
+                'Hindi': {
+                    'brand': 'SAVIG', 'welcome': 'नमस्ते', 'settings': 'सेटिंग्स',
+                    'dark': 'डार्क मोड', 'lang': 'भाषा बदलें', 'logout': 'लॉग आउट करें',
+                    'fin_manage': 'वित्तीय प्रबंधन', 'contacts': 'सुरक्षित संपर्क',
+                    'notifications': 'सूचनाएं', 'security': 'सुरक्षा'
+                },
+                'Marathi': {
+                    'brand': 'SAVIG', 'welcome': 'नमस्कार', 'settings': 'सेटिंग्स',
+                    'dark': 'डार्क मोड', 'lang': 'भाषा बदला', 'logout': 'लॉग आउट करा',
+                    'fin_manage': 'आर्थिक व्यवस्थापन', 'contacts': 'सुरक्षित संपर्क',
+                    'notifications': 'सूचना', 'security': 'सुरक्षा'
+                }
+            };
+        })();
+    </script>
+
+    <style>
+        body { transition: background-color 0.4s ease; font-family: sans-serif; margin: 0; min-height: 100vh; }
+        .dark body { background: #0f172a; color: #f8fafc; }
+        .light body { background: #f8fafc; color: #1e293b; }
+        
+        .full-page { width: 100%; min-height: 100vh; display: flex; flex-direction: column; }
+        .hover-item:active { transform: scale(0.98); background: rgba(0, 0, 0, 0.05); }
+        .dark .hover-item:active { background: rgba(255, 255, 255, 0.05); }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .anim-fade { animation: fadeInUp 0.4s ease-out forwards; }
+        #theme-knob { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+    </style>
+</head>
+<body>
+
+    <div class="full-page">
+        <header class="p-6 flex justify-between items-center border-b border-gray-500/10 sticky top-0 z-50 bg-inherit">
+            <div class="flex items-center gap-2">
+                <i class="fas fa-shield-alt text-blue-600 text-2xl"></i>
+                <h1 class="text-xl font-bold tracking-tight">SAVIG</h1>
+            </div>
+            <i class="fas fa-cog text-gray-400"></i>
+        </header>
+
+        <section class="p-10 text-center border-b border-gray-500/10 anim-fade">
+            <div class="relative inline-block mb-4">
+                <img id="user-photo" src="https://ui-avatars.com/api/?name=U&background=2563eb&color=fff" 
+                     class="w-24 h-24 rounded-full border-2 border-blue-500 mx-auto object-cover shadow-xl">
+            </div>
+            <p class="text-blue-500 font-semibold text-xs uppercase tracking-widest mb-1" data-i18n="welcome">Welcome</p>
+            <h2 id="user-name" class="text-2xl font-bold">User Name</h2>
+            <p id="user-email" class="text-gray-500 text-sm mt-1 italic">firebase-syncing...</p>
+        </section>
+
+        <main class="p-4 flex-grow">
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-4 py-4" data-i18n="settings">Settings</p>
+            
+            <div class="space-y-1">
+                <div class="flex items-center justify-between p-4 hover-item rounded-2xl cursor-pointer" onclick="toggleTheme()">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 flex items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500">
+                            <i class="fas fa-moon"></i>
+                        </div>
+                        <span class="font-medium text-base" data-i18n="dark">Dark Mode</span>
+                    </div>
+                    <div id="theme-track" class="w-12 h-6 bg-gray-300 rounded-full relative p-1 transition-colors">
+                        <div id="theme-knob" class="w-4 h-4 bg-white rounded-full shadow-sm"></div>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between p-4 hover-item rounded-2xl cursor-pointer" onclick="cycleLanguage()">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 flex items-center justify-center rounded-xl bg-orange-500/10 text-orange-500">
+                            <i class="fas fa-globe"></i>
+                        </div>
+                        <span class="font-medium text-base" data-i18n="lang">Language</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span id="lang-label" class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-md">English</span>
+                        <i class="fas fa-chevron-right text-[10px] text-gray-300"></i>
+                    </div>
+                </div>
+
+                <div class="h-px bg-gray-500/10 my-4 mx-4"></div>
+
+
+                <div class="setting-row" icon="fa-user-group" color="text-emerald-500" bg="bg-emerald-500/10" label="Secure Contacts" dkey="contacts"></div>
+
+                <div class="setting-row" icon="fa-lock" color="text-purple-500" bg="bg-purple-500/10" label="Security" dkey="security"></div>
+            </div>
+
+            <div class="mt-12 px-4 pb-10">
+                <button id="logout-btn" class="w-full bg-red-500 text-white py-4 rounded-2xl font-bold shadow-lg shadow-red-500/20 active:scale-95 transition-transform" data-i18n="logout">
+                    Logout Account
+                </button>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
         const firebaseConfig = {
             apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc",
             authDomain: "sk12-58e9e.firebaseapp.com",
             projectId: "sk12-58e9e",
-            storageBucket: "sk12-58e9e.appspot.com",
-            messagingSenderId: "470207874652",
             appId: "1:470207874652:web:67ba1cf3629b7e5b144899"
         };
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        
-        // --- UI Update Function ---
-        function updateUI(user) {
-            if (!user) return;
 
-            const name = user.displayName || 'User Name Not Set';
-            const email = user.email || 'No Email';
-            const photoURL = user.photoURL || 'https://via.placeholder.com/40';
-            const largePhotoURL = user.photoURL || 'https://via.placeholder.com/128';
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
 
-            // 1. Nav Bar Updates
-            document.getElementById('userName').textContent = name;
-            document.getElementById('userEmail').textContent = email;
-            document.getElementById('userPhoto').src = photoURL;
-            document.getElementById('mobileUserName').textContent = name;
-            document.getElementById('mobileUserEmail').textContent = email;
-            
-            // 2. Profile Card Updates
-            document.getElementById('profileName').textContent = name;
-            document.getElementById('profileEmail').textContent = email;
-            document.getElementById('profilePhotoLarge').src = largePhotoURL;
-            
-            // Pre-fill modal inputs
-            document.getElementById('updateName').value = name;
-            document.getElementById('updatePhotoUrl').value = user.photoURL || '';
-        }
-
-        // --- FIREBASE AUTH LISTENERS & LOGIC ---
-        auth.onAuthStateChanged((user) => {
+        onAuthStateChanged(auth, (user) => {
             if (user) {
-                updateUI(user);
+                document.getElementById('user-name').innerText = user.displayName || "User Name";
+                document.getElementById('user-email').innerText = user.email;
+                if(user.photoURL) document.getElementById('user-photo').src = user.photoURL;
+            }
+        });
+
+        document.getElementById('logout-btn').onclick = () => {
+            signOut(auth).then(() => window.location.replace("indexmob.html"));
+        };
+    </script>
+
+    <script>
+        // --- THEME ENGINE ---
+        function toggleTheme() {
+            const next = document.documentElement.className === 'dark' ? 'light' : 'dark';
+            document.documentElement.className = next;
+            localStorage.setItem('app-theme', next);
+            updateThemeUI(next);
+        }
+
+        function updateThemeUI(theme) {
+            const knob = document.getElementById('theme-knob');
+            const track = document.getElementById('theme-track');
+            if (theme === 'dark') {
+                knob.style.transform = "translateX(24px)";
+                track.classList.add('bg-blue-600');
             } else {
-                console.log("No user is logged in.");
-                // Redirect to login page if user isn't authenticated
-                // window.location.href = 'index.html';
+                knob.style.transform = "translateX(0px)";
+                track.classList.remove('bg-blue-600');
             }
-        });
-
-        function logout() {
-            auth.signOut().then(() => {
-                window.location.href = 'index.html'; 
-            }).catch((error) => {
-                console.error("Logout Error:", error);
-                alert('An error occurred during logout.');
-            });
-        }
-        
-        // ====================================================================
-        // *** WORKING PROFILE FEATURE (Update Name/Photo) ***
-        // ====================================================================
-
-        function openUpdateModal() {
-            document.getElementById('updateModal').classList.remove('hidden');
-            document.getElementById('updateModal').classList.add('flex');
         }
 
-        function closeUpdateModal() {
-            document.getElementById('updateModal').classList.remove('flex');
-            document.getElementById('updateModal').classList.add('hidden');
+        // --- LANGUAGE ENGINE ---
+        function cycleLanguage() {
+            const langs = Object.keys(window.translations);
+            const current = localStorage.getItem('app-lang') || 'English';
+            let next = langs[(langs.indexOf(current) + 1) % langs.length];
+            applyLanguage(next);
         }
 
-        function updateProfileInfo() {
-            const user = auth.currentUser;
-            if (!user) {
-                alert("You must be logged in to update your profile.");
-                return;
-            }
-
-            const newName = document.getElementById('updateName').value.trim();
-            const newPhotoUrl = document.getElementById('updatePhotoUrl').value.trim();
-
-            user.updateProfile({
-                displayName: newName,
-                photoURL: newPhotoUrl || null
-            }).then(() => {
-                alert("Profile successfully updated! 👍");
-                closeUpdateModal();
-                updateUI(user); 
-            }).catch((error) => {
-                console.error("Profile Update Error:", error);
-                alert(`Error updating profile: ${error.message}`);
-            });
-        }
-
-        // The password functions (openPasswordModal, changePassword) and modal are removed.
-        
-        // --- Mobile Menu Toggle ---
-        document.addEventListener('DOMContentLoaded', () => {
-            const menuBtn = document.getElementById('menu-btn');
-            const mobileMenu = document.getElementById('mobileMenu');
+        function applyLanguage(lang) {
+            localStorage.setItem('app-lang', lang);
+            document.getElementById('lang-label').innerText = lang;
             
-            if (menuBtn && mobileMenu) {
-                menuBtn.onclick = () => {
-                    mobileMenu.classList.toggle('hidden');
-                    const icon = menuBtn.querySelector('i');
-                    icon.classList.toggle('fa-bars');
-                    icon.classList.toggle('fa-times');
-                };
-            }
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (window.translations[lang][key]) {
+                    el.innerText = window.translations[lang][key];
+                }
+            });
+        }
+
+        // --- RENDER ROWS ---
+        document.querySelectorAll('.setting-row').forEach((row, i) => {
+            row.className = "flex items-center justify-between p-4 hover-item rounded-2xl cursor-pointer";
+            row.innerHTML = `
+                <div class="flex items-center gap-4">
+                    <div class="w-10 h-10 flex items-center justify-center rounded-xl ${row.getAttribute('bg')} ${row.getAttribute('color')}">
+                        <i class="fas ${row.getAttribute('icon')}"></i>
+                    </div>
+                    <span class="font-medium text-base" data-i18n="${row.getAttribute('dkey')}">${row.getAttribute('label')}</span>
+                </div>
+                <i class="fas fa-chevron-right text-[10px] text-gray-300"></i>
+            `;
         });
+
+        // --- BOOT ---
+        window.onload = () => {
+            applyLanguage(localStorage.getItem('app-lang') || 'English');
+            updateThemeUI(localStorage.getItem('app-theme') || 'light');
+        };
     </script>
 </body>
 </html>
-
-
-
