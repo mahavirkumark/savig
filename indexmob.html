@@ -1,327 +1,86 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>Savig</title>
-<meta name="google-site-verification" content="343b07ffe47a9eab" />
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-<link rel="manifest" href="manifest.json?v=2">
 
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#2196F3">
-
-<link rel="apple-touch-icon" href="icon-192.jpg">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js");
-}
-</script>
-  <script>
-// --- 1. Configuration ---
-const firebaseConfig = {
-    apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc",
-    authDomain: "sk12-58e9e.firebaseapp.com",
-    projectId: "sk12-58e9e",
-    storageBucket: "sk12-58e9e.appspot.com",
-    messagingSenderId: "470207874652",
-    appId: "1:470207874652:web:67ba1cf3629b7e5b144899"
-};
-
-if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
-const auth = firebase.auth();
-const db = firebase.firestore();
-const provider = new firebase.auth.GoogleAuthProvider();
-emailjs.init("NbamX634Y_o570cNw");
-
-let generatedOTP = null;
-let otpExpiryTime = null;
-let timerInterval = null;
-
-// --- 2. Corrected DOM Selectors ---
-// This ensures that whether you named it 'loginCard' or 'step1', the script finds it.
-const getStep1 = () => document.getElementById('step1') || document.getElementById('loginCard');
-const getStep2 = () => document.getElementById('step2') || document.getElementById('pinCard');
-const msgBoxEl = document.getElementById("msgBox");
-
-// --- 3. The Logic Fix (Persistence) ---
-auth.onAuthStateChanged((user) => {
-    if (user) {
-        // If they already finished OTP for this session, go to home
-        if (sessionStorage.getItem('savig_otp_verified') === 'true') {
-            window.location.replace("homemob.html");
-        } else {
-            // Otherwise, show the OTP screen
-            switchToOTPScreen(user);
-        }
-    }
-});
-
-// --- 4. Google Login Trigger ---
-const loginBtn = document.getElementById("googleLoginBtn");
-if (loginBtn) {
-    loginBtn.onclick = async () => {
-        try {
-            const result = await auth.signInWithPopup(provider);
-            showMsg("Google Authenticated!", true);
-            // onAuthStateChanged will handle the screen switch
-        } catch (e) {
-            showMsg(e.message, false);
-        }
-    };
-}
-
-// --- 5. Screen Switching & OTP Generation ---
-function switchToOTPScreen(user) {
-    const s1 = getStep1();
-    const s2 = getStep2();
-
-    if (s1 && s2) {
-        s1.classList.add('hidden');
-        s2.classList.remove('hidden');
-    }
-
-    // Prevent sending multiple emails on page refresh
-    if (!generatedOTP) {
-        generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
-        otpExpiryTime = Date.now() + (3 * 60000);
-
-        emailjs.send('service_2ucolxw', 'template_iknmqfs', {
-            user_email: user.email,
-            passcode: generatedOTP,
-            time: new Date(otpExpiryTime).toLocaleTimeString()
-        }).then(() => showMsg("OTP Sent to Email", true))
-          .catch(() => showMsg("Email failed", false));
-
-        startTimer(180);
-    }
-    
-    // Auto-focus first input
-    const inputs = document.querySelectorAll('#otpBox input');
-    if (inputs[0]) setTimeout(() => inputs[0].focus(), 500);
-}
-
-// --- 6. OTP Input & Auto-Verify ---
-const otpInputs = document.querySelectorAll('#otpBox input');
-otpInputs.forEach((input, index) => {
-    input.addEventListener('input', (e) => {
-        if (e.target.value && index < otpInputs.length - 1) {
-            otpInputs[index + 1].focus();
-        }
+    <style>
+        body { font-family: 'Poppins', sans-serif; background-color: #f0f4f8; margin: 0; padding: 0; }
         
-        // Auto-check when 6 digits are reached
-        const code = Array.from(otpInputs).map(i => i.value).join('');
-        if (code.length === 6) {
-            if (code === generatedOTP && Date.now() <= otpExpiryTime) {
-                sessionStorage.setItem('savig_otp_verified', 'true');
-                showMsg("Access Granted!", true);
-                setTimeout(() => window.location.replace("homemob.html"), 800);
-            } else {
-                showMsg("Incorrect or Expired OTP", false);
-                otpInputs.forEach(i => i.value = '');
-                otpInputs[0].focus();
-            }
-        }
-    });
-
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Backspace' && !e.target.value && index > 0) {
-            otpInputs[index - 1].focus();
-        }
-    });
-});
-
-// --- 7. UI Helpers ---
-function startTimer(seconds) {
-    clearInterval(timerInterval);
-    let time = seconds;
-    timerInterval = setInterval(() => {
-        const mins = Math.floor(time / 60);
-        const secs = time % 60;
-        const display = document.getElementById('timer');
-        if (display) display.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
-        if (--time < 0) {
-            clearInterval(timerInterval);
-            generatedOTP = null; // Expire the code
-        }
-    }, 1000);
-}
-
-function showMsg(msg, success) {
-    if (!msgBoxEl) return;
-    msgBoxEl.innerText = msg;
-    msgBoxEl.className = `show ${success ? 'success' : 'error'}`;
-    setTimeout(() => msgBoxEl.classList.remove('show'), 3000);
-}
-</script>
-    <style>
-        /* --- RESTORED GLOBAL AND ANIMATION STYLES --- */
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f0f4f8;
-            overflow-x: hidden;
-        }
-        @keyframes fadeInZoom {
-            0% { opacity: 0; transform: scale(0.8); }
-            100% { opacity: 1; transform: scale(1); }
-        }
-        @keyframes slideInLeft {
-            0% { opacity: 0; transform: translateX(-50px); }
-            100% { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes slideInRight {
-            0% { opacity: 0; transform: translateX(50px); }
-            100% { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes slideInUp {
-            0% { opacity: 0; transform: translateY(50px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
-        .section-title {
-            font-size: 2rem; 
-            font-weight: 700;
-            text-align: center;
-            color: #1f2937;
-            margin-bottom: 2.5rem; 
+        /* --- FIX: Splash Screen MUST have a higher z-index and be visible --- */
+        #splash-screen {
+            position: fixed; inset: 0; background: #ffffff; z-index: 99999;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            opacity: 1; visibility: visible; transition: opacity 0.6s ease;
         }
 
-        /* --- RESTORED MESSAGE BOX STYLES --- */
+        /* Animations */
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+        @keyframes slideUpReveal { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        
+        .brand-reveal { animation: slideUpReveal 1s forwards; }
+        .shimmer-effect {
+            background: linear-gradient(90deg, transparent, rgba(59, 130, 246, 0.4), transparent);
+            animation: shimmer 1.5s infinite;
+        }
+        @keyframes shimmer { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+
+        /* Main Content visibility */
+        .main-content { opacity: 0; transition: opacity 0.5s ease; }
+        .content-ready .main-content { opacity: 1; }
+        
         #msgBox {
-            /* Initial state for hidden/off-screen */
-            opacity: 0;
-            transform: translateX(100%);
-            /* Transition for smooth animation */
-            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
-            /* Ensure it is block/flex for content */
-            display: flex;
-            align-items: center;
-            gap: 8px; 
+            position: fixed; top: 20px; right: 20px; z-index: 100000;
+            opacity: 0; transform: translateX(100%); transition: 0.3s;
+            display: flex; align-items: center; gap: 8px; padding: 12px 20px; border-radius: 8px;
         }
-        #msgBox.show {
-            /* End state for visible/on-screen */
-            opacity: 1;
-            transform: translateX(0);
-        }
-        #msgBox.success {
-            background-color: #d1fae5; /* Tailwind bg-green-100 */
-            color: #065f46; /* Tailwind text-green-800 */
-            border-color: #34d399; /* Tailwind border-green-400 */
-        }
-        #msgBox.error {
-            background-color: #fee2e2; /* Tailwind bg-red-100 */
-            color: #991b1b; /* Tailwind text-red-800 */
-            border-color: #f87171; /* Tailwind border-red-400 */
-        }
+        #msgBox.show { opacity: 1; transform: translateX(0); }
+        .success { background-color: #d1fae5; color: #065f46; border: 1px solid #34d399; }
+        .error { background-color: #fee2e2; color: #991b1b; border: 1px solid #f87171; }
+        
+        #google_translate_element, .skiptranslate { display: none !important; }
     </style>
 </head>
-
-
-
-<div id="msgBox" style="position: fixed; top: 20px; right: 20px; padding: 10px 18px; border: 1px solid; border-radius: 6px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 999; font-weight: 500;"></div>
-
-<script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
-<script>
-    
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <title>Savig</title>
-<meta name="google-site-verification" content="343b07ffe47a9eab" />
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-    <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/@emailjs/browser@3/dist/email.min.js"></script>
-<link rel="manifest" href="manifest.json?v=2">
-
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#2196F3">
-
-<link rel="apple-touch-icon" href="icon-192.jpg">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-  <script>
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("sw.js");
-}
-</script>
-  
-    <style>
-        /* --- RESTORED GLOBAL AND ANIMATION STYLES --- */
-        body {
-            font-family: 'Poppins', sans-serif;
-            background-color: #f0f4f8;
-            overflow-x: hidden;
-        }
-        @keyframes fadeInZoom {
-            0% { opacity: 0; transform: scale(0.8); }
-            100% { opacity: 1; transform: scale(1); }
-        }
-        @keyframes slideInLeft {
-            0% { opacity: 0; transform: translateX(-50px); }
-            100% { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes slideInRight {
-            0% { opacity: 0; transform: translateX(50px); }
-            100% { opacity: 1; transform: translateX(0); }
-        }
-        @keyframes slideInUp {
-            0% { opacity: 0; transform: translateY(50px); }
-            100% { opacity: 1; transform: translateY(0); }
-        }
-        .section-title {
-            font-size: 2rem; 
-            font-weight: 700;
-            text-align: center;
-            color: #1f2937;
-            margin-bottom: 2.5rem; 
-        }
-
-        /* --- RESTORED MESSAGE BOX STYLES --- */
-        #msgBox {
-            /* Initial state for hidden/off-screen */
-            opacity: 0;
-            transform: translateX(100%);
-            /* Transition for smooth animation */
-            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
-            /* Ensure it is block/flex for content */
-            display: flex;
-            align-items: center;
-            gap: 8px; 
-        }
-        #msgBox.show {
-            /* End state for visible/on-screen */
-            opacity: 1;
-            transform: translateX(0);
-        }
-        #msgBox.success {
-            background-color: #d1fae5; /* Tailwind bg-green-100 */
-            color: #065f46; /* Tailwind text-green-800 */
-            border-color: #34d399; /* Tailwind border-green-400 */
-        }
-        #msgBox.error {
-            background-color: #fee2e2; /* Tailwind bg-red-100 */
-            color: #991b1b; /* Tailwind text-red-800 */
-            border-color: #f87171; /* Tailwind border-red-400 */
-        }
-    </style>
-</head>
-
 <body class="min-h-screen flex flex-col justify-between">
-<nav class="bg-white shadow-sm py-2" style="margin-bottom: 30px;">
+
+    <div id="splash-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);">
+        
+        <div class="relative mb-8 flex items-center justify-center">
+            <div class="absolute rounded-full border-2 border-blue-50" style="width: 150px; height: 150px; animation: ping 2.5s infinite;"></div>
+            <div class="absolute rounded-full border-2 border-blue-600 border-t-transparent shadow-lg" style="width: 110px; height: 110px; animation: spin 1s linear infinite;"></div>
+            
+            <div class="relative flex items-center justify-center" style="animation: float 3s ease-in-out infinite;">
+                <i class="fas fa-shield text-blue-600" style="font-size: 70px; filter: drop-shadow(0 4px 6px rgba(37,99,235,0.2));"></i>
+                <i class="fas fa-database text-white absolute" style="font-size: 28px; top: 48%; left: 50%; transform: translate(-50%, -40%);"></i>
+            </div>
+        </div>
+        
+        <div class="text-center mb-4 overflow-hidden">
+            <h1 class="text-5xl font-black text-gray-900 tracking-tighter brand-reveal" style="letter-spacing: -3px;">SAVIG</h1>
+            <p class="text-gray-400 text-[10px] uppercase tracking-[0.4em] mt-2 font-bold opacity-0" style="animation: fadeIn 1s forwards 0.5s;">Secure Personal Hub</p>
+        </div>
+        
+        <div class="h-10 flex flex-col items-center justify-center">
+            <div id="splash-text" class="text-blue-600 font-bold text-[11px] uppercase tracking-[0.2em] text-center transition-all duration-300">
+                Initializing Secure Environment
+            </div>
+        </div>
+
+        <div class="w-60 h-1.5 bg-gray-100 rounded-full mt-4 overflow-hidden relative shadow-inner">
+            <div id="splash-progress" class="h-full bg-blue-600 transition-all duration-300 relative" style="width: 0%;">
+                <div class="absolute top-0 left-0 w-full h-full shimmer-effect"></div>
+            </div>
+        </div>
+    </div>
+    <nav class="bg-white shadow-sm py-2" style="margin-bottom: 30px;">
     <div class="container mx-auto px-2">
         <div class="flex items-center gap-1">
             <div class="relative flex items-center justify-center">
@@ -332,8 +91,6 @@ if ("serviceWorker" in navigator) {
         </div>
     </div>
 </nav>
-
-
 <div id="login-msg" style="display:none; color: #721c24; background-color: #f8d7da; border: 1px solid #f5c6cb; padding: 12px; margin: 0 auto 20px auto; border-radius: 4px; text-align: center; font-family: sans-serif; max-width: 90%;">
     <strong>Security Timeout:</strong> Your session has expired. Please try to login again.
 </div>
@@ -501,819 +258,173 @@ if ("serviceWorker" in navigator) {
 
 
 
-<footer class="bg-white text-gray-900 text-center py-4 text-sm mt-10">
-    &copy; 2025 My Personal Website | All Rights Reserved.
-</footer>
-
+   
+   
+</body>
 <div id="msgBox" style="position: fixed; top: 20px; right: 20px; padding: 10px 18px; border: 1px solid; border-radius: 6px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); z-index: 999; font-weight: 500;"></div>
+<script>
+    // --- 1. Configuration & Initialization ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc",
+        authDomain: "sk12-58e9e.firebaseapp.com",
+        projectId: "sk12-58e9e",
+        storageBucket: "sk12-58e9e.appspot.com",
+        messagingSenderId: "470207874652",
+        appId: "1:470207874652:web:67ba1cf3629b7e5b144899"
+    };
 
-<script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const provider = new firebase.auth.GoogleAuthProvider();
+    emailjs.init("NbamX634Y_o570cNw");
 
-     <button id="theme-toggle-btn">
-    <span id="theme-icon">🌙</span>
-</button>
-<style>
-/* --- DARK MODE CORE --- */
-[data-theme="dark"] {
-    background-color: #0f172a;
-    color: #f1f5f9;
-}
+    let generatedOTP = null;
+    let otpExpiryTime = null;
+    let timerInterval = null;
 
-[data-theme="dark"] body {
-    background-color: #0f172a !important;
-}
+    const splashTextEl = document.getElementById("splash-text");
+    const splashScreenEl = document.getElementById("splash-screen");
+    const getStep1 = () => document.getElementById('step1') || document.getElementById('loginCard');
+    const getStep2 = () => document.getElementById('step2') || document.getElementById('pinCard');
 
-/* --- SECTION & BACKGROUND FIXES --- */
-[data-theme="dark"] section,
-[data-theme="dark"] .bg-gray-50,
-[data-theme="dark"] .bg-white {
-    background-color: #1e293b !important;
-    border-color: #334155 !important;
-}
-
-[data-theme="dark"] section.bg-white {
-    background-color: #0f172a !important; 
-}
-
-/* --- BORDER & DIVIDER CONTROLS --- */
-[data-theme="dark"] *, 
-[data-theme="dark"] .border, 
-[data-theme="dark"] .border-l-4 {
-    border-color: #334155 !important;
-}
-
-[data-theme="dark"] .border-blue-500,
-[data-theme="dark"] .border-blue-600 {
-    border-color: #4f46e5 !important; 
-}
-
-/* --- NAV & FOOTER --- */
-[data-theme="dark"] nav {
-    background-color: #0f172a !important;
-    border-bottom: 1px solid #1e293b !important;
-}
-
-/* Specific fix to remove darkness above footer */
-[data-theme="dark"] section:last-of-type,
-[data-theme="dark"] footer {
-    background-color: #0f172a !important;
-    margin-top: 0 !important;
-    border-top: 1px solid #1e293b !important;
-}
-
-/* --- H2 & TITLES --- */
-[data-theme="dark"] h2, 
-[data-theme="dark"] h3,
-[data-theme="dark"] .text-gray-900, 
-[data-theme="dark"] .text-gray-800 {
-    color: #ffffff !important;
-}
-
-[data-theme="dark"] .section-title {
-    position: relative;
-    padding-bottom: 15px;
-}
-
-/* --- CARD & INTERACTIVE ELEMENTS --- */
-[data-theme="dark"] .rounded-xl {
-    background-color: #1e293b !important;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4) !important;
-    border: 1px solid #334155 !important; /* Changed from blue to slate for professional look */
-}
-
-[data-theme="dark"] .rounded-xl:hover {
-    border-color: #4f46e5 !important;
-    box-shadow: 0 0 15px rgba(79, 70, 229, 0.2) !important;
-}
-
-/* --- INPUTS & OTP BOX --- */
-[data-theme="dark"] input {
-    background-color: #0f172a !important;
-    color: #ffffff !important;
-    border: 1px solid #334155 !important;
-}
-
-[data-theme="dark"] input:focus {
-    border-color: #4f46e5 !important;
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.3);
-}
-
-/* --- TEXT COLORS --- */
-[data-theme="dark"] .text-gray-600,
-[data-theme="dark"] .text-gray-500 {
-    color: #94a3b8 !important;
-}
-
-[data-theme="dark"] .text-blue-600,
-[data-theme="dark"] .text-blue-500 {
-    color: #818cf8 !important;
-}
-
-/* --- SPECIAL FIXES --- */
-[data-theme="dark"] #login-msg {
-    background-color: #450a0a !important;
-    border-color: #7f1d1d !important;
-    color: #fecaca !important;
-}
-
-/* --- THEME TOGGLE BUTTON --- */
-#theme-toggle-btn {
-    position: fixed;
-    bottom: 10%;
-    right: 5px;
-    z-index: 50;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: none;
-    background: #4f46e5;
-    color: white;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    font-size: 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.2s;
-}
-
-#theme-toggle-btn:active {
-    transform: scale(0.9);
-}
-</style>
-
-<div id="splash-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);">
-    
-    <div class="relative mb-8 flex items-center justify-center">
-        <div class="absolute rounded-full border-2 border-blue-50 hover-glow" style="width: 150px; height: 150px; animation: ping 2.5s infinite;"></div>
-        <div class="absolute rounded-full border-2 border-blue-600 border-t-transparent shadow-lg" style="width: 110px; height: 110px; animation: spin 1s linear infinite;"></div>
-        
-        <div class="relative flex items-center justify-center" style="animation: float 3s ease-in-out infinite;">
-            <i class="fas fa-shield text-blue-600" style="font-size: 70px; filter: drop-shadow(0 4px 6px rgba(37,99,235,0.2));"></i>
-            <i class="fas fa-database text-white absolute" style="font-size: 28px; top: 48%; left: 50%; transform: translate(-50%, -40%);"></i>
-        </div>
-    </div>
-    
-    <div class="text-center mb-4 overflow-hidden">
-        <h1 class="text-5xl font-black text-gray-900 tracking-tighter brand-reveal" style="letter-spacing: -3px;">SAVIG</h1>
-        <p class="text-gray-400 text-[10px] uppercase tracking-[0.4em] mt-2 font-bold opacity-0" style="animation: fadeIn 1s forwards 0.5s;">Secure Personal Hub</p>
-    </div>
-    
-    <div class="h-10 flex flex-col items-center justify-center">
-        <div id="splash-text" class="text-blue-600 font-bold text-[11px] uppercase tracking-[0.2em] text-center transition-all duration-300">
-            Initializing Secure Environment
-        </div>
-    </div>
-
-    <div class="w-60 h-1.5 bg-gray-100 rounded-full mt-4 overflow-hidden relative shadow-inner">
-        <div id="splash-progress" class="h-full bg-blue-600 transition-all duration-300 relative" style="width: 0%;">
-            <div class="absolute top-0 left-0 w-full h-full shimmer-effect"></div>
-        </div>
-    </div>
-
-    <style>
-        /* Core Animations */
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes ping { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(1.6); opacity: 0; } }
-        
-        /* Floating Icon Effect */
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
+    // --- 2. Splash Animation ---
+    const splashMessages = ["Establishing Secure Connection...", "Encrypting Your Data Vault...", "Finalizing Privacy Protocols...", "Ready to Secure Your Life."];
+    let msgIndex = 0;
+    const msgInterval = setInterval(() => {
+        msgIndex++;
+        if (splashTextEl && splashMessages[msgIndex]) {
+            splashTextEl.innerText = splashMessages[msgIndex];
         }
+    }, 1200);
 
-        /* Brand Text Reveal */
-        .brand-reveal {
-            animation: slideUpReveal 1s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-            transform: translateY(100%);
-        }
+    // --- 3. Compulsory Authentication Logic ---
+    auth.onAuthStateChanged((user) => {
+        const isVerified = localStorage.getItem('savig_otp_verified');
 
-        @keyframes slideUpReveal {
-            to { transform: translateY(0); }
-        }
+        setTimeout(() => {
+            if (user && isVerified === 'true') {
+                // If both are true, skip to home
+                window.location.replace("homemob.html");
+            } else {
+                // If logged out OR logged in but NOT verified (post-logout), show UI
+                hideSplash();
+                if (user) {
+                    // Compulsory OTP flow: User is authenticated but flag is missing
+                    switchToOTPScreen(user);
+                } else {
+                    // Show login button if no user at all
+                    const s1 = getStep1();
+                    if(s1) s1.classList.remove('hidden');
+                }
+            }
+        }, 5000);
+    });
 
-        @keyframes fadeIn {
-            to { opacity: 1; }
-        }
-
-        /* Progress Bar Shimmer */
-        .shimmer-effect {
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-            animation: shimmer 1.5s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-    </style>
-    <script>
-        // --- Splash Screen Logic ---
-const splashMessages = [
-    "Establishing Secure Connection...",
-    "Encrypting Your Data Vault...",
-    "Finalizing Privacy Protocols...",
-    "Ready to Secure Your Life."
-];
-
-let msgIndex = 0;
-const splashTextEl = document.getElementById("splash-text");
-const splashScreenEl = document.getElementById("splash-screen");
-
-// Change text every 1 second
-const msgInterval = setInterval(() => {
-    msgIndex++;
-    if (splashTextEl && splashMessages[msgIndex]) {
-        splashTextEl.innerText = splashMessages[msgIndex];
+    // --- 4. Google Login ---
+    const loginBtn = document.getElementById("googleLoginBtn");
+    if (loginBtn) {
+        loginBtn.onclick = async () => {
+            try {
+                // Clear any old verification just in case before new login
+                localStorage.removeItem('savig_otp_verified'); 
+                await auth.signInWithPopup(provider);
+                showMsg("Authenticated!", true);
+            } catch (e) {
+                showMsg(e.message, false);
+            }
+        };
     }
-}, 1000);
 
-// Hide the splash screen after 4 seconds
-window.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
-        clearInterval(msgInterval); // Stop changing text
-        if (splashScreenEl) {
-            splashScreenEl.style.opacity = '0'; // Fade out
-            setTimeout(() => {
-                splashScreenEl.style.display = 'none'; // Remove from view
-            }, 500);
+    // --- 5. OTP Management ---
+    function switchToOTPScreen(user) {
+        const s1 = getStep1();
+        const s2 = getStep2();
+
+        if (s1) s1.classList.add('hidden');
+        if (s2) s2.classList.remove('hidden');
+
+        if (!generatedOTP) {
+            generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+            otpExpiryTime = Date.now() + (3 * 60000);
+
+            emailjs.send('service_2ucolxw', 'template_iknmqfs', {
+                user_email: user.email,
+                passcode: generatedOTP,
+                time: new Date(otpExpiryTime).toLocaleTimeString()
+            }).then(() => showMsg("OTP Sent to Email", true))
+              .catch(() => showMsg("Email failed", false));
+
+            startTimer(180);
         }
-    }, 6000); // 4000ms = 4 seconds
-});
-
-    </script>
-
-</body>
-</html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+        
+        const inputs = document.querySelectorAll('#otpBox input');
+        if (inputs[0]) setTimeout(() => inputs[0].focus(), 500);
+    }
+
+    const otpInputs = document.querySelectorAll('#otpBox input');
+    otpInputs.forEach((input, index) => {
+        input.addEventListener('input', (e) => {
+            if (e.target.value && index < otpInputs.length - 1) {
+                otpInputs[index + 1].focus();
+            }
+            
+            const code = Array.from(otpInputs).map(i => i.value).join('');
+            if (code.length === 6) {
+                if (code === generatedOTP && Date.now() <= otpExpiryTime) {
+                    // Set the compulsory verification flag
+                    localStorage.setItem('savig_otp_verified', 'true');
+                    showMsg("Access Granted!", true);
+                    setTimeout(() => window.location.replace("homemob.html"), 800);
+                } else {
+                    showMsg("Invalid/Expired OTP", false);
+                    otpInputs.forEach(i => i.value = '');
+                    otpInputs[0].focus();
+                }
+            }
+        });
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && !e.target.value && index > 0) otpInputs[index - 1].focus();
+        });
+    });
+
+    // --- 6. Helpers ---
+    function hideSplash() {
+        if (splashScreenEl) {
+            clearInterval(msgInterval);
+            splashScreenEl.style.opacity = '0';
+            setTimeout(() => {
+                splashScreenEl.style.display = 'none';
+                document.body.classList.add('translation-ready');
+            }, 600);
+        }
+    }
+
+    function startTimer(seconds) {
+        clearInterval(timerInterval);
+        let time = seconds;
+        timerInterval = setInterval(() => {
+            const mins = Math.floor(time / 60);
+            const secs = time % 60;
+            const display = document.getElementById('timer');
+            if (display) display.innerText = `${mins}:${secs < 10 ? '0' : ''}${secs}`;
+            if (--time < 0) {
+                clearInterval(timerInterval);
+                generatedOTP = null; 
+                showMsg("OTP Expired", false);
+            }
+        }, 1000);
+    }
+
+    function showMsg(m, s) {
+        const b = document.getElementById('msgBox');
+        if (!b) return;
+        b.innerText = m;
+        b.className = `show ${s ? 'success' : 'error'}`;
+        setTimeout(() => b.classList.remove('show'), 3000);
+    }
 </script>
-     <button id="theme-toggle-btn">
-    <span id="theme-icon">🌙</span>
-</button>
-<style>
-/* --- DARK MODE CORE --- */
-[data-theme="dark"] {
-    background-color: #0f172a;
-    color: #f1f5f9;
-}
-
-[data-theme="dark"] body {
-    background-color: #0f172a !important;
-}
-
-/* --- SECTION & BACKGROUND FIXES --- */
-[data-theme="dark"] section,
-[data-theme="dark"] .bg-gray-50,
-[data-theme="dark"] .bg-white {
-    background-color: #1e293b !important;
-    border-color: #334155 !important;
-}
-
-[data-theme="dark"] section.bg-white {
-    background-color: #0f172a !important; 
-}
-
-/* --- BORDER & DIVIDER CONTROLS --- */
-[data-theme="dark"] *, 
-[data-theme="dark"] .border, 
-[data-theme="dark"] .border-l-4 {
-    border-color: #334155 !important;
-}
-
-[data-theme="dark"] .border-blue-500,
-[data-theme="dark"] .border-blue-600 {
-    border-color: #4f46e5 !important; 
-}
-
-/* --- NAV & FOOTER --- */
-[data-theme="dark"] nav {
-    background-color: #0f172a !important;
-    border-bottom: 1px solid #1e293b !important;
-}
-
-/* Specific fix to remove darkness above footer */
-[data-theme="dark"] section:last-of-type,
-[data-theme="dark"] footer {
-    background-color: #0f172a !important;
-    margin-top: 0 !important;
-    border-top: 1px solid #1e293b !important;
-}
-
-/* --- H2 & TITLES --- */
-[data-theme="dark"] h2, 
-[data-theme="dark"] h3,
-[data-theme="dark"] .text-gray-900, 
-[data-theme="dark"] .text-gray-800 {
-    color: #ffffff !important;
-}
-
-[data-theme="dark"] .section-title {
-    position: relative;
-    padding-bottom: 15px;
-}
-
-/* --- CARD & INTERACTIVE ELEMENTS --- */
-[data-theme="dark"] .rounded-xl {
-    background-color: #1e293b !important;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4) !important;
-    border: 1px solid #334155 !important; /* Changed from blue to slate for professional look */
-}
-
-[data-theme="dark"] .rounded-xl:hover {
-    border-color: #4f46e5 !important;
-    box-shadow: 0 0 15px rgba(79, 70, 229, 0.2) !important;
-}
-
-/* --- INPUTS & OTP BOX --- */
-[data-theme="dark"] input {
-    background-color: #0f172a !important;
-    color: #ffffff !important;
-    border: 1px solid #334155 !important;
-}
-
-[data-theme="dark"] input:focus {
-    border-color: #4f46e5 !important;
-    outline: none;
-    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.3);
-}
-
-/* --- TEXT COLORS --- */
-[data-theme="dark"] .text-gray-600,
-[data-theme="dark"] .text-gray-500 {
-    color: #94a3b8 !important;
-}
-
-[data-theme="dark"] .text-blue-600,
-[data-theme="dark"] .text-blue-500 {
-    color: #818cf8 !important;
-}
-
-/* --- SPECIAL FIXES --- */
-[data-theme="dark"] #login-msg {
-    background-color: #450a0a !important;
-    border-color: #7f1d1d !important;
-    color: #fecaca !important;
-}
-
-/* --- THEME TOGGLE BUTTON --- */
-#theme-toggle-btn {
-    position: fixed;
-    bottom: 10%;
-    right: 5px;
-    z-index: 50;
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    border: none;
-    background: #4f46e5;
-    color: white;
-    cursor: pointer;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-    font-size: 1.5rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: transform 0.2s;
-}
-
-#theme-toggle-btn:active {
-    transform: scale(0.9);
-}
-</style>
-
-<div id="splash-screen" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: white; z-index: 10000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.8s cubic-bezier(0.4, 0, 0.2, 1);">
-    
-    <div class="relative mb-8 flex items-center justify-center">
-        <div class="absolute rounded-full border-2 border-blue-50 hover-glow" style="width: 150px; height: 150px; animation: ping 2.5s infinite;"></div>
-        <div class="absolute rounded-full border-2 border-blue-600 border-t-transparent shadow-lg" style="width: 110px; height: 110px; animation: spin 1s linear infinite;"></div>
-        
-        <div class="relative flex items-center justify-center" style="animation: float 3s ease-in-out infinite;">
-            <i class="fas fa-shield text-blue-600" style="font-size: 70px; filter: drop-shadow(0 4px 6px rgba(37,99,235,0.2));"></i>
-            <i class="fas fa-database text-white absolute" style="font-size: 28px; top: 48%; left: 50%; transform: translate(-50%, -40%);"></i>
-        </div>
-    </div>
-    
-    <div class="text-center mb-4 overflow-hidden">
-        <h1 class="text-5xl font-black text-gray-900 tracking-tighter brand-reveal" style="letter-spacing: -3px;">SAVIG</h1>
-        <p class="text-gray-400 text-[10px] uppercase tracking-[0.4em] mt-2 font-bold opacity-0" style="animation: fadeIn 1s forwards 0.5s;">Secure Personal Hub</p>
-    </div>
-    
-    <div class="h-10 flex flex-col items-center justify-center">
-        <div id="splash-text" class="text-blue-600 font-bold text-[11px] uppercase tracking-[0.2em] text-center transition-all duration-300">
-            Initializing Secure Environment
-        </div>
-    </div>
-
-    <div class="w-60 h-1.5 bg-gray-100 rounded-full mt-4 overflow-hidden relative shadow-inner">
-        <div id="splash-progress" class="h-full bg-blue-600 transition-all duration-300 relative" style="width: 0%;">
-            <div class="absolute top-0 left-0 w-full h-full shimmer-effect"></div>
-        </div>
-    </div>
-
-    <style>
-        /* Core Animations */
-        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes ping { 0% { transform: scale(0.8); opacity: 1; } 100% { transform: scale(1.6); opacity: 0; } }
-        
-        /* Floating Icon Effect */
-        @keyframes float {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-10px); }
-        }
-
-        /* Brand Text Reveal */
-        .brand-reveal {
-            animation: slideUpReveal 1s cubic-bezier(0.23, 1, 0.32, 1) forwards;
-            transform: translateY(100%);
-        }
-
-        @keyframes slideUpReveal {
-            to { transform: translateY(0); }
-        }
-
-        @keyframes fadeIn {
-            to { opacity: 1; }
-        }
-
-        /* Progress Bar Shimmer */
-        .shimmer-effect {
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-            animation: shimmer 1.5s infinite;
-        }
-
-        @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-        }
-    </style>
-    <script>
-        // --- Splash Screen Logic ---
-const splashMessages = [
-    "Establishing Secure Connection...",
-    "Encrypting Your Data Vault...",
-    "Finalizing Privacy Protocols...",
-    "Ready to Secure Your Life."
-];
-
-let msgIndex = 0;
-const splashTextEl = document.getElementById("splash-text");
-const splashScreenEl = document.getElementById("splash-screen");
-
-// Change text every 1 second
-const msgInterval = setInterval(() => {
-    msgIndex++;
-    if (splashTextEl && splashMessages[msgIndex]) {
-        splashTextEl.innerText = splashMessages[msgIndex];
-    }
-}, 1000);
-
-// Hide the splash screen after 4 seconds
-window.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
-        clearInterval(msgInterval); // Stop changing text
-        if (splashScreenEl) {
-            splashScreenEl.style.opacity = '0'; // Fade out
-            setTimeout(() => {
-                splashScreenEl.style.display = 'none'; // Remove from view
-            }, 500);
-        }
-    }, 6000); // 4000ms = 4 seconds
-});
-
-    </script>
-
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
