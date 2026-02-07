@@ -4,74 +4,99 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>SAVIG </title>
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     
     <script>
         (function() {
-            const savedTheme = localStorage.getItem('app-theme') || 'light';
-            document.documentElement.className = savedTheme;
+            // Theme Sync
+            const applyTheme = () => {
+                const savedTheme = localStorage.getItem('app-theme') || 'light';
+                document.documentElement.className = savedTheme;
+            };
+            applyTheme();
 
-            // --- TRANSLATION DICTIONARY ---
+            // Language Sync (Google Cookie)
+            const savedLang = localStorage.getItem('app-lang') || 'English';
+            const langMap = {'English': 'en', 'Hindi': 'hi', 'Marathi': 'mr'};
+            const target = langMap[savedLang] || 'en';
+            document.cookie = `googtrans=/en/${target}; path=/;`;
+            document.cookie = `googtrans=/en/${target}; domain=${location.hostname}; path=/;`;
+
+            // Storage Watcher (Syncs across tabs instantly)
+            window.addEventListener('storage', (e) => {
+                if (e.key === 'app-theme') applyTheme();
+            });
+
+            // Dictionary for UI Labels
             window.translations = {
-                'English': {
-                    'brand': 'SAVIG', 'welcome': 'Welcome', 'settings': 'Settings',
-                    'dark': 'Dark Mode', 'lang': 'Language', 'logout': 'Logout Account',
-                    'fin_manage': 'Financial Management', 'contacts': 'Secure Contacts',
-                    'notifications': 'Notifications', 'security': 'Security'
-                },
-                'Hindi': {
-                    'brand': 'SAVIG', 'welcome': 'नमस्ते', 'settings': 'सेटिंग्स',
-                    'dark': 'डार्क मोड', 'lang': 'भाषा बदलें', 'logout': 'लॉग आउट करें',
-                    'fin_manage': 'वित्तीय प्रबंधन', 'contacts': 'सुरक्षित संपर्क',
-                    'notifications': 'सूचनाएं', 'security': 'सुरक्षा'
-                },
-                'Marathi': {
-                    'brand': 'SAVIG', 'welcome': 'नमस्कार', 'settings': 'सेटिंग्स',
-                    'dark': 'डार्क मोड', 'lang': 'भाषा बदला', 'logout': 'लॉग आउट करा',
-                    'fin_manage': 'आर्थिक व्यवस्थापन', 'contacts': 'सुरक्षित संपर्क',
-                    'notifications': 'सूचना', 'security': 'सुरक्षा'
-                }
+                'English': { 'welcome': 'Welcome', 'settings': 'Settings', 'dark': 'Dark Mode', 'lang': 'Language', 'logout': 'Logout Account' },
+                'Hindi': { 'welcome': 'नमस्ते', 'settings': 'सेटिंग्स', 'dark': 'डार्क मोड', 'lang': 'भाषा बदलें', 'logout': 'लॉग आउट' },
+                'Marathi': { 'welcome': 'नमस्कार', 'settings': 'सेटिंग्स', 'dark': 'डार्क मोड', 'lang': 'भाषा बदला', 'logout': 'लॉग आउट' }
             };
         })();
+
+        function googleTranslateElementInit() {
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'hi,mr,en',
+                autoDisplay: false
+            }, 'google_translate_element');
+        }
     </script>
 
     <style>
-        body { transition: background-color 0.4s ease; font-family: sans-serif; margin: 0; min-height: 100vh; }
+        /* Hide Google UI Elements */
+        #google_translate_element, .skiptranslate, .goog-te-banner-frame, #goog-gt-tt { display: none !important; }
+        body { top: 0 !important; position: static !important; transition: background-color 0.4s ease; font-family: sans-serif; margin: 0; min-height: 100vh; }
+        
+        /* Dark/Light Color Logic */
         .dark body { background: #0f172a; color: #f8fafc; }
         .light body { background: #f8fafc; color: #1e293b; }
         
         .full-page { width: 100%; min-height: 100vh; display: flex; flex-direction: column; }
-        .hover-item:active { transform: scale(0.98); background: rgba(0, 0, 0, 0.05); }
-        .dark .hover-item:active { background: rgba(255, 255, 255, 0.05); }
+        .hover-item:active { transform: scale(0.98); background: rgba(0,0,0,0.05); }
+        .dark .hover-item:active { background: rgba(255,255,255,0.05); }
         
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        .anim-fade { animation: fadeInUp 0.4s ease-out forwards; }
         #theme-knob { transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .notranslate { font-family: 'Poppins', sans-serif !important; }
     </style>
 </head>
 <body>
 
+    <div id="google_translate_element"></div>
 
-    
+    <div class="full-page">
+      
+
+        <section class="p-10 text-center border-b border-gray-500/10">
+            <div class="relative inline-block mb-4">
+                <img id="user-photo" src="https://ui-avatars.com/api/?name=U&background=2563eb&color=fff" 
+                     class="w-24 h-24 rounded-full border-2 border-blue-500 mx-auto object-cover shadow-xl">
+            </div>
+            <p class="text-blue-500 font-semibold text-xs uppercase tracking-widest mb-1" data-i18n="welcome">Welcome</p>
+            <h2 id="user-name" class="text-2xl font-bold">Loading...</h2>
+            <p id="user-email" class="text-gray-500 text-sm mt-1 italic">firebase-syncing...</p>
+        </section>
+
+        <main class="p-4 flex-grow">
+            <p class="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-4 py-4" data-i18n="settings">Settings</p>
             
             <div class="space-y-1">
-                <div class="flex items-center justify-between p-4 hover-item rounded-2xl cursor-pointer" onclick="toggleTheme()">
+                <div class="flex items-center justify-between p-4 hover-item rounded-2xl cursor-pointer" onclick="toggleGlobalTheme()">
                     <div class="flex items-center gap-4">
                         <div class="w-10 h-10 flex items-center justify-center rounded-xl bg-indigo-500/10 text-indigo-500">
                             <i class="fas fa-moon"></i>
                         </div>
                         <span class="font-medium text-base" data-i18n="dark">Dark Mode</span>
                     </div>
-                    <div id="theme-track" class="w-12 h-6 bg-gray-300 rounded-full relative p-1 transition-colors">
+                    <div id="theme-track" class="w-12 h-6 bg-gray-300 rounded-full relative p-1">
                         <div id="theme-knob" class="w-4 h-4 bg-white rounded-full shadow-sm"></div>
                     </div>
                 </div>
 
-                <div class="flex items-center justify-between p-4 hover-item rounded-2xl cursor-pointer" onclick="cycleLanguage()">
+                <div class="flex items-center justify-between p-4 hover-item rounded-2xl cursor-pointer" onclick="cycleAppLanguage()">
                     <div class="flex items-center gap-4">
                         <div class="w-10 h-10 flex items-center justify-center rounded-xl bg-orange-500/10 text-orange-500">
                             <i class="fas fa-globe"></i>
@@ -86,10 +111,8 @@
 
                 <div class="h-px bg-gray-500/10 my-4 mx-4"></div>
 
-
+                <div class="setting-row" icon="fa-chart-pie" color="text-blue-500" bg="bg-blue-500/10" label="Financial Management" dkey="fin_manage"></div>
                 <div class="setting-row" icon="fa-user-group" color="text-emerald-500" bg="bg-emerald-500/10" label="Secure Contacts" dkey="contacts"></div>
-
-                <div class="setting-row" icon="fa-lock" color="text-purple-500" bg="bg-purple-500/10" label="Security" dkey="security"></div>
             </div>
 
             <div class="mt-12 px-4 pb-10">
@@ -128,65 +151,55 @@
     </script>
 
     <script>
-        // --- THEME ENGINE ---
-        function toggleTheme() {
+        function toggleGlobalTheme() {
             const next = document.documentElement.className === 'dark' ? 'light' : 'dark';
-            document.documentElement.className = next;
             localStorage.setItem('app-theme', next);
             updateThemeUI(next);
         }
 
         function updateThemeUI(theme) {
+            document.documentElement.className = theme;
             const knob = document.getElementById('theme-knob');
             const track = document.getElementById('theme-track');
             if (theme === 'dark') {
                 knob.style.transform = "translateX(24px)";
-                track.classList.add('bg-blue-600');
+                track?.classList.add('bg-blue-600');
             } else {
                 knob.style.transform = "translateX(0px)";
-                track.classList.remove('bg-blue-600');
+                track?.classList.remove('bg-blue-600');
             }
         }
 
-        // --- LANGUAGE ENGINE ---
-        function cycleLanguage() {
+        function cycleAppLanguage() {
             const langs = Object.keys(window.translations);
             const current = localStorage.getItem('app-lang') || 'English';
             let next = langs[(langs.indexOf(current) + 1) % langs.length];
-            applyLanguage(next);
+            localStorage.setItem('app-lang', next);
+            location.reload(); 
         }
 
-        function applyLanguage(lang) {
-            localStorage.setItem('app-lang', lang);
+        function applyLabels(lang) {
             document.getElementById('lang-label').innerText = lang;
-            
             document.querySelectorAll('[data-i18n]').forEach(el => {
                 const key = el.getAttribute('data-i18n');
-                if (window.translations[lang][key]) {
-                    el.innerText = window.translations[lang][key];
-                }
+                if (window.translations[lang][key]) el.innerText = window.translations[lang][key];
             });
         }
 
-        // --- RENDER ROWS ---
-        document.querySelectorAll('.setting-row').forEach((row, i) => {
-            row.className = "flex items-center justify-between p-4 hover-item rounded-2xl cursor-pointer";
-            row.innerHTML = `
-                <div class="flex items-center gap-4">
-                    <div class="w-10 h-10 flex items-center justify-center rounded-xl ${row.getAttribute('bg')} ${row.getAttribute('color')}">
-                        <i class="fas ${row.getAttribute('icon')}"></i>
-                    </div>
-                    <span class="font-medium text-base" data-i18n="${row.getAttribute('dkey')}">${row.getAttribute('label')}</span>
-                </div>
-                <i class="fas fa-chevron-right text-[10px] text-gray-300"></i>
-            `;
-        });
-
-        // --- BOOT ---
         window.onload = () => {
-            applyLanguage(localStorage.getItem('app-lang') || 'English');
             updateThemeUI(localStorage.getItem('app-theme') || 'light');
+            applyLabels(localStorage.getItem('app-lang') || 'English');
         };
+
+        // Populate Static Rows
+        document.querySelectorAll('.setting-row').forEach((row) => {
+            row.className = "flex items-center justify-between p-4 hover-item rounded-2xl cursor-pointer";
+            row.innerHTML = `<div class="flex items-center gap-4">
+                <div class="w-10 h-10 flex items-center justify-center rounded-xl ${row.getAttribute('bg')} ${row.getAttribute('color')}"><i class="fas ${row.getAttribute('icon')}"></i></div>
+                <span class="font-medium text-base">${row.getAttribute('label')}</span>
+            </div><i class="fas fa-chevron-right text-[10px] text-gray-300"></i>`;
+        });
     </script>
+    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
 </html>
