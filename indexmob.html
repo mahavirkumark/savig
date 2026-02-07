@@ -278,90 +278,163 @@ if ("serviceWorker" in navigator) {
 <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.6.8/firebase-firestore.js"></script>
 <script>
-    // --- Firebase Configuration ---
-    const firebaseConfig = {
-        apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc",
-        authDomain: "sk12-58e9e.firebaseapp.com",
-        projectId: "sk12-58e9e",
-        storageBucket: "sk12-58e9e.appspot.com",
-        messagingSenderId: "470207874652",
-        appId: "1:470207874652:web:67ba1cf3629b7e5b144899"
+// --- 1. Configuration & Initialization ---
+const firebaseConfig = {
+    apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc",
+    authDomain: "sk12-58e9e.firebaseapp.com",
+    projectId: "sk12-58e9e",
+    storageBucket: "sk12-58e9e.appspot.com",
+    messagingSenderId: "470207874652",
+    appId: "1:470207874652:web:67ba1cf3629b7e5b144899"
+};
+
+// Initialize Firebase (v8 compatibility)
+if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+
+const auth = firebase.auth();
+const db = firebase.firestore();
+const provider = new firebase.auth.GoogleAuthProvider();
+
+// Initialize EmailJS
+emailjs.init("NbamX634Y_o570cNw");
+
+let generatedOTP = null;
+let otpExpiryTime = null;
+let timerInterval = null;
+
+// DOM Elements
+const step1 = document.getElementById('loginCard'); // Step 1 container
+const step2 = document.getElementById('pinCard');   // Step 2 container (OTP Screen)
+const otpInputs = document.querySelectorAll('#otpBox input');
+const timerDisplay = document.getElementById('timer');
+const msgBoxEl = document.getElementById("msgBox");
+
+// --- 2. Auto-Login Persistence Check ---
+auth.onAuthStateChanged((user) => {
+    if (user) {
+        console.log("Session active. Proceeding to OTP verification.");
+        // If user is logged in via Google but hasn't done OTP, show OTP screen
+        switchToOTPScreen(user);
+    }
+});
+
+// --- 3. Google Login Handler ---
+document.getElementById("googleLoginBtn").onclick = async () => {
+    try {
+        const result = await auth.signInWithPopup(provider);
+        const user = result.user;
+
+        // Save basic user data to Firestore
+        db.collection("users").doc(user.uid).set({
+            email: user.email,
+            lastLogin: firebase.firestore.FieldValue.serverTimestamp()
+        }, { merge: true });
+
+        showMsg("Google Auth Success!", true);
+        switchToOTPScreen(user);
+
+    } catch (e) {
+        console.error(e);
+        showMsg("Login failed: " + e.message, false);
+    }
+};
+
+// --- 4. OTP Transition & Delivery ---
+function switchToOTPScreen(user) {
+    step1.classList.add('hidden');
+    step2.classList.remove('hidden');
+    
+    const infoText = document.getElementById('otp-info');
+    if(infoText) infoText.innerText = `Code sent to ${user.email}`;
+
+    // Auto-focus first digit
+    setTimeout(() => { if(otpInputs[0]) otpInputs[0].focus(); }, 100);
+
+    sendFastOTP(user);
+    startTimer(180); // 3 Minute Timer
+}
+
+async function sendFastOTP(user) {
+    generatedOTP = Math.floor(100000 + Math.random() * 900000).toString();
+    otpExpiryTime = Date.now() + (3 * 60000);
+
+    const templateParams = {
+        user_email: user.email,
+        passcode: generatedOTP,
+        time: new Date(otpExpiryTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
     };
 
-    // Initialize Firebase
-    if (typeof firebase !== 'undefined' && firebase.apps.length === 0) {
-        firebase.initializeApp(firebaseConfig);
+    try {
+        await emailjs.send('service_2ucolxw', 'template_iknmqfs', templateParams);
+        showMsg("OTP sent to email", true);
+    } catch (err) {
+        console.error("Email failed", err);
+        showMsg("Failed to send OTP", false);
     }
+}
 
-    const auth = firebase.auth();
-    const db = firebase.firestore();
-    const provider = new firebase.auth.GoogleAuthProvider();
-
-    const msgBoxEl = document.getElementById("msgBox");
-    const loginCardEl = document.getElementById("loginCard");
-
-    // --- 1. PERSISTENCE CHECK (Auto-Login) ---
-    // This checks if the user is already signed in from a previous session
-    auth.onAuthStateChanged((user) => {
-        if (user) {
-            console.log("Active session found for:", user.email);
-            // If user is already logged in, skip login page and go to home
-            window.location.href = "homemob.html";
-        } else {
-            // No user found, make sure the login UI is visible
-            if (loginCardEl) loginCardEl.style.display = "block";
+// --- 5. OTP Input Logic ---
+otpInputs.forEach((input, index) => {
+    input.addEventListener('input', (e) => {
+        if (e.target.value && index < otpInputs.length - 1) {
+            otpInputs[index + 1].focus();
         }
+        checkAndVerify();
     });
 
-    // --- 2. HELPER FUNCTION FOR TOAST MESSAGES ---
-    function showMsg(msg, success = true, duration = 6000) {
-        if (!msgBoxEl) return;
-        
-        msgBoxEl.className = ''; 
-        msgBoxEl.classList.add(success ? 'success' : 'error');
-        
-        const iconClass = success ? 'fas fa-check-circle' : 'fas fa-exclamation-triangle';
-        msgBoxEl.innerHTML = `<i class="${iconClass}"></i><span style="margin-left:10px;">${msg}</span>`;
-        
-        requestAnimationFrame(() => {
-            msgBoxEl.classList.add('show');
-        });
-
-        setTimeout(() => {
-            msgBoxEl.classList.remove('show');
-        }, duration); 
-    }
-
-    // --- 3. GOOGLE LOGIN HANDLER ---
-    document.getElementById("googleLoginBtn").onclick = async () => {
-        try {
-            const result = await auth.signInWithPopup(provider);
-            const user = result.user;
-
-            // Check if user document exists in Firestore (Savig App User Setup)
-            const userRef = db.collection("users").doc(user.uid);
-            const doc = await userRef.get();
-
-            if (!doc.exists) {
-                // Register new user data if it's their first time
-                await userRef.set({ 
-                    email: user.email,
-                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                });
-            }
-            
-            showMsg("Success! Redirecting...", true);
-            
-            // Short delay to show success message before redirecting
-            setTimeout(() => { 
-                window.location.href = "homemob.html"; 
-            }, 1000); 
-
-        } catch (e) {
-            console.error(e);
-            showMsg("Login failed: " + e.message, false);
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !e.target.value && index > 0) {
+            otpInputs[index - 1].focus();
         }
-    };
+    });
+});
+
+function checkAndVerify() {
+    const code = Array.from(otpInputs).map(i => i.value).join('');
+    if (code.length === 6) {
+        if (code === generatedOTP && Date.now() <= otpExpiryTime) {
+            showMsg("OTP Verified!", true);
+            window.location.replace("homemob.html");
+        } else if (code === generatedOTP) {
+            showMsg("OTP Expired", false);
+            setTimeout(() => location.reload(), 1500);
+        } else {
+            // Error feedback
+            otpInputs.forEach(i => { i.value = ''; i.style.borderColor = 'red'; });
+            otpInputs[0].focus();
+            showMsg("Invalid OTP", false);
+        }
+    }
+}
+
+// --- 6. Utilities (Timer, Messages, Theme) ---
+function startTimer(seconds) {
+    clearInterval(timerInterval);
+    let timeRemaining = seconds;
+    timerInterval = setInterval(() => {
+        const mins = Math.floor(timeRemaining / 60);
+        const secs = timeRemaining % 60;
+        if(timerDisplay) timerDisplay.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+        if (--timeRemaining < 0) {
+            clearInterval(timerInterval);
+            if(timerDisplay) timerDisplay.innerText = "EXPIRED";
+        }
+    }, 1000);
+}
+
+function showMsg(msg, success = true) {
+    if (!msgBoxEl) return;
+    msgBoxEl.className = 'show ' + (success ? 'success' : 'error');
+    msgBoxEl.innerHTML = `<i class="fas ${success ? 'fa-check-circle' : 'fa-exclamation-triangle'}"></i><span>${msg}</span>`;
+    setTimeout(() => msgBoxEl.classList.remove('show'), 4000);
+}
+
+// Global Theme Persistence
+document.addEventListener('DOMContentLoaded', () => {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+    document.documentElement.classList.toggle('dark', savedTheme === 'dark');
+});
 </script>
      <button id="theme-toggle-btn">
     <span id="theme-icon">🌙</span>
@@ -600,6 +673,7 @@ window.addEventListener('DOMContentLoaded', () => {
 
 </body>
 </html>
+
 
 
 
