@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Savig </title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+<style>
+/* 1. Theme Variables & Reset */
+:root {
+    --bg-color: #ffffff;
+    --nav-bg: rgba(255, 255, 255, 0.95); 
+    --nav-text: #000000; /* Pure black for light mode */
+    --hover-bg: #f8fafc;
+    --active-color: #2563eb;
+    --border-color: rgba(0, 0, 0, 0.1);
+    --nav-height: 70px;
+}
+
+[data-theme='dark'] {
+    --bg-color: #0f172a;
+    --nav-bg: rgba(15, 23, 42, 0.98);
+    --nav-text: #ffffff; /* FIXED: Changed from black to white for readability */
+    --hover-bg: #1e293b;
+    --active-color: #60a5fa;
+    --border-color: rgba(255, 255, 255, 0.1);
+}
+
+body {
+    background-color: var(--bg-color);
+    transition: background-color 0.3s ease;
+    min-height: 100vh;
+    margin: 0;
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+    padding-bottom: 80px;
+}
+
+/* 2. Universal Bottom Nav Entrance Animation */
+#universal-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 10px;
+    background-color: var(--nav-bg);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-top: 1px solid var(--border-color);
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.1);
+    z-index: 999999;
+    padding-bottom: env(safe-area-inset-bottom);
+    animation: navSlideUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    font-size: 10px;
+}
+
+@keyframes navSlideUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* 3. Bottom Nav Link Styling */
+.nav-link {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--nav-text) !important; 
+    text-decoration: none !important;
+    transition: color 0.3s ease;
+    position: relative;
+    height: 60px;
+}
+
+.nav-link i {
+    font-size: 13px;
+    margin-bottom: 4px;
+    color: inherit;
+    /* Cleaned up stroke for better legibility */
+    -webkit-text-stroke: 0.5px var(--nav-text); 
+    font-weight: 700;
+}
+
+.nav-link div {
+    font-size: 10px;
+    font-weight: 800; /* 900 can be too chunky on some screens */
+    text-transform: uppercase;
+    color: inherit;
+    letter-spacing: 0.02em;
+    gap: 5px;
+}
+
+.nav-link.active {
+    color: var(--active-color) !important;
+}
+
+.nav-link.active i {
+    transform: translateY(-3px);
+    -webkit-text-stroke: 0.5px var(--active-color);
+}
+
+/* 4. Top Grid Boxes Styling */
+.box-container {
+    width: 60px;
+    height: 60px;
+    border-radius: 1rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    background: white;
+    border: 1px solid var(--border-color); /* Added for definition */
+    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+}
+
+[data-theme='dark'] .box-container:not(.bg-\[\#ffe11b\]) {
+    background: #1e293b;
+    color: #ffffff; /* Ensures text is visible in dark mode */
+}
+
+.animate-pop {
+    animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    opacity: 0;
+}
+
+@keyframes popIn {
+    0% { transform: scale(0.6); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+/* 5. Modern Pill Toggle Above Nav */
+/* 5. Modern Pill Toggle Above Nav */
+.theme-toggle {
+    position: fixed;
+    bottom: 100px; 
+    right: 2rem;
+    z-index: 10001;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(yellow);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border-color);
+    color: var(--active-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-toggle:hover {
+    transform: translateY(-2px);
+    background: var(--hover-bg);
+}
+
+/* 6. Profile Box Top Right */
+.header-container {
+position: fixed;
+
+    top: 20px;
+
+    right: 5px;
+
+    z-index: 1000;
+
+}
+
+
+
+
+
+
+.profile-box {
+    width: 30px;
+    height: 30px;
+    background: white;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--active-color);
+    transition: background-color 0.3s ease;
+    margin-top: 55px;
+    margin-bottom: 5px;
+}
+
+[data-theme='dark'] .profile-box { 
+    background: #1e293b; 
+}
+
+/* --- Adjustments for the Top Header Area --- */
+.header-wrapper {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 15px;
+    z-index: 1000;
+    background: var(--bg-color); /* Matches theme */
+    box-sizing: border-box;
+}
+
+/* Grid boxes container needs to stay horizontal */
+.top-grid-nav {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+    scrollbar-width: none; /* Hide scrollbar for clean look */
+}
+
+.top-grid-nav::-webkit-scrollbar {
+    display: none;
+}
+
+/* Ensure icons in the toggle switch between moon/sun */
+[data-theme='dark'] .theme-toggle .fa-sun { display: block; }
+[data-theme='dark'] .theme-toggle .fa-moon { display: none; }
+[data-theme='light'] .theme-toggle .fa-sun { display: none; }
+[data-theme='light'] .theme-toggle .fa-moon { display: block; }
+
+/* Logic to show moon/sun icons depending on theme (Compatibility Fallback) */
+[data-theme='dark'] .theme-toggle i.fa-sun {
+    display: inline-block;
+}
+[data-theme='light'] .theme-toggle i.fa-moon {
+    display: inline-block;
+}
+
+
+
+/* 1. Reset Body and Layout Logic */
+body.flex.flex-col.items-center {
+    display: block !important; /* Overrides the center stacking */
+    padding-top: 85px !important; /* Prevents content from being hidden */
+    padding-bottom: 80px !important;
+}
+
+/* 2. Force the Nav and Profile into a Row */
+nav.w-full {
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    z-index: 1000;
+    background: var(--bg-color);
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 10px 15px !important;
+    
+    font-weight: bolder;
+}
+
+/* 3. Fix the Grid Columns for Mobile */
+nav .grid-cols-4 {
+    display: flex !important; /* Using flex instead of grid for better row control */
+    gap: 12px !important;
+    margin: 0 !important;
+}
+
+/* 4. Positioning the Profile Box back to the top right */
+
+
+/* 5. Data Visibility and Contrast */
+.box-container {
+    flex-shrink: 0 !important; /* Stops boxes from squishing */
+    background: white; /* Default for light mode */
+}
+
+/* Keeps the text readable on the yellow background specifically */
+
+/* If you want ONLY the Savig text to stay dark because the box is yellow */
+[data-theme='dark'] .box-container.bg-\[\#ffe11b\] span {
+    color: #000000 !important;
+}
+/* 6. Theme Toggle Logic (Icon Display) */
+[data-theme='dark'] .theme-toggle .fa-sun { display: block !important; }
+[data-theme='dark'] .theme-toggle .fa-moon { display: none !important; }
+[data-theme='light'] .theme-toggle .fa-sun { display: none !important; }
+[data-theme='light'] .theme-toggle .fa-moon { display: block !important; }
+.universal-bottom-nav:hover{
+    color: #2563eb;
+}
+</style>
+</style>
+</head>
+<body class="flex flex-col items-center">
+
+    <nav class="w-full pt-[5px] px-2"> 
+        <div class="max-w-md mx-auto grid grid-cols-4 gap-1 justify-items-center mt-[-6px]">
+            
+         <a href="homemob.html" class="animate-pop flex flex-col items-center no-underline" style="animation-delay: 0.1s;">
+    <div class="box-container bg-[#ffe11b]">
+        <i class="fas fa-shield text-blue-600 text-2xl"></i>
+        <i class="fas fa-database text-white absolute" style="font-size: 13px; top: 30%; left: 50%; transform: translate(-50%, -50%);"></i>
+        <span class="font-black italic text-[14px] uppercase text-slate-900">Savig</span>
+    </div>
+</a>
+
+    <a href="financemob.html" class="animate-pop flex flex-col items-center no-underline" style="animation-delay: 0.2s;">
+    <div class="box-container flex flex-col items-center">
+        <div class="w-8 h-8 bg-blue-700 rounded-full flex items-center justify-center mb-1">
+       <i class="fas fa-rupee-sign text-white text-sm"></i>
+        </div>
+        
+        <span class="font-bold text-black-800 dark:text-white-700 italic text-[14px]">
+            Finance
+        </span>
+    </div>
+</a>
+
+
+            <a href="travelmob.html" class="animate-pop flex flex-col items-center no-underline" style="animation-delay: 0.3s;">
+                <div class="box-container">
+                    <i class="fas fa-plane text-blue-700 text-xl mb-1"></i>
+                    <span class="font-bold text-black-800 dark:text-black-700 italic text-[14px]">Travel</span>
+                </div>
+            </a>
+
+            <a href="grocerymob.html" class="animate-pop flex flex-col items-center no-underline" style="animation-delay: 0.4s;">
+                <div class="box-container">
+                    <i class="fas fa-basket-shopping text-orange-500 text-xl mb-1"></i>
+                    <span class="font-bold text-black-800 dark:text-black-700 italic text-[14px]">Grocery</span>
+                </div>
+            </a>
+
+        </div>
+    </nav>
+
+    <button class="theme-toggle" id="theme-btn">
+<i class="fa-solid fa-sun bg-yellow"></i>
+    <i class="fa-solid fa-moon"></i>
+    </button>
+
+    <div class="header-container">
+        <a href="profile.html" class="animate-pop">
+            <div class="profile-box">
+                <i class="fas fa-user-circle text-blue-600 text-2xl"></i>
+            </div>
+        </a>
+    </div>
+
+    <nav id="universal-bottom-nav">
+   <a href="homemob.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
+        <i class="fa-solid fa-house transition-colors duration-300 group-hover:text-indigo-600"></i>
+        <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold text-xm">Home</div>
+    </a>
+
+    <a href="addressmob.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
+        <i class="fa-solid fa-location-dot transition-colors duration-300 group-hover:text-indigo-600"></i>
+        <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Address</div>
+    </a>
+
+    <a href="passwordmob.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
+        <i class="fa-solid fa-key transition-colors duration-300 group-hover:text-indigo-600"></i>
+        <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Passwords</div>
+    </a>
+
+    <a href="contact.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
+        <i class="fa-solid fa-envelope transition-colors duration-300 group-hover:text-indigo-600"></i>
+        <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Contact</div>
+    </a>
+          <a href="cr.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
+        <i class="fas fa-calendar-alt transition-colors duration-300 group-hover:text-indigo-600"></i>
+        <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Calender</div>
+    </a>
+    </nav>
+    <script>
+        const themeBtn = document.getElementById('theme-btn');
+        const icon = themeBtn.querySelector('i');
+        
+        // Handle Theme Switching
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        updateIcon(currentTheme);
+
+        themeBtn.addEventListener('click', () => {
+            let theme = document.documentElement.getAttribute('data-theme');
+            let newTheme = theme === 'light' ? 'dark' : 'light';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateIcon(newTheme);
+            if (navigator.vibrate) navigator.vibrate(15);
+        });
+
+        function updateIcon(theme) {
+            icon.className = theme === 'light' ? 'fas fa-moon' : 'fa-solid fa-sun';
+        }
+
+        // Highlight Active Bottom Nav Link
+        document.querySelectorAll('.nav-link').forEach(link => {
+            const currentPath = window.location.pathname.split('/').pop();
+            if (link.getAttribute('href') === currentPath) {
+                link.classList.add('active');
+            }
+        });
+
+        // Haptic feedback for boxes
+        document.querySelectorAll('.box-container').forEach(box => {
+            box.addEventListener('touchstart', () => {
+                if (navigator.vibrate) navigator.vibrate(10);
+            });
+        });
+    </script>
+   
+
+
+
+
+  
+
+    <style>
+        :root { --bg: #f9fafb; --card: #ffffff; --text: #1f2937; }
+        [data-theme='dark'] { --bg: #0f172a; --card: #1e293b; --text: #f8fafc; }
+        body { background-color: var(--bg); color: var(--text); transition: all 0.3s; }
+        .stat-card { background: var(--card); border-radius: 12px; padding: 1rem; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+    </style>
+</head>
+
+
+    <style>
+        :root {
+            --bg-body: #f9fafb;
+            --bg-card: #ffffff;
+            --text-main: #1f2937;
+            --border: #e5e7eb;
+        }
+
+        [data-theme="dark"] {
+            --bg-body: #0f172a;
+            --bg-card: #1e293b;
+            --text-main: #cbd5e1;
+            --border: #334155;
+        }
+
+        body { 
+            background-color: var(--bg-body); 
+            color: var(--text-main); 
+            transition: all 0.3s ease; 
+            font-family: 'Inter', sans-serif;
+            min-height: 100vh;
+        }
+
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        #theme-toggle-btn {
+            position: fixed;
+            bottom: 85px; 
+            right: 15px;
+            z-index: 9999;
+            width: 45px; height: 45px;
+            border-radius: 50%;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+    </style>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Savig Finance | LIVE</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.6.10/firebase-app-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.6.10/firebase-database-compat.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.6.10/firebase-auth-compat.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+    
+
+<style>
+    :root { 
+        --bg: #ffffff;
+        --card: #f8fafc;
+        --text-main: #0f172a;    /* Deep slate for readability */
+        --text-muted: #64748b;
+        --border: #e2e8f0;
+        --accent: #6366f1;
+    }
+
+    [data-theme="dark"] { 
+        --bg: #0f172a;           /* Deep Navy instead of Black */
+        --card: #1e293b;         /* Slate blue for cards */
+        --text-main: #f1f5f9;    /* Crisp off-white */
+        --text-muted: #94a3b8;
+        --border: #334155;
+    }
+
+
+
+    .stat-card {
+        background: var(--card); 
+        border: 1px solid var(--border);
+        border-radius: 16px; 
+        padding: 1.25rem;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    .chart-wrapper { position: relative; height: 320px; width: 100%; }
+    .hidden { display: none !important; }
+
+    .spinner {
+        width: 35px; height: 35px;
+        border: 3px solid var(--border);
+        border-top: 3px solid var(--accent);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+</style>
+</head>
+<div class="flex flex-row items-start justify-between w-full max-w-md mx-auto gap-2 px-2 mt-2">
+    
+    <div id="todays-overview" class="w-1/2 mb-1">
+        <h2 class="text-[14px] font-bold mb-2 flex items-center gap-1 text-blue-700 dark:text-blue-700 uppercase tracking-tight">
+            <i class="fas fa-calendar-day text-blue-700"></i> Schedule
+        </h2>
+        <div id="event-list" class="space-y-3">
+            <p class="text-blue-400/70 italic text-[12px] p-3 border border-dashed border-blue-200 dark:border-blue-900/50 rounded-xl text-center leading-tight">Checking...</p>
+        </div>
+    </div>
+
+    <div id="bday-overview-container" class="w-1/2">
+        <h6 class="text-[14px] font-bold mb-2 flex items-center gap-1 uppercase tracking-tight text-blue-700 dark:text-blue-700">
+            <i class="fas fa-cake-candles text-blue-600"></i> Birthdays
+        </h6>
+        <div id="bday-realtime-list" class="space-y-3">
+            <p class="text-blue-400/70 italic text-[12px] p-3 border border-dashed border-blue-200 dark:border-blue-900/50 rounded-xl text-center leading-tight">Checking...</p>
+        </div>
+    </div>
+
+</div>
+<body class="p-4 md:p-6">
+
+    <div class="max-w-6xl mx-auto">
+<header class="flex flex-row justify-between items-center gap-4 mb-2 py-2">
+    <div class="flex items-center gap-2">
+        <div class="w-1.5 h-4 bg-indigo-600 rounded-full"></div>
+        <h1 class="text-base font-bold tracking-tighter uppercase transition-colors duration-300">
+            Finance <span class="text-indigo-600 italic">LIVE</span>
+        </h1>
+    </div>
+
+    <input type="month" id="monthSelector" 
+        class="w-auto bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg py-1.5 px-3 text-slate-700 dark:text-slate-200 font-bold text-xs outline-none">
+</header>
+
+ <div class="grid grid-cols-4 lg:grid-cols-4 gap-2 mb-2 px-0">
+    <div class="stat-card border-b-2 border-emerald-500 !p-2">
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight mb-0.5">Income</p>
+        <h2 id="totalIncome" class="text-sm font-black text-emerald-600 leading-none">₹0</h2>
+    </div>
+    
+    <div class="stat-card border-b-2 border-rose-500 !p-2">
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight mb-0.5">Expense</p>
+        <h2 id="totalExpense" class="text-sm font-black text-rose-500 leading-none">₹0</h2>
+    </div>
+
+    <div class="stat-card border-b-2 border-sky-500 !p-2">
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight mb-0.5">Saving</p>
+        <h2 id="monthlySaving" class="text-sm font-black text-sky-600 leading-none">₹0</h2>
+    </div>
+
+    <div class="stat-card border-b-2 border-amber-500 !p-2">
+        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-tight mb-0.5">Overall</p>
+        <h2 id="overallSaving" class="text-sm font-black text-amber-600 leading-none">₹0</h2>
+    </div>
+</div>
+
+        <div id="loader" class="flex flex-col items-center justify-center py-20">
+            <div class="spinner"></div>
+            <p class="text-slate-400 font-bold mt-1 text-[10px] tracking-widest uppercase">Fetching Records...</p>
+        </div>
+
+        <div id="noDataScreen" class="hidden flex flex-col items-center justify-center py-24 border border-dashed border-slate-200 rounded-xl text-center">
+            <p class="text-slate-400 font-bold uppercase text-[10px] tracking-widest">No activity found</p>
+        </div>
+
+        <div id="chartsContainer" class="hidden grid grid-cols-1 lg:grid-cols-2 ">
+            <div class="stat-card">
+                <h3 class="font-bold text-[14px] uppercase text-slate-400 tracking-widest">Expense Distribution</h3>
+                <div class="chart-wrapper"><canvas id="expensePieChart"></canvas></div>
+            </div>
+     
+        </div>
+    </div>
+  
+<style>
+    /* 1. Component Specific Variables */
+    :root {
+        --event-card-bg: #ffffff;
+        --event-text-title: #1e293b;
+        --event-text-sub: #64748b;
+        --event-border: #f1f5f9;
+        --event-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    }
+
+    [data-theme="dark"] {
+        --event-card-bg: #1e293b; /* Slate 800 */
+        --event-text-title: #f8fafc;
+        --event-text-sub: #94a3b8;
+        --event-border: #334155;
+        --event-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+    }
+
+    /* 2. Styling the Event Cards */
+    .event-dashboard-card {
+        background-color: var(--event-card-bg);
+        border: 1px solid var(--event-border);
+        box-shadow: var(--event-shadow);
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-left-width: 4px;
+        border-left-color: #6366f1; /* Indigo Accent */
+    }
+
+    .event-dashboard-card:hover {
+        transform: translateY(-2px);
+        border-left-color: #4f46e5;
+    }
+
+    .event-title {
+        color: var(--event-text-title);
+        font-weight: 800;
+        letter-spacing: -0.01em;
+    }
+
+    .event-meta {
+        color: var(--event-text-sub);
+        font-weight: 600;
+    }
+
+    /* 3. Empty State Styling */
+    .empty-event-state {
+        background-color: var(--event-card-bg);
+        border: 2px dashed var(--event-border);
+        color: var(--event-text-sub);
+    }
+  
+   
+</style>
+</style>
+   <script>
+    // 1. Firebase Configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc",
+        authDomain: "sk12-58e9e.firebaseapp.com",
+        databaseURL: "https://sk12-58e9e-default-rtdb.firebaseio.com",
+        projectId: "sk12-58e9e",
+        storageBucket: "sk12-58e9e.appspot.com",
+        messagingSenderId: "470207874652",
+        appId: "1:470207874652:web:67ba1cf3629b7e5b144899"
+    };
+
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+    const auth = firebase.auth();
+    Chart.register(ChartDataLabels);
+
+    let pieChart = null;
+
+    // 2. Initial Load
+    window.onload = () => {
+        const now = new Date();
+        document.getElementById("monthSelector").value = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
+        auth.onAuthStateChanged(user => { if (user) loadAnalytics(); });
+    };
+
+    document.getElementById("monthSelector").addEventListener("change", loadAnalytics);
+
+    // 3. Theme-Aware Color Fetcher
+    // This function looks at your CSS variables to find the right color for the current mode
+    function getThemeColor() {
+        return getComputedStyle(document.documentElement).getPropertyValue('--text-main').trim() || '#0f172a';
+    }
+
+    function showLoader(show) {
+        document.getElementById("loader").classList.toggle("hidden", !show);
+        if(show) {
+            document.getElementById("chartsContainer").classList.add("hidden");
+            document.getElementById("noDataScreen").classList.add("hidden");
+        }
+    }
+
+    async function loadAnalytics() {
+        const user = auth.currentUser;
+        const month = document.getElementById("monthSelector").value;
+        if (!user) return;
+        showLoader(true);
+
+        // Use .once for a faster, one-time fetch to prevent flickering
+        const snapshot = await db.ref(`users/${user.uid}`).once('value');
+        const data = snapshot.val() || {};
+        
+        const monthIncome = Number((data.income && data.income[month]) || 0);
+        const monthExpenses = (data.expenses && data.expenses[month]) || {};
+        
+        let currentMonthTotal = 0, typeTotals = {};
+        const expenseArray = Object.values(monthExpenses);
+
+        let totalIncomeAllTime = 0, totalExpenseAllTime = 0;
+        if(data.income) Object.values(data.income).forEach(v => totalIncomeAllTime += Number(v));
+        if(data.expenses) {
+            Object.values(data.expenses).forEach(m => {
+                Object.values(m).forEach(e => totalExpenseAllTime += Number(e.amount || 0));
+            });
+        }
+
+        if (expenseArray.length === 0) {
+            showLoader(false);
+            document.getElementById("noDataScreen").classList.remove("hidden");
+        } else {
+            expenseArray.forEach(e => {
+                const amt = Number(e.amount || 0);
+                currentMonthTotal += amt;
+                const type = e.type || "Other";
+                typeTotals[type] = (typeTotals[type] || 0) + amt;
+            });
+            renderCharts(typeTotals);
+            showLoader(false);
+            document.getElementById("chartsContainer").classList.remove("hidden");
+        }
+
+        document.getElementById("totalIncome").innerText = `₹${monthIncome.toLocaleString()}`;
+        document.getElementById("totalExpense").innerText = `₹${currentMonthTotal.toLocaleString()}`;
+        document.getElementById("monthlySaving").innerText = `₹${(monthIncome - currentMonthTotal).toLocaleString()}`;
+        document.getElementById("overallSaving").innerText = `₹${(totalIncomeAllTime - totalExpenseAllTime).toLocaleString()}`;
+    }
+
+   function renderCharts(totals) {
+    const labels = Object.keys(totals);
+    const data = Object.values(totals);
+
+    // DYNAMIC DETECTION: Get the current text color from CSS variables
+    const bodyStyles = window.getComputedStyle(document.body);
+    const dynamicLabelColor = bodyStyles.getPropertyValue('--text-main').trim();
+
+    if (pieChart) pieChart.destroy();
+
+    pieChart = new Chart(document.getElementById('expensePieChart'), {
+        type: 'pie',
+        data: { 
+            labels, 
+            datasets: [{ 
+                data, 
+                backgroundColor: ['#6366f1', '#f43f5e', '#10b981', '#f59e0b', '#06b6d4'], 
+                // Border matches the card color for a clean "cut" look
+                borderColor: bodyStyles.getPropertyValue('--card').trim(), 
+                borderWidth: 2 
+            }] 
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            layout: { padding: 65 },
+            plugins: {
+                datalabels: {
+                    anchor: 'end',
+                    align: 'end',
+                    offset: 10,
+                    color: dynamicLabelColor, // Automatically switches based on theme
+                    font: { weight: '700', size: 11 },
+                    formatter: (v, ctx) => {
+                        let sum = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                        return `${ctx.chart.data.labels[ctx.dataIndex]}\n₹${v.toLocaleString()} (${((v*100)/sum).toFixed(0)}%)`;
+                    },
+                    textAlign: 'center'
+                },
+                legend: { display: false }
+            }
+        }
+    });
+}
+
+    // 4. THEME TOGGLE REFRESHER
+    // If you have a theme button, make sure it refreshes the charts
+    document.getElementById('theme-btn').addEventListener('click', () => {
+        // Wait a tiny bit for the data-theme attribute to update in the DOM
+        setTimeout(() => {
+            if (pieChart) loadAnalytics(); 
+        }, 50);
+    });
+
+/**
+ * Fetches only the 'Pending' events for the current date.
+ * Returns an Array of event objects.
+ */
+async function loadTodaysDashboard() {
+    const user = firebase.auth().currentUser;
+    const listCont = document.getElementById('event-list');
+    
+    if (!user) {
+        listCont.innerHTML = `<p class="text-red-500 text-center">Please log in to view events.</p>`;
+        return;
+    }
+
+    // 1. Get Today's Date in YYYY-MM-DD format
+    const now = new Date();
+    const todayISO = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+    try {
+        // 2. Fetch data from Firebase
+        const snapshot = await firebase.database().ref(`users/${user.uid}/events/${todayISO}`).once("value");
+        const data = snapshot.val();
+
+        if (!data) {
+            listCont.innerHTML = `<div class="p-6 bg-gray-50 rounded-xl text-center text-gray-500 font-medium border border-gray-100 text-align-centre">✨ No events for today.</div>`;
+            return;
+        }
+
+        // 3. Process and Filter
+        const events = Object.entries(data)
+            .map(([id, ev]) => ({ id, ...ev }))
+            .filter(ev => ev.status === 'pending')
+            .sort((a, b) => a.time.localeCompare(b.time));
+
+        if (events.length === 0) {
+            listCont.innerHTML = `<div class="p-6 bg-gray-50 rounded-xl text-center text-gray-500 font-medium border border-gray-100">✅ All events caught up!</div>`;
+            return;
+        }
+
+        // 4. Render HTML
+        listCont.innerHTML = events.map(ev => `
+            <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border-l-4 border-indigo-500 flex justify-between items-center transition hover:shadow-md">
+                <div class="min-w-0">
+                    <h3 class="font-bold text-gray-800 dark:text-white truncate">${ev.title}</h3>
+                    <div class="flex items-center gap-2 text-xs text-indigo-600 font-bold mt-1">
+                        <i class="fas fa-clock"></i> ${ev.time}
+                        ${ev.location ? `<span class="text-gray-400 font-normal">| <i class="fas fa-location-dot"></i> ${ev.location}</span>` : ''}
+                    </div>
+                </div>
+                <i class="fas fa-chevron-right text-gray-300"></i>
+            </div>
+        `).join('');
+
+    } catch (err) {
+        console.error("Fetch error:", err);
+        listCont.innerHTML = `<p class="text-red-500">Failed to load events.</p>`;
+    }
+}
+
+// Trigger load once user is authenticated
+firebase.auth().onAuthStateChanged(user => {
+    if (user) loadTodaysDashboard();
+});
+async function fetchAndShowTodaysBirthdays() {
+    const user = firebase.auth().currentUser;
+    const listCont = document.getElementById('bday-realtime-list');
+    
+    if (!user) return;
+
+    const today = new Date();
+    const tMonth = today.getMonth() + 1;
+    const tDay = today.getDate();
+
+    try {
+        const snapshot = await firebase.database().ref(`users/${user.uid}/birthdays`).once("value");
+        const allBdays = snapshot.val();
+
+        if (!allBdays) {
+            listCont.innerHTML = `<div class="no-bday-box bg-white p-3 rounded-xl border border-dashed text-gray-400 text-xs text-center">No birthdays saved yet.</div>`;
+            return;
+        }
+
+        const todaysList = Object.values(allBdays).filter(person => {
+            if (!person.birthdate || person.birthdate.length < 5) return false;
+            const dateParts = person.birthdate.split('-');
+            const m = parseInt(dateParts[dateParts.length - 2]);
+            const d = parseInt(dateParts[dateParts.length - 1]);
+            return m === tMonth && d === tDay;
+        });
+
+        if (todaysList.length === 0) {
+            listCont.innerHTML = `<div class="no-bday-box bg-white p-3 rounded-xl border border-dashed text-gray-400 text-xs text-center">No birthdays today.</div>`;
+            return;
+        }
+
+        listCont.innerHTML = todaysList.map(person => {
+             return `
+    <div class="flex items-center gap-2 p-2 rounded-lg bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700">
+        <div class="w-7 h-7 bg-indigo-100 dark:bg-indigo-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+            <i class="fas fa-birthday-cake text-indigo-600 dark:text-indigo-400 text-[10px]"></i>
+        </div>
+        <div class="flex-1 min-w-0">
+            <div class="text-[11px] font-bold text-slate-800 dark:text-slate-100 truncate uppercase">
+                ${person.name}
+            </div>
+        </div>
+    </div>
+`;
+        }).join('');
+
+    } catch (error) {
+        console.error("Error fetching birthdays:", error);
+        listCont.innerHTML = `<p class="text-red-500 text-xs text-center bg-white p-2 rounded-lg border border-red-100">Failed to load birthdays.</p>`;
+    }
+}
+
+firebase.auth().onAuthStateChanged(user => {
+    if (user) fetchAndShowTodaysBirthdays();
+});
+    firebase.auth().onAuthStateChanged((user) => {
+        if (!user) {
+            // No user is signed in, redirect to login page immediately
+            console.log("Unauthorized access detected. Redirecting...");
+            window.location.replace("indexmob.html"); 
+        } else {
+            // User is signed in, you can initialize your page functions here
+            console.log("Access granted for:", user.email);
+            
+            // Optional: Call your load functions here if they aren't already being called
+            // if (typeof loadAnalytics === "function") loadAnalytics();
+        }
+    });
+</script>
+
+</body>
+</html>
+</body>
+
+</html>
+
+
+  <nav id="universal-bottom-nav">
+   <a href="homemob.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
+        <i class="fa-solid fa-house transition-colors duration-300 group-hover:text-indigo-600"></i>
+        <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold text-xm">Home</div>
+    </a>
+
+    <a href="addressmob.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
+        <i class="fa-solid fa-location-dot transition-colors duration-300 group-hover:text-indigo-600"></i>
+        <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Address</div>
+    </a>
+
+    <a href="passwordmob.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
+        <i class="fa-solid fa-key transition-colors duration-300 group-hover:text-indigo-600"></i>
+        <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Passwords</div>
+    </a>
+
+    <a href="contact.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
+        <i class="fa-solid fa-envelope transition-colors duration-300 group-hover:text-indigo-600"></i>
+        <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Contact</div>
+    </a>
+          <a href="cr.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
+        <i class="fas fa-calendar-alt transition-colors duration-300 group-hover:text-indigo-600"></i>
+        <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Calender</div>
+    </a>
+    </nav>
+
+<div id="google_translate_element" class="p-2"></div>
+
+<script type="text/javascript">
+function googleTranslateElementInit() {
+  new google.translate.TranslateElement({
+    pageLanguage: 'en',
+    includedLanguages: 'hi,mr,en', // Hindi, Marathi, English
+    layout: google.translate.TranslateElement.InlineLayout.SIMPLE
+  }, 'google_translate_element');
+}
+</script>
+
+<script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
+
+
+
+
