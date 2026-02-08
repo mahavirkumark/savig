@@ -1008,10 +1008,10 @@ firebase.auth().onAuthStateChanged(user => {
         #news-open-btn {
             
             background: var(--accent); color: white; border: none;
-            padding: 12px 20px; border-radius: 50px; font-weight: bold;
+            padding: 5px 5px; border-radius: 50px; font-weight: bold;
             cursor: pointer; box-shadow: 0 4px 15px var(--hover-shadow);
             z-index: 999; font-family: 'Segoe UI', sans-serif;
-            display: flex; align-items: center; gap: 8px;
+            display: flex; align-items: center; gap: 2px;
         }
 
         /* २. फुल स्क्रीन कंटेनर */
@@ -1026,7 +1026,7 @@ firebase.auth().onAuthStateChanged(user => {
 
         .widget-header {
             background: var(--accent); color: white;
-            padding: 15px 20px; font-size: 1.3rem; font-weight: bold;
+            padding: 5px 5px; font-size: 1.3rem; font-weight: bold;
             display: flex; justify-content: space-between; align-items: center;
         }
 
@@ -1034,7 +1034,7 @@ firebase.auth().onAuthStateChanged(user => {
 
         /* ३. कार्ड आणि होव्हर इफेक्ट */
         .news-item {
-            background: var(--card-bg); margin-bottom: 12px;
+            background: var(--card-bg); margin-bottom: 2px;
             border-radius: 12px; border-left: 5px solid var(--accent);
             box-shadow: 0 2px 8px var(--hover-shadow);
             overflow: hidden; transition: all 0.3s ease;
@@ -1048,7 +1048,7 @@ firebase.auth().onAuthStateChanged(user => {
         }
 
         .news-header-row {
-            padding: 18px; display: flex; align-items: center;
+            padding: 8px; display: flex; align-items: center;
             justify-content: space-between; cursor: pointer;
         }
 
@@ -1071,7 +1071,7 @@ firebase.auth().onAuthStateChanged(user => {
         }
 
         .news-item.active .news-detail {
-            max-height: 500px; padding-bottom: 18px; padding-top: 10px;
+            max-height: 500px; padding-bottom: 8px; padding-top: 1px;
             border-top: 1px solid var(--border);
         }
 
@@ -1084,6 +1084,7 @@ firebase.auth().onAuthStateChanged(user => {
         }
 
         .close-btn { cursor: pointer; font-size: 30px; }
+        .close-btn:hover { background color: green;}
         .loader { text-align: center; padding: 100px; color: #888; }
     </style>
 </head>
@@ -1160,6 +1161,7 @@ firebase.auth().onAuthStateChanged(user => {
 </body>
 
 </html>
+
 
 
 
