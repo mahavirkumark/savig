@@ -1,5 +1,6 @@
 <!DOCTYPE html>
-<html lang="en" data-theme="dark">
+<html lang="en" data-theme="light">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
@@ -12,12 +13,17 @@
     <style>
         :root {
             --bg: #ffffff;
+            --card-bg: #ffffff;
             --text-main: #000000;
-            --icon-tint: rgba(0, 0, 0, 0.15);
+            --border: rgba(0, 0, 0, 0.08);
+            --icon-tint: rgba(0, 0, 0, 0.12);
         }
+
         [data-theme='dark'] {
             --bg: #0f172a;
+            --card-bg: #1e293b;
             --text-main: #ffffff;
+            --border: rgba(255, 255, 255, 0.1);
             --icon-tint: rgba(255, 255, 255, 0.15);
         }
 
@@ -26,84 +32,130 @@
             color: var(--text-main);
             font-family: 'Inter', sans-serif;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            display: flex; justify-content: center; min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+            top: 0 !important;
+            position: relative !important;
         }
 
-        .main-container { width: 100%; max-width: 450px; padding: 40px 20px; }
+        .main-container {
+            width: 100%;
+            max-width: 450px;
+            padding: 20px 20px;
+        }
 
-        /* EXTRA DARK ICONS CORE STYLING */
+        .option-box {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            border-radius: 24px;
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+            gap: 2px;
+        }
+
+        .option-box:active {
+            transform: scale(0.97);
+            opacity: 0.9;
+        }
+
         .icon-box {
-            width: 46px; height: 46px; border-radius: 14px;
-            display: flex; align-items: center; justify-content: center;
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             background: var(--icon-tint);
         }
 
         .icon-box i {
             font-size: 20px;
-            font-weight: 900; /* Thicker strokes */
-            opacity: 1;
-            /* Thicken the icon by adding a slight horizontal offset */
-            text-shadow: 0.7px 0px 0px currentColor; 
+            font-weight: 900;
+            text-shadow: 0.8px 0px 0px currentColor;
         }
 
-        /* DYNAMIC TOGGLE SWITCH */
         .toggle-container {
-            width: 50px; height: 26px;
-            background: #d1d5db; /* Default Off */
+            width: 50px;
+            height: 26px;
+            background: #d1d5db;
             border-radius: 20px;
             position: relative;
             padding: 3px;
-            transition: background 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            transition: background 0.4s ease;
         }
 
         .toggle-dot {
-            width: 20px; height: 20px;
-            background: white; border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
             transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
         }
 
-        /* State Changes */
-        [data-theme='dark'] .toggle-container { background: #2563eb; }
-        [data-theme='dark'] .toggle-dot { transform: translateX(24px); }
+        [data-theme='dark'] .toggle-container {
+            background: #2563eb;
+        }
+
+        [data-theme='dark'] .toggle-dot {
+            transform: translateX(24px);
+        }
 
         .lang-display-btn {
-            background: #ffffff;
+            background: #f8fafc;
             color: #2563eb;
             font-weight: 800;
-            padding: 8px 16px;
+            padding: 6px 14px;
             border-radius: 10px;
-            font-size: 13px;
-            border: 1px solid rgba(0,0,0,0.1);
+            font-size: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
         }
 
-        #google_translate_element { display: none !important; }
-        body { top: 0px !important; }
+        [data-theme='dark'] .lang-display-btn {
+            background: #0f172a;
+            color: #60a5fa;
+        }
+
+        /* Hide Google UI elements but keep logic working */
+        #google_translate_element,
+        .skiptranslate,
+        .goog-te-banner-frame,
+        #goog-gt-tt,
+        .goog-te-balloon-frame,
+        .goog-te-spinner-pos {
+            display: none !important;
+            visibility: hidden !important;
+        }
+
+        font {
+            background-color: transparent !important;
+            box-shadow: none !important;
+        }
     </style>
 </head>
+
 <body>
 
-
-
     <div class="main-container">
-        
-        <div class="flex flex-col items-center mb-2">
-            <div class="relative w-28 h-28 mb-1">
-                <img id="user-pic" src="https://ui-avatars.com/api/?name=U&background=2563eb&color=fff" 
-                     class="w-full h-full rounded-full object-cover border-4 border-blue-600/20 p-1 shadow-xl">
+        <div class="flex flex-col items-center mb-4">
+            <div class="relative w-28 h-28 mb-4">
+                <img id="user-pic" src="https://ui-avatars.com/api/?name=U&background=2563eb&color=fff"
+                    class="w-full h-full rounded-full object-cover border-4 border-blue-600/10 p-1 shadow-lg">
                 <div class="absolute bottom-1 right-1 w-5 h-5 bg-green-500 border-4 border-white dark:border-slate-900 rounded-full"></div>
             </div>
-            <p class="text-blue-500 font-bold uppercase tracking-[0.2em] text-[10px] mb-1"></p>
-            <h1 id="user-name" class="text-2xl font-black tracking-tight mb-1 text-center"></h1>
+            <h1 id="user-name" class="text-2xl font-black tracking-tight mb-1">Loading...</h1>
             <p id="user-email" class="text-slate-500 text-sm font-medium opacity-70"></p>
         </div>
 
-    
-
         <div class="space-y-4">
-            <div onclick="toggleTheme()" class="flex items-center justify-between p-2 rounded-3xl bg-slate-100/60 dark:bg-slate-800/60 cursor-pointer active:scale-95 transition-all">
+            <div onclick="toggleTheme()" class="option-box cursor-pointer">
                 <div class="flex items-center gap-1">
-                    <div class="icon-box"><i class="fas fa-moon text-indigo-900 dark:text-indigo-400"></i></div>
+                    <div class="icon-box"><i class="fas fa-moon text-indigo-950 dark:text-indigo-400"></i></div>
                     <span class="font-bold text-sm">Dark Mode</span>
                 </div>
                 <div class="toggle-container">
@@ -111,9 +163,9 @@
                 </div>
             </div>
 
-            <div onclick="cycleLanguage()" class="flex items-center justify-between p-2 rounded-3xl bg-slate-100/60 dark:bg-slate-800/60 cursor-pointer active:scale-95 transition-all">
+            <div onclick="cycleLanguage()" class="option-box cursor-pointer">
                 <div class="flex items-center gap-1">
-                    <div class="icon-box"><i class="fas fa-globe text-orange-900 dark:text-orange-500"></i></div>
+                    <div class="icon-box"><i class="fas fa-globe text-orange-950 dark:text-orange-500"></i></div>
                     <span class="font-bold text-sm">Language</span>
                 </div>
                 <div class="flex items-center gap-1">
@@ -124,37 +176,46 @@
                 </div>
             </div>
 
-            <a href="financemob.html" class="flex items-center justify-between p-2 rounded-3xl bg-slate-100/60 dark:bg-slate-800/60 active:scale-95 transition-all">
+            <a href="financemob.html" class="option-box no-underline">
                 <div class="flex items-center gap-1">
-                    <div class="icon-box"><i class="fas fa-chart-pie text-blue-900 dark:text-blue-400"></i></div>
+                    <div class="icon-box"><i class="fas fa-chart-pie text-blue-950 dark:text-blue-400"></i></div>
                     <span class="font-bold text-sm">Financial Management</span>
                 </div>
                 <i class="fas fa-chevron-right text-slate-600 text-[10px] font-black"></i>
             </a>
 
-            <a href="contact.html" class="flex items-center justify-between p-2 rounded-3xl bg-slate-100/60 dark:bg-slate-800/60 active:scale-95 transition-all">
+            <a href="contact.html" class="option-box no-underline">
                 <div class="flex items-center gap-1">
-                    <div class="icon-box"><i class="fas fa-user-shield text-emerald-900 dark:text-emerald-500"></i></div>
+                    <div class="icon-box"><i class="fas fa-user-shield text-emerald-950 dark:text-emerald-500"></i></div>
                     <span class="font-bold text-sm">Secure Contacts</span>
                 </div>
                 <i class="fas fa-chevron-right text-slate-600 text-[10px] font-black"></i>
             </a>
 
-            <button onclick="handleLogout()" class="w-full mt-7 h-10 rounded-3xl bg-rose-600 text-white font-black uppercase tracking-[0.1em] text-sm flex items-center justify-center active:scale-95 transition-all shadow-lg">
+            <button onclick="handleLogout()"
+                class="w-full mt-7 h-10 rounded-3xl bg-rose-600 text-white font-black uppercase tracking-[0.1em] text-sm flex items-center justify-center shadow-lg active:scale-95 transition-all">
                 Logout Account
             </button>
         </div>
     </div>
 
+
+    <div id="google_translate_element"></div>
+    <script type="text/javascript" src="https://translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
+
     <script>
         function googleTranslateElementInit() {
-            new google.translate.TranslateElement({pageLanguage: 'en', includedLanguages: 'en,mr,hi', autoDisplay: false}, 'google_translate_element');
+            new google.translate.TranslateElement({
+                pageLanguage: 'en',
+                includedLanguages: 'en,mr,hi',
+                autoDisplay: false
+            }, 'google_translate_element');
         }
 
         const langs = [
             { code: 'en', label: 'English' },
-            { code: 'mr', label: 'मराठी' },
-            { code: 'hi', label: 'हिन्दी' }
+    
+            { code: 'mr', label: 'मराठी' }
         ];
 
         function cycleLanguage() {
@@ -166,15 +227,20 @@
 
         function setLanguage(code, label) {
             document.getElementById('current-lang-text').innerText = label;
+            localStorage.setItem('savig_lang', code);
+            localStorage.setItem('savig_lang_label', label);
+
             const googleCombo = document.querySelector('.goog-te-combo');
             if (googleCombo) {
                 googleCombo.value = code;
-                googleCombo.dispatchEvent(new Event('change'));
+                googleCombo.dispatchEvent(new Event('change', { bubbles: true }));
+            } else {
+                // Retry if Google script is still initializing
+                setTimeout(() => setLanguage(code, label), 500);
             }
-            localStorage.setItem('savig_lang', code);
-            localStorage.setItem('savig_lang_label', label);
         }
 
+        // Firebase Setup
         const firebaseConfig = {
             apiKey: "AIzaSyB78RTVCg0cmSPp7A1RJyyAgBuCeolO0cc",
             authDomain: "sk12-58e9e.firebaseapp.com",
@@ -185,10 +251,13 @@
 
         firebase.auth().onAuthStateChanged(user => {
             if (user) {
-                document.getElementById('user-name').innerText = user.displayName || "Sagar Kulkarni";
+                // Use innerHTML/innerText so Google Translate sees the new content
+                document.getElementById('user-name').innerText = user.displayName || "User";
                 document.getElementById('user-email').innerText = user.email;
                 if (user.photoURL) document.getElementById('user-pic').src = user.photoURL;
-            } else { window.location.replace("indexmob.html"); }
+            } else { 
+                window.location.replace("indexmob.html"); 
+            }
         });
 
         function toggleTheme() {
@@ -204,353 +273,403 @@
         }
 
         window.onload = () => {
-            const theme = localStorage.getItem('theme') || 'dark';
+            // Theme setup
+            const theme = localStorage.getItem('theme') || 'light';
             document.documentElement.setAttribute('data-theme', theme);
+
+            // Language persistence setup
             const savedLang = localStorage.getItem('savig_lang') || 'en';
             const savedLabel = localStorage.getItem('savig_lang_label') || 'English';
             document.getElementById('current-lang-text').innerText = savedLabel;
+
+            // Wait 1.5 seconds before triggering translation to ensure DOM is ready
+            if (savedLang !== 'en') {
+                setTimeout(() => {
+                    setLanguage(savedLang, savedLabel);
+                }, 1500);
+            }
         };
     </script>
-    <script type="text/javascript" src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit"></script>
 </body>
 </html>
 
-  <nav id="universal-bottom-nav">
-   <a href="homemob.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
-        <i class="fa-solid fa-house transition-colors duration-300 group-hover:text-indigo-600"></i>
-        <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold text-xm">Home</div>
-    </a>
+    <nav id="universal-bottom-nav">
+        <a href="homemob.html"
+            class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
+            <i class="fa-solid fa-house transition-colors duration-300 group-hover:text-indigo-600"></i>
+            <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold text-xm">Home
+            </div>
+        </a>
 
-    <a href="addressmob.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
-        <i class="fa-solid fa-location-dot transition-colors duration-300 group-hover:text-indigo-600"></i>
-        <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Address</div>
-    </a>
+        <a href="addressmob.html"
+            class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
+            <i class="fa-solid fa-location-dot transition-colors duration-300 group-hover:text-indigo-600"></i>
+            <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Address</div>
+        </a>
 
-    <a href="passwordmob.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
-        <i class="fa-solid fa-key transition-colors duration-300 group-hover:text-indigo-600"></i>
-        <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Password</div>
-    </a>
+        <a href="passwordmob.html"
+            class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
+            <i class="fa-solid fa-key transition-colors duration-300 group-hover:text-indigo-600"></i>
+            <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Password</div>
+        </a>
 
-    <a href="contact.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
-        <i class="fa-solid fa-envelope transition-colors duration-300 group-hover:text-indigo-600"></i>
-        <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Contact</div>
-    </a>
-          <a href="cr.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
-        <i class="fas fa-calendar-alt transition-colors duration-300 group-hover:text-indigo-600"></i>
-        <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Calender</div>
-    </a>
+        <a href="contact.html"
+            class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
+            <i class="fa-solid fa-envelope transition-colors duration-300 group-hover:text-indigo-600"></i>
+            <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Contact</div>
+        </a>
+        <a href="cr.html"
+            class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
+            <i class="fas fa-calendar-alt transition-colors duration-300 group-hover:text-indigo-600"></i>
+            <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Calender</div>
+        </a>
     </nav>
 
 
 
 
-<style>
-/* 1. Theme Variables & Reset */
-:root {
-    --bg-color: #ffffff;
-    --nav-bg: rgba(255, 255, 255, 0.95); 
-    --nav-text: #000000; /* Pure black for light mode */
-    --hover-bg: #f8fafc;
-    --active-color: #2563eb;
-    --border-color: rgba(0, 0, 0, 0.1);
-    --nav-height: 70px;
-}
+    <style>
+        /* 1. Theme Variables & Reset */
+        :root {
+            --bg-color: #ffffff;
+            --nav-bg: rgba(255, 255, 255, 0.95);
+            --nav-text: #000000;
+            /* Pure black for light mode */
+            --hover-bg: #f8fafc;
+            --active-color: #2563eb;
+            --border-color: rgba(0, 0, 0, 0.1);
+            --nav-height: 70px;
+        }
 
-[data-theme='dark'] {
-    --bg-color: #0f172a;
-    --nav-bg: rgba(15, 23, 42, 0.98);
-    --nav-text: #ffffff; /* FIXED: Changed from black to white for readability */
-    --hover-bg: #1e293b;
-    --active-color: #60a5fa;
-    --border-color: rgba(255, 255, 255, 0.1);
-}
+        [data-theme='dark'] {
+            --bg-color: #0f172a;
+            --nav-bg: rgba(15, 23, 42, 0.98);
+            --nav-text: #ffffff;
+            /* FIXED: Changed from black to white for readability */
+            --hover-bg: #1e293b;
+            --active-color: #60a5fa;
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
 
-body {
-    background-color: var(--bg-color);
-    transition: background-color 0.3s ease;
-    min-height: 100vh;
-    margin: 0;
-    font-family: 'Inter', sans-serif;
-    overflow-x: hidden;
-    padding-bottom: 80px;
-}
+        body {
+            background-color: var(--bg-color);
+            transition: background-color 0.3s ease;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            padding-bottom: 2ch;
+        }
 
-/* 2. Universal Bottom Nav Entrance Animation */
-#universal-bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 60px;
-    background-color: var(--nav-bg);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    border-top: 1px solid var(--border-color);
-    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.1);
-    z-index: 999999;
-    padding-bottom: env(safe-area-inset-bottom);
-    animation: navSlideUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    font-size: 10px;
-}
+        /* 2. Universal Bottom Nav Entrance Animation */
+        #universal-bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 60px;
+            background-color: var(--nav-bg);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid var(--border-color);
+            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.1);
+            z-index: 999999;
+            padding-bottom: env(safe-area-inset-bottom);
+            animation: navSlideUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            font-size: 10px;
+        }
 
-@keyframes navSlideUp {
-    from { transform: translateY(100%); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
-}
+        @keyframes navSlideUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
 
-/* 3. Bottom Nav Link Styling */
-.nav-link {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: var(--nav-text) !important; 
-    text-decoration: none !important;
-    transition: color 0.3s ease;
-    position: relative;
-    height: 40px;
-}
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
 
-.nav-link i {
-    font-size: 21px;
-    margin-bottom: 4px;
-    color: inherit;
-    /* Cleaned up stroke for better legibility */
-    -webkit-text-stroke: 0.5px var(--nav-text); 
-    font-weight: 700;
-}
+        /* 3. Bottom Nav Link Styling */
+        .nav-link {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--nav-text) !important;
+            text-decoration: none !important;
+            transition: color 0.3s ease;
+            position: relative;
+            height: 40px;
+        }
 
-.nav-link div {
-    font-size: 11px;
-    font-weight: 800; /* 900 can be too chunky on some screens */
-    text-transform: uppercase;
-    color: inherit;
-    letter-spacing: 0.02em;
-    gap: 5px;
-}
+        .nav-link i {
+            font-size: 21px;
+            margin-bottom: 4px;
+            color: inherit;
+            /* Cleaned up stroke for better legibility */
+            -webkit-text-stroke: 0.5px var(--nav-text);
+            font-weight: 700;
+        }
 
-.nav-link.active {
-    color: var(--active-color) !important;
-}
+        .nav-link div {
+            font-size: 11px;
+            font-weight: 800;
+            /* 900 can be too chunky on some screens */
+            text-transform: uppercase;
+            color: inherit;
+            letter-spacing: 0.02em;
+            gap: 5px;
+        }
 
-.nav-link.active i {
-    transform: translateY(-3px);
-    -webkit-text-stroke: 0.5px var(--active-color);
-}
+        .nav-link.active {
+            color: var(--active-color) !important;
+        }
 
-/* 4. Top Grid Boxes Styling */
-.box-container {
-    width: 60px;
-    height: 57px;
-    border-radius: 1rem;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    background: white;
-    border: 1px solid var(--border-color); /* Added for definition */
-    box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
-}
+        .nav-link.active i {
+            transform: translateY(-3px);
+            -webkit-text-stroke: 0.5px var(--active-color);
+        }
 
-[data-theme='dark'] .box-container:not(.bg-\[\#ffe11b\]) {
-    background: #1e293b;
-    color: #ffffff; /* Ensures text is visible in dark mode */
-}
+        /* 4. Top Grid Boxes Styling */
+        .box-container {
+            width: 60px;
+            height: 57px;
+            border-radius: 1rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            background: white;
+            border: 1px solid var(--border-color);
+            /* Added for definition */
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        }
 
-.animate-pop {
-    animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-    opacity: 0;
-}
+        [data-theme='dark'] .box-container:not(.bg-\[\#ffe11b\]) {
+            background: #1e293b;
+            color: #ffffff;
+            /* Ensures text is visible in dark mode */
+        }
 
-@keyframes popIn {
-    0% { transform: scale(0.6); opacity: 0; }
-    100% { transform: scale(1); opacity: 1; }
-}
+        .animate-pop {
+            animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+            opacity: 0;
+        }
 
-/* 5. Modern Pill Toggle Above Nav */
-/* 5. Modern Pill Toggle Above Nav */
-.theme-toggle {
-    position: fixed;
-    bottom: 100px; 
-    right: 2rem;
-    z-index: 10001;
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: var(yellow);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--border-color);
-    color: var(--active-color);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
+        @keyframes popIn {
+            0% {
+                transform: scale(0.6);
+                opacity: 0;
+            }
 
-.theme-toggle:hover {
-    transform: translateY(-2px);
-    background: var(--hover-bg);
-}
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
 
-/* 6. Profile Box Top Right */
-.header-container {
-position: fixed;
+        /* 5. Modern Pill Toggle Above Nav */
+        /* 5. Modern Pill Toggle Above Nav */
+        .theme-toggle {
+            position: fixed;
+            bottom: 100px;
+            right: 2rem;
+            z-index: 10001;
+            width: 44px;
+            height: 44px;
+            border-radius: 12px;
+            background: var(yellow);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            color: var(--active-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
 
-    top: 20px;
+        .theme-toggle:hover {
+            transform: translateY(-2px);
+            background: var(--hover-bg);
+        }
 
-    right: 5px;
+        /* 6. Profile Box Top Right */
+        .header-container {
+            position: fixed;
 
-    z-index: 1000;
+            top: 20px;
 
-}
+            right: 5px;
 
+            z-index: 1000;
 
-
-
-
-
-.profile-box {
-    width: 30px;
-    height: 30px;
-    background: white;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid var(--active-color);
-    transition: background-color 0.3s ease;
-    margin-top: 55px;
-    margin-bottom: 5px;
-}
-
-[data-theme='dark'] .profile-box { 
-    background: #1e293b; 
-}
-
-/* --- Adjustments for the Top Header Area --- */
-.header-wrapper {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 10px 15px;
-    z-index: 1000;
-    background: var(--bg-color); /* Matches theme */
-    box-sizing: border-box;
-}
-
-/* Grid boxes container needs to stay horizontal */
-.top-grid-nav {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    padding-bottom: 5px;
-    scrollbar-width: none; /* Hide scrollbar for clean look */
-}
-
-.top-grid-nav::-webkit-scrollbar {
-    display: none;
-}
-
-/* Ensure icons in the toggle switch between moon/sun */
-[data-theme='dark'] .theme-toggle .fa-sun { display: block; }
-[data-theme='dark'] .theme-toggle .fa-moon { display: none; }
-[data-theme='light'] .theme-toggle .fa-sun { display: none; }
-[data-theme='light'] .theme-toggle .fa-moon { display: block; }
-
-/* Logic to show moon/sun icons depending on theme (Compatibility Fallback) */
-[data-theme='dark'] .theme-toggle i.fa-sun {
-    display: inline-block;
-}
-[data-theme='light'] .theme-toggle i.fa-moon {
-    display: inline-block;
-}
+        }
 
 
 
-/* 1. Reset Body and Layout Logic */
-body.flex.flex-col.items-center {
-    display: block !important; /* Overrides the center stacking */
-    padding-top: 85px !important; /* Prevents content from being hidden */
-    padding-bottom: 80px !important;
-}
-
-/* 2. Force the Nav and Profile into a Row */
-nav.w-full {
-    position: fixed !important;
-    top: 0;
-    left: 0;
-    z-index: 1000;
-    background: var(--bg-color);
-    display: flex !important;
-    justify-content: space-between !important;
-    align-items: center !important;
-    padding: 10px 15px !important;
-    
-    font-weight: bolder;
-}
-
-/* 3. Fix the Grid Columns for Mobile */
-nav .grid-cols-4 {
-    display: flex !important; /* Using flex instead of grid for better row control */
-    gap: 12px !important;
-    margin: 0 !important;
-}
-
-/* 4. Positioning the Profile Box back to the top right */
 
 
-/* 5. Data Visibility and Contrast */
-.box-container {
-    flex-shrink: 0 !important; /* Stops boxes from squishing */
-    background: white; /* Default for light mode */
-}
 
-/* Keeps the text readable on the yellow background specifically */
+        .profile-box {
+            width: 30px;
+            height: 30px;
+            background: white;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 2px solid var(--active-color);
+            transition: background-color 0.3s ease;
+            margin-top: 55px;
+            margin-bottom: 5px;
+        }
 
-/* If you want ONLY the Savig text to stay dark because the box is yellow */
-[data-theme='dark'] .box-container.bg-\[\#ffe11b\] span {
-    color: #000000 !important;
-}
-/* 6. Theme Toggle Logic (Icon Display) */
-[data-theme='dark'] .theme-toggle .fa-sun { display: block !important; }
-[data-theme='dark'] .theme-toggle .fa-moon { display: none !important; }
-[data-theme='light'] .theme-toggle .fa-sun { display: none !important; }
-[data-theme='light'] .theme-toggle .fa-moon { display: block !important; }
-.universal-bottom-nav:hover{
-    color: #2563eb;
-}
-</style>
+        [data-theme='dark'] .profile-box {
+            background: #1e293b;
+        }
 
-</body>
+        /* --- Adjustments for the Top Header Area --- */
+        .header-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 15px;
+            z-index: 1000;
+            background: var(--bg-color);
+            /* Matches theme */
+            box-sizing: border-box;
+        }
+
+        /* Grid boxes container needs to stay horizontal */
+        .top-grid-nav {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+            scrollbar-width: none;
+            /* Hide scrollbar for clean look */
+        }
+
+        .top-grid-nav::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Ensure icons in the toggle switch between moon/sun */
+        [data-theme='dark'] .theme-toggle .fa-sun {
+            display: block;
+        }
+
+        [data-theme='dark'] .theme-toggle .fa-moon {
+            display: none;
+        }
+
+        [data-theme='light'] .theme-toggle .fa-sun {
+            display: none;
+        }
+
+        [data-theme='light'] .theme-toggle .fa-moon {
+            display: block;
+        }
+
+        /* Logic to show moon/sun icons depending on theme (Compatibility Fallback) */
+        [data-theme='dark'] .theme-toggle i.fa-sun {
+            display: inline-block;
+        }
+
+        [data-theme='light'] .theme-toggle i.fa-moon {
+            display: inline-block;
+        }
+
+
+
+        /* 1. Reset Body and Layout Logic */
+        body.flex.flex-col.items-center {
+            display: block !important;
+            /* Overrides the center stacking */
+            padding-top: 85px !important;
+            /* Prevents content from being hidden */
+            padding-bottom: 80px !important;
+        }
+
+        /* 2. Force the Nav and Profile into a Row */
+        nav.w-full {
+            position: fixed !important;
+            top: 0;
+            left: 0;
+            z-index: 1000;
+            background: var(--bg-color);
+            display: flex !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            padding: 10px 15px !important;
+
+            font-weight: bolder;
+        }
+
+        /* 3. Fix the Grid Columns for Mobile */
+        nav .grid-cols-4 {
+            display: flex !important;
+            /* Using flex instead of grid for better row control */
+            gap: 12px !important;
+            margin: 0 !important;
+        }
+
+        /* 4. Positioning the Profile Box back to the top right */
+
+
+        /* 5. Data Visibility and Contrast */
+        .box-container {
+            flex-shrink: 0 !important;
+            /* Stops boxes from squishing */
+            background: white;
+            /* Default for light mode */
+        }
+
+        /* Keeps the text readable on the yellow background specifically */
+
+        /* If you want ONLY the Savig text to stay dark because the box is yellow */
+        [data-theme='dark'] .box-container.bg-\[\#ffe11b\] span {
+            color: #000000 !important;
+        }
+
+        /* 6. Theme Toggle Logic (Icon Display) */
+        [data-theme='dark'] .theme-toggle .fa-sun {
+            display: block !important;
+        }
+
+        [data-theme='dark'] .theme-toggle .fa-moon {
+            display: none !important;
+        }
+
+        [data-theme='light'] .theme-toggle .fa-sun {
+            display: none !important;
+        }
+
+        [data-theme='light'] .theme-toggle .fa-moon {
+            display: block !important;
+        }
+
+        .universal-bottom-nav:hover {
+            color: #2563eb;
+        }
+    </style>
+    < </body>
+
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
