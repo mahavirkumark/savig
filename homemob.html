@@ -128,6 +128,39 @@
 }
 
 
+
+    /* Icon Font Size increased to 24px */
+    .nav-link i {
+        font-size: 24px; 
+     
+        transition: color 0.3s ease, transform 0.3s ease;
+    }
+
+    /* Text Font Size */
+    .nav-link div {
+        font-size: 11px;
+        font-weight: 500;
+        transition: color 0.3s ease;
+    }
+
+    /* Hover & Active Blue State */
+    .nav-link:hover i, 
+    .nav-link:hover div,
+    .nav-link.active i,
+    .nav-link.active div {
+        color: #3b82f6 !important; /* Your Blue Hover */
+    }
+
+    /* Click Animation */
+    .nav-link:active {
+        transform: scale(0.9);
+    }
+</style>
+
+
+
+
+
     </style>
 
 </style>
@@ -153,7 +186,7 @@
                style="font-size: 13px; top: 48%; left: 50%; transform: translate(-50%, -50%);"></i>
         </div>
 
-        <span class="font-black italic text-[10px] uppercase text-slate-900 mt-1">Savig</span>
+        <span class="font-black italic text-[12px] uppercase text-slate-900 mt-1">Savig</span>
     </div>
 </a>
 
@@ -162,21 +195,21 @@
                     <div class="w-7 h-7 bg-blue-700 rounded-lg flex items-center justify-center mb-1 shadow-inner">
                         <i class="fas fa-rupee-sign text-white text-[10px]"></i>
                     </div>
-                    <span class="font-bold text-slate-300 italic text-[11px] group-hover:text-white">Finance</span>
+                    <span class="font-bold text-slate-300 italic text-[12px] group-hover:text-white">Finance</span>
                 </div>
             </a>
 
             <a href="travelmob.html" class="animate-pop w-full no-underline group" style="--d: 3">
                 <div class="box-container group-hover:border-blue-500/50">
                     <i class="fas fa-plane text-blue-400 text-xl mb-1"></i>
-                    <span class="font-bold text-slate-300 italic text-[11px] group-hover:text-white">Travel</span>
+                    <span class="font-bold text-slate-300 italic text-[12px] group-hover:text-white">Travel</span>
                 </div>
             </a>
 
             <a href="grocerymob.html" class="animate-pop w-full no-underline group" style="--d: 4">
                 <div class="box-container group-hover:border-orange-500/50">
                     <i class="fas fa-basket-shopping text-orange-400 text-xl mb-1"></i>
-                    <span class="font-bold text-slate-300 italic text-[11px] group-hover:text-white">Grocery</span>
+                    <span class="font-bold text-slate-300 italic text-[12px] group-hover:text-white">Grocery</span>
                 </div>
             </a>
         </nav>
@@ -1016,7 +1049,7 @@ function updateTimeGreeting() {
             background: var(--bg-main);
             z-index: 1000;
             border-bottom: 1px solid var(--border);
-            padding-bottom: 15px;
+            padding-bottom: 5px;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
@@ -1030,8 +1063,8 @@ function updateTimeGreeting() {
         .grid-layout {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 17px;
-            padding: 20px 15px 10px;
+            gap: 10px;
+            padding: 10px 5px 10px;
             max-width: 500px;
             margin: 0 auto;
             position: relative;
@@ -1039,7 +1072,7 @@ function updateTimeGreeting() {
         }
 
         .box-container {
-            height: 68px;
+            height: 60pxx;
             border-radius: 1.25rem;
             display: flex;
             flex-direction: column;
@@ -1068,8 +1101,8 @@ function updateTimeGreeting() {
         .scroll-wrapper::-webkit-scrollbar { display: none; }
 
         .icon-frame {
-            width: 44px;
-            height: 44px;
+            width: 40px;
+            height: 40px;
             background: var(--glass);
             border-radius: 14px;
             display: flex;
@@ -1199,17 +1232,8 @@ position: fixed;
 
 
 /* Grid boxes container needs to stay horizontal */
-.top-grid-nav {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    padding-bottom: 5px;
-    scrollbar-width: none; /* Hide scrollbar for clean look */
-}
 
-.top-grid-nav::-webkit-scrollbar {
-    display: none;
-}
+
 
 /* Ensure icons in the toggle switch between moon/sun */
 [data-theme='dark'] .theme-toggle .fa-sun { display: block; }
@@ -1247,7 +1271,7 @@ position: fixed;
     bottom: 0;
     left: 0;
     width: 100%;
-    height: 60px;
+    height: 70px;
     background-color: var(--nav-bg);
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
@@ -1281,8 +1305,6 @@ position: fixed;
 </body>
 
 </html>
-
-
 
 
 
