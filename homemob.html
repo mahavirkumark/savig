@@ -6,7 +6,12 @@
     <title>Savig </title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
+   
+
+
+
+
+        <style>
         /* 1. Theme Variables & Professional Reset */
         :root {
             --bg-main: #0f172a; /* Deep Midnight Blue */
@@ -19,10 +24,11 @@
         }
 
 
+
         /* 2. Unified Fixed Header */
         .nav-container {
          position: relative;
-       margin-top: -26px;
+  
             width: 100%;
             background: var(--bg-main);
             z-index: 1000;
@@ -41,8 +47,8 @@
         .grid-layout {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 12px;
-            padding: 20px 15px 10px;
+            gap: 5px;
+            padding: 10px 5px 10px;
             max-width: 500px;
             margin: 0 auto;
             position: relative;
@@ -50,7 +56,7 @@
         }
 
         .box-container {
-            height: 68px;
+            height: 50pxx;
             border-radius: 1.25rem;
             display: flex;
             flex-direction: column;
@@ -79,8 +85,8 @@
         .scroll-wrapper::-webkit-scrollbar { display: none; }
 
         .icon-frame {
-            width: 44px;
-            height: 44px;
+            width: 30px;
+            height: 30px;
             background: var(--glass);
             border-radius: 14px;
             display: flex;
@@ -128,41 +134,146 @@
 }
 
 
-
-    /* Icon Font Size increased to 24px */
-    .nav-link i {
-        font-size: 24px; 
-     
-        transition: color 0.3s ease, transform 0.3s ease;
-    }
-
-    /* Text Font Size */
-    .nav-link div {
-        font-size: 11px;
-        font-weight: 500;
-        transition: color 0.3s ease;
-    }
-
-    /* Hover & Active Blue State */
-    .nav-link:hover i, 
-    .nav-link:hover div,
-    .nav-link.active i,
-    .nav-link.active div {
-        color: #3b82f6 !important; /* Your Blue Hover */
-    }
-
-    /* Click Animation */
-    .nav-link:active {
-        transform: scale(0.9);
-    }
-</style>
-
-
-
-
-
     </style>
 
+
+<style>
+
+
+
+
+
+/* 3. Bottom Nav Link Styling */
+
+
+
+
+
+/* 5. Modern Pill Toggle Above Nav */
+/* 5. Modern Pill Toggle Above Nav */
+.theme-toggle {
+    position: fixed;
+    bottom: 100px; 
+    right: 2rem;
+    z-index: 10001;
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: var(yellow);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--border-color);
+    color: var(--active-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.theme-toggle:hover {
+    transform: translateY(-2px);
+    background: var(--hover-bg);
+}
+
+/* 6. Profile Box Top Right */
+.header-container {
+position: fixed;
+
+    top: 20px;
+
+    right: 5px;
+
+    z-index: 1000;
+
+}
+
+
+
+
+
+
+.profile-box {
+    width: 30px;
+    height: 30px;
+    background: white;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 2px solid var(--active-color);
+    transition: background-color 0.3s ease;
+    margin-top: 59px;
+    margin-bottom: 5px;
+}
+
+[data-theme='dark'] .profile-box { 
+    background: #1e293b; 
+}
+
+/* --- Adjustments for the Top Header Area --- */
+
+
+/* Grid boxes container needs to stay horizontal */
+
+
+
+/* Ensure icons in the toggle switch between moon/sun */
+[data-theme='dark'] .theme-toggle .fa-sun { display: block; }
+[data-theme='dark'] .theme-toggle .fa-moon { display: none; }
+[data-theme='light'] .theme-toggle .fa-sun { display: none; }
+[data-theme='light'] .theme-toggle .fa-moon { display: block; }
+
+/* Logic to show moon/sun icons depending on theme (Compatibility Fallback) */
+[data-theme='dark'] .theme-toggle i.fa-sun {
+    display: inline-block;
+}
+[data-theme='light'] .theme-toggle i.fa-moon {
+    display: inline-block;
+}
+
+
+
+/
+/* Keeps the text readable on the yellow background specifically */
+
+/* If you want ONLY the Savig text to stay dark because the box is yellow */
+[data-theme='dark'] .box-container.bg-\[\#ffe11b\] span {
+    color: #000000 !important;
+}
+/* 6. Theme Toggle Logic (Icon Display) */
+[data-theme='dark'] .theme-toggle .fa-sun { display: block !important; }
+[data-theme='dark'] .theme-toggle .fa-moon { display: none !important; }
+[data-theme='light'] .theme-toggle .fa-sun { display: none !important; }
+[data-theme='light'] .theme-toggle .fa-moon { display: block !important; }
+.universal-bottom-nav:hover{
+    color: #2563eb;
+}
+#universal-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 70px;
+    background-color: var(--nav-bg);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-top: 1px solid var(--border-color);
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.1);
+    z-index: 999999;
+    padding-bottom: env(safe-area-inset-bottom);
+    animation: navSlideUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    font-size: 20px;
+    gap:1px
+}
+
+
+
+</style>
 </style>
 </head>
 <body class="flex flex-col items-center">
@@ -214,12 +325,12 @@
             </a>
         </nav>
 
-        <div class="relative z-10 w-full px-6 py-2 flex justify-between items-center max-w-md mx-auto">
+        <div class="relative z-10 w-full px-6 py-1 flex justify-between items-center max-w-md mx-auto">
             <div class="animate-pop" style="--d: 4.5">
                 <p id="greeting-time" class="text-blue-300/60 text-[10px] uppercase tracking-[2px] font-bold">Good Morning</p>
-                <h2 class="text-white text-xl font-extrabold">Hey, <span id="user-display-name" class="text-[#ffe11b]"></span></h2>
+                <h2 class="text-white text-lg font-extrabold">Hey, <span id="user-display-name" class="text-[#ffe11b]"></span></h2>
             </div>
-            <div class="w-10 h-10 rounded-full border-2 border-blue-500/30 bg-slate-800 flex items-center justify-center animate-pop" style="--d: 5">
+            <div class="w-10 h-6 rounded-full border-2 border-blue-500/30 bg-slate-800 flex items-center justify-center animate-pop" style="--d: 5">
                  <i class="fas fa-user-circle text-blue-400 text-3xl"></i>
             </div>
         </div>
@@ -357,7 +468,7 @@
 </style>
 
 </head>
-<div class="flex flex-row items-start justify-between w-full max-w-md mx-auto gap-2 px-3 mt-4">
+<div class="flex flex-row items-start justify-between w-full max-w-md mx-auto gap-1 px-3 mt-2">
     
     <div id="todays-overview" class="w-1/2 mb-1">
         <h2 class="text-[14px] font-bold mb-2 flex items-center gap-1 text-blue-700 dark:text-blue-700 uppercase tracking-tight">
@@ -383,7 +494,7 @@
 <body class="p-4 md:p-6">
 
     <div class="max-w-6xl mx-auto">
-<header class="flex flex-row justify-between items-center gap-4 mb-2 py-2">
+<header class="flex flex-row justify-between items-center gap-4 mb-1 py-2">
     <div class="flex items-center gap-2">
         <div class="w-1.5 h-4 bg-indigo-600 rounded-full"></div>
         <h1 class="text-base font-bold tracking-tighter uppercase transition-colors duration-300">
@@ -1027,269 +1138,7 @@ function updateTimeGreeting() {
             }
         }
     </script>
-    <style>
-        /* 1. Theme Variables & Professional Reset */
-        :root {
-            --bg-main: #0f172a; /* Deep Midnight Blue */
-            --text-primary: #ffffff;
-            --text-dim: #94a3b8;
-            --accent: #2563eb;
-            --savig-yellow: #ffe11b; /* Brand Yellow */
-            --glass: rgba(30, 41, 59, 0.45);
-            --border: rgba(255, 255, 255, 0.1);
-        }
 
-
-
-        /* 2. Unified Fixed Header */
-        .nav-container {
-         position: relative;
-       margin-top: -10px;
-            width: 100%;
-            background: var(--bg-main);
-            z-index: 1000;
-            border-bottom: 1px solid var(--border);
-            padding-bottom: 5px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        }
-
-        /* Mesh Glow Background Effects */
-        .mesh-bg div { position: absolute; border-radius: 50%; filter: blur(60px); opacity: 0.35; pointer-events: none; }
-        .blob-1 { width: 250px; height: 250px; background: #0ea5e9; top: -50px; left: -20px; }
-        .blob-2 { width: 200px; height: 200px; background: #1e3a8a; bottom: -30px; right: -20px; }
-        .blob-3 { width: 180px; height: 180px; background: #38bdf8; top: 10%; left: 30%; }
-
-        /* 3. Grid & Component Styling */
-        .grid-layout {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            padding: 10px 5px 10px;
-            max-width: 500px;
-            margin: 0 auto;
-            position: relative;
-            z-index: 10;
-        }
-
-        .box-container {
-            height: 60pxx;
-            border-radius: 1.25rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: var(--glass);
-            border: 1px solid var(--border);
-            backdrop-filter: blur(12px);
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        }
-
-        .box-savig { background: var(--savig-yellow) !important; border: none; }
-
-        /* 4. Scrollable Secondary Nav */
-        .scroll-wrapper {
-            display: flex;
-            overflow-x: auto;
-            gap: 18px;
-            padding: 10px 20px;
-            width: 100%;
-            max-width: 500px;
-            scrollbar-width: none;
-            position: relative;
-            z-index: 10;
-        }
-        .scroll-wrapper::-webkit-scrollbar { display: none; }
-
-        .icon-frame {
-            width: 40px;
-            height: 40px;
-            background: var(--glass);
-            border-radius: 14px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid var(--border);
-            transition: all 0.3s ease;
-        }
-
-        /* 5. Entrance Animations */
-        .animate-pop {
-            animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
-            opacity: 0;
-            animation-delay: calc(var(--d) * 0.1s);
-        }
-
-        @keyframes popIn {
-            from { transform: scale(0.6); opacity: 0; }
-            to { transform: scale(1); opacity: 1; }
-        }
-.theme-toggle {
-    position: fixed;
-    bottom: 100px; 
-    right: 2rem;
-    z-index: 10001;
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: var(yellow);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--border-color);
-    color: var(--active-color);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.theme-toggle:hover {
-    transform: translateY(-2px);
-    background: var(--hover-bg);
-}
-
-
-    </style>
-
-
-<style>
-
-
-
-
-
-/* 3. Bottom Nav Link Styling */
-
-
-
-
-
-/* 5. Modern Pill Toggle Above Nav */
-/* 5. Modern Pill Toggle Above Nav */
-.theme-toggle {
-    position: fixed;
-    bottom: 100px; 
-    right: 2rem;
-    z-index: 10001;
-    width: 44px;
-    height: 44px;
-    border-radius: 12px;
-    background: var(yellow);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--border-color);
-    color: var(--active-color);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.theme-toggle:hover {
-    transform: translateY(-2px);
-    background: var(--hover-bg);
-}
-
-/* 6. Profile Box Top Right */
-.header-container {
-position: fixed;
-
-    top: 20px;
-
-    right: 5px;
-
-    z-index: 1000;
-
-}
-
-
-
-
-
-
-.profile-box {
-    width: 30px;
-    height: 30px;
-    background: white;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: 2px solid var(--active-color);
-    transition: background-color 0.3s ease;
-    margin-top: 59px;
-    margin-bottom: 5px;
-}
-
-[data-theme='dark'] .profile-box { 
-    background: #1e293b; 
-}
-
-/* --- Adjustments for the Top Header Area --- */
-
-
-/* Grid boxes container needs to stay horizontal */
-
-
-
-/* Ensure icons in the toggle switch between moon/sun */
-[data-theme='dark'] .theme-toggle .fa-sun { display: block; }
-[data-theme='dark'] .theme-toggle .fa-moon { display: none; }
-[data-theme='light'] .theme-toggle .fa-sun { display: none; }
-[data-theme='light'] .theme-toggle .fa-moon { display: block; }
-
-/* Logic to show moon/sun icons depending on theme (Compatibility Fallback) */
-[data-theme='dark'] .theme-toggle i.fa-sun {
-    display: inline-block;
-}
-[data-theme='light'] .theme-toggle i.fa-moon {
-    display: inline-block;
-}
-
-
-
-/
-/* Keeps the text readable on the yellow background specifically */
-
-/* If you want ONLY the Savig text to stay dark because the box is yellow */
-[data-theme='dark'] .box-container.bg-\[\#ffe11b\] span {
-    color: #000000 !important;
-}
-/* 6. Theme Toggle Logic (Icon Display) */
-[data-theme='dark'] .theme-toggle .fa-sun { display: block !important; }
-[data-theme='dark'] .theme-toggle .fa-moon { display: none !important; }
-[data-theme='light'] .theme-toggle .fa-sun { display: none !important; }
-[data-theme='light'] .theme-toggle .fa-moon { display: block !important; }
-.universal-bottom-nav:hover{
-    color: #2563eb;
-}
-#universal-bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 70px;
-    background-color: var(--nav-bg);
-    backdrop-filter: blur(15px);
-    -webkit-backdrop-filter: blur(15px);
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    border-top: 1px solid var(--border-color);
-    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.1);
-    z-index: 999999;
-    padding-bottom: env(safe-area-inset-bottom);
-    animation: navSlideUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    font-size: 16px;
-    gap:1px
-}
-
-
-
-</style>
 
 
 
@@ -1305,6 +1154,15 @@ position: fixed;
 </body>
 
 </html>
+
+
+
+
+
+
+
+
+
 
 
 
