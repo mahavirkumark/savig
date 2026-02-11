@@ -3,15 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Savig </title>
+    <title>Savig - Fully Responsive</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-   
 
-
-
-
-        <style>
+   <style>
         /* 1. Theme Variables & Professional Reset */
         :root {
             --bg-main: #0f172a; /* Deep Midnight Blue */
@@ -33,7 +29,7 @@
             background: var(--bg-main);
             z-index: 1000;
             border-bottom: 1px solid var(--border);
-            padding-bottom: 5px;
+      
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
         }
 
@@ -56,7 +52,7 @@
         }
 
         .box-container {
-            height: 50pxx;
+            height: 60px;
             border-radius: 1.25rem;
             display: flex;
             flex-direction: column;
@@ -153,11 +149,11 @@
 /* 5. Modern Pill Toggle Above Nav */
 .theme-toggle {
     position: fixed;
-    bottom: 100px; 
+    bottom: 30px; 
     right: 2rem;
     z-index: 10001;
-    width: 44px;
-    height: 44px;
+    width: 34px;
+    height: 34px;
     border-radius: 12px;
     background: var(yellow);
     backdrop-filter: blur(16px);
@@ -181,7 +177,7 @@
 .header-container {
 position: fixed;
 
-    top: 20px;
+    top: 10px;
 
     right: 5px;
 
@@ -204,7 +200,7 @@ position: fixed;
     justify-content: center;
     border: 2px solid var(--active-color);
     transition: background-color 0.3s ease;
-    margin-top: 59px;
+    margin-top: 29px;
     margin-bottom: 5px;
 }
 
@@ -267,157 +263,190 @@ position: fixed;
     z-index: 999999;
     padding-bottom: env(safe-area-inset-bottom);
     animation: navSlideUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    font-size: 20px;
+    font-size: 16px;
     gap:1px
 }
 
+/* 1. Global Hover Behavior for Navigation Boxes */
+.box-container {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
 
+/* 2. Specific Hover Styles for the Main Nav (Top Grid) */
+.group:hover .box-container {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+}
 
-</style>
+/* Savig Button (Specific brand hover) */
+.group:hover .box-savig {
+    background: linear-gradient(135deg, #ffffff 0%, #e2e8f0 100%);
+    border-color: #3b82f6;
+}
+
+/* Finance & Travel (Blue focus) */
+.group:hover .group-hover\:border-blue-500\/50 {
+    border-color: rgba(59, 130, 246, 0.5);
+    background-color: rgba(59, 130, 246, 0.05);
+}
+
+/* Grocery (Orange focus) */
+.group:hover .group-hover\:border-orange-500\/50 {
+    border-color: rgba(249, 115, 22, 0.5);
+    background-color: rgba(249, 115, 22, 0.05);
+}
+
+/* 3. Bottom Icon Menu Hover (Cloth, Asset, etc.) */
+.group:hover .group-hover\:bg-blue-500\/20 {
+    background-color: rgba(59, 130, 246, 0.2);
+    border-color: rgba(59, 130, 246, 0.4);
+    transform: scale(1.1);
+}
+
+/* Text color shift for the labels */
+.group:hover span {
+    color: #f8fafc; /* Slate-50 */
+    transition: color 0.2s ease;
+}
+
+/* 4. Active (Click) State for all buttons */
+.group:active .box-container, 
+.group:active div[class*="rounded-xl"] {
+    transform: scale(0.95);
+    transition: transform 0.1s ease;
+}
+/* Profile Button Hover */
+.w-12.h-12.rounded-full {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.w-12.h-12.rounded-full:hover {
+    border-color: #60a5fa; /* blue-400 */
+    background-color: rgba(59, 130, 246, 0.2);
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+    transform: scale(1.05);
+}
+
+/* Global Click Shrink Effect */
+a:active, .w-12.h-12:active {
+    transform: scale(0.92) !important;
+    transition: transform 0.1s ease;
+}
 </style>
 </head>
-<body class="flex flex-col items-center">
+<body class="min-h-screen bg-white-950 flex flex-col items-center">
 
- 
-    <div class="nav-container">
-        <div class="mesh-bg absolute inset-0">
-            <div class="blob-1"></div>
-            <div class="blob-2"></div>
-            <div class="blob-3"></div>
-        </div>
-
-        <nav class="grid-layout">
-          <a href="homemob.html" class="animate-pop w-full no-underline group" style="--d: 1">
-    <div class="box-container box-savig shadow-[0_10px_20px_-5px_rgba(255,225,27,0.3)] group-hover:scale-105 active:scale-95 relative overflow-hidden">
-        
-        <div class="relative flex items-center justify-center h-8">
-            <i class="fas fa-shield text-blue-600 text-3xl"></i>
-            
-            <i class="fas fa-database text-white absolute z-20" 
-               style="font-size: 13px; top: 48%; left: 50%; transform: translate(-50%, -50%);"></i>
-        </div>
-
-        <span class="font-black italic text-[12px] uppercase text-slate-900 mt-1">Savig</span>
-    </div>
-</a>
-
-            <a href="financemob.html" class="animate-pop w-full no-underline group" style="--d: 2">
-                <div class="box-container group-hover:border-blue-500/50">
-                    <div class="w-7 h-7 bg-blue-700 rounded-lg flex items-center justify-center mb-1 shadow-inner">
-                        <i class="fas fa-rupee-sign text-white text-[10px]"></i>
-                    </div>
-                    <span class="font-bold text-slate-300 italic text-[12px] group-hover:text-white">Finance</span>
-                </div>
-            </a>
-
-            <a href="travelmob.html" class="animate-pop w-full no-underline group" style="--d: 3">
-                <div class="box-container group-hover:border-blue-500/50">
-                    <i class="fas fa-plane text-blue-400 text-xl mb-1"></i>
-                    <span class="font-bold text-slate-300 italic text-[12px] group-hover:text-white">Travel</span>
-                </div>
-            </a>
-
-            <a href="grocerymob.html" class="animate-pop w-full no-underline group" style="--d: 4">
-                <div class="box-container group-hover:border-orange-500/50">
-                    <i class="fas fa-basket-shopping text-orange-400 text-xl mb-1"></i>
-                    <span class="font-bold text-slate-300 italic text-[12px] group-hover:text-white">Grocery</span>
-                </div>
-            </a>
-        </nav>
-
-        <div class="relative z-10 w-full px-6 py-1 flex justify-between items-center max-w-md mx-auto">
-            <div class="animate-pop" style="--d: 4.5">
-                <p id="greeting-time" class="text-blue-300/60 text-[10px] uppercase tracking-[2px] font-bold">Good Morning</p>
-                <h2 class="text-white text-lg font-extrabold">Hey, <span id="user-display-name" class="text-[#ffe11b]"></span></h2>
-            </div>
-            <div class="w-10 h-6 rounded-full border-2 border-blue-500/30 bg-slate-800 flex items-center justify-center animate-pop" style="--d: 5">
-                 <i class="fas fa-user-circle text-blue-400 text-3xl"></i>
-            </div>
-        </div>
-
-        <div class="scroll-wrapper no-scrollbar">
-            <a href="cloth.html" class="nav-item group animate-pop" style="--d: 6">
-                <div class="icon-frame group-hover:bg-slate-700"><i class="fas fa-tshirt text-blue-300"></i></div>
-                <span class="nav-label text-slate-400 text-[10px] font-bold mt-1 uppercase">Cloth</span>
-            </a>
-            <a href="assethtml" class="nav-item group animate-pop" style="--d: 7">
-                <div class="icon-frame group-hover:bg-slate-700"><i class="fas fa-coins text-blue-300"></i></div>
-                <span class="nav-label text-slate-400 text-[10px] font-bold mt-1 uppercase">Asset</span>
-            </a>
-            <a href="principal.html" class="nav-item group animate-pop" style="--d: 8">
-                <div class="icon-frame group-hover:bg-slate-700"><i class="fas fa-user-shield text-blue-300"></i></div>
-                <span class="nav-label text-slate-400 text-[10px] font-bold mt-1 uppercase">Principal</span>
-            </a>
-            <a href="stores.html" class="nav-item group animate-pop" style="--d: 9">
-                <div class="icon-frame group-hover:bg-slate-700"><i class="fas fa-store text-blue-300"></i></div>
-                <span class="nav-label text-slate-400 text-[10px] font-bold mt-1 uppercase">Stores</span>
-            </a>
-             <a href="birthday.html" class="nav-item group animate-pop" style="--d: 9">
-                <div class="icon-frame group-hover:bg-slate-700"><i class="fas fa-store text-blue-300"></i></div>
-                <span class="nav-label text-slate-400 text-[10px] font-bold mt-1 uppercase">Stores</span>
-            </a>
-        </div>
+<header class="nav-container relative w-full border-b border-white/10 shadow-2xl overflow-hidden pb-1">
+    <div class="mesh-bg absolute inset-0">
+      <div class="blob-1"></div>
+      <div class="blob-2"></div>
     </div>
 
-    <button class="theme-toggle" id="theme-btn">
-<i class="fa-solid fa-sun bg-yellow"></i>
-    <i class="fa-solid fa-moon"></i>
-    </button>
+    <div class="max-w-7xl mx-auto px-4 relative z-10">
+      <nav class="grid grid-cols-4 md:grid-cols-4 lg:grid-cols-6 gap-3 py-4">
+        <a href="homemob.html" class="animate-pop group" style="--d: 1">
+          <div class="box-container box-savig shadow-lg group-hover:scale-105 active:scale-95 flex flex-col items-center justify-center p-2  bg-white/5 border border-white/10">
+            <div class="relative flex items-center justify-center ">
+              <i class="fas fa-shield text-blue-600 text-3xl"></i>
+              <i class="fas fa-database text-white absolute text-[16px]" style="top: 27%;"></i>
+            </div>
+            <span class="font-black italic text-[12px] uppercase text-slate-900 mt-1">Savig</span>
+          </div>
+        </a>
 
-  
+        <a href="financemob.html" class="animate-pop group" style="--d: 2">
+          <div class="box-container flex flex-col items-center justify-center p-2 bg-white/5 border border-white/10 group-hover:border-blue-500/50">
+            <div class="w-10 h-10 bg-blue-700 rounded-lg flex items-center justify-center mb-1">
+              <i class="fas fa-rupee-sign text-white text-xs"></i>
+            </div>
+            <span class="font-bold text-slate-300 italic text-[12px]">Finance</span>
+          </div>
+        </a>
 
-    
+        <a href="travelmob.html" class="animate-pop group" style="--d: 3">
+          <div class="box-container flex flex-col items-center justify-center p-2  bg-white/5 border border-white/10 group-hover:border-blue-500/50">
+            <i class="fas fa-plane text-blue-400 text-xl mb-1"></i>
+            <span class="font-bold text-slate-300 italic text-[12px]">Travel</span>
+          </div>
+        </a>
+
+        <a href="grocerymob.html" class="animate-pop group" style="--d: 4">
+          <div class="box-container flex flex-col items-center justify-center p-2  bg-white/5 border border-white/10 group-hover:border-orange-500/50">
+            <i class="fas fa-basket-shopping text-orange-400 text-xl mb-1"></i>
+            <span class="font-bold text-slate-300 italic text-[12px]">Grocery</span>
+          </div>
+        </a>
+      </nav>
+    </div>
 
 
-    <script>
-        const themeBtn = document.getElementById('theme-btn');
-        const icon = themeBtn.querySelector('i');
-        
-        // Handle Theme Switching
-        const currentTheme = localStorage.getItem('theme') || 'light';
-        document.documentElement.setAttribute('data-theme', currentTheme);
-        updateIcon(currentTheme);
 
-        themeBtn.addEventListener('click', () => {
-            let theme = document.documentElement.getAttribute('data-theme');
-            let newTheme = theme === 'light' ? 'dark' : 'light';
-            document.documentElement.setAttribute('data-theme', newTheme);
-            localStorage.setItem('theme', newTheme);
-            updateIcon(newTheme);
-            if (navigator.vibrate) navigator.vibrate(15);
-        });
 
-        function updateIcon(theme) {
-            icon.className = theme === 'light' ? 'fas fa-moon' : 'fa-solid fa-sun';
-        }
+      <div class="w-full py-4 flex justify-between items-center max-w-md mx-auto">
+        <div class="animate-pop" style="--d: 4.5">
+          <p id="greeting-time" class="text-blue-300/60 ml-1 text-[10px] uppercase tracking-[2px] font-bold">Good Morning</p>
+          <h2 class="text-white ml-1 text-base font-extrabold">Hey, <span id="user-display-name" class="text-[#ffe11b]">User</span></h2>
+        </div>
 
-        // Highlight Active Bottom Nav Link
-        document.querySelectorAll('.nav-link').forEach(link => {
-            const currentPath = window.location.pathname.split('/').pop();
-            if (link.getAttribute('href') === currentPath) {
-                link.classList.add('active');
-            }
-        });
+        <div class="flex items-center gap-4">
+          <button class="theme-toggle text-xl text-yellow-400" id="theme-btn">
+            <i class="fa-solid fa-sun"></i>
+          </button>
+          <a href="profilemob.html" class="w-12 h-12  mr-1 rounded-full border-2 border-blue-500/30 bg-slate-800 flex items-center justify-center animate-pop group" style="--d: 6">
+            <i class="fas fa-user-circle text-blue-400 text-3xl group-hover:text-blue-300"></i>
+          </a>
+        </div>
+      </div>
 
-        // Haptic feedback for boxes
-        document.querySelectorAll('.box-container').forEach(box => {
-            box.addEventListener('touchstart', () => {
-                if (navigator.vibrate) navigator.vibrate(10);
-            });
-        });
-    </script>
-   
+      <div class="flex overflow-x-auto no-scrollbar gap-6 py-2 md:grid md:grid-cols-5 md:overflow-visible ml-2">
+        <a href="clothmob.html" class="flex-shrink-0 flex flex-col items-center group animate-pop" style="--d: 7">
+          <div class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-blue-500/20">
+            <i class="fas fa-tshirt text-blue-300 text-sm"></i>
+          </div>
+          <span class="text-slate-400 text-[9px] font-black mt-2 uppercase tracking-wide">Cloth</span>
+        </a>
+
+        <a href="assetmob.html" class="flex-shrink-0 flex flex-col items-center group animate-pop" style="--d: 8">
+          <div class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-blue-500/20">
+            <i class="fas fa-coins text-blue-300 text-sm"></i>
+          </div>
+          <span class="text-slate-400 text-[9px] font-black mt-2 uppercase tracking-wide">Asset</span>
+        </a>
+
+        <a href="principalmob.html" class="flex-shrink-0 flex flex-col items-center group animate-pop" style="--d: 9">
+          <div class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-blue-500/20">
+            <i class="fas fa-user-shield text-blue-300 text-sm"></i>
+          </div>
+          <span class="text-slate-400 text-[9px] font-black mt-2 uppercase tracking-wide">Principal</span>
+        </a>
+
+        <a href="storemob.html" class="flex-shrink-0 flex flex-col items-center group animate-pop" style="--d: 10">
+          <div class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-blue-500/20">
+            <i class="fas fa-store text-blue-300 text-sm"></i>
+          </div>
+          <span class="text-slate-400 text-[9px] font-black mt-2 uppercase tracking-wide">Stores</span>
+        </a>
+
+        <a href="eventsmob.html" class="flex-shrink-0 flex flex-col items-center group animate-pop" style="--d: 11">
+          <div class="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:bg-blue-500/20">
+            <i class="fas fa-cake-candles text-blue-300 text-sm"></i>
+          </div>
+          <span class="text-slate-400 text-[9px] font-black mt-2 uppercase tracking-wide">Events</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+
+
 
 
 
 
   
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Savig Finance | LIVE</title>
+
     
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/firebase/9.6.10/firebase-app-compat.min.js"></script>
@@ -465,9 +494,20 @@ position: fixed;
         animation: spin 0.8s linear infinite;
     }
     @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+
+    /* Custom Active State Styles */
+.active-link i, 
+.active-link div {
+    color: #4f46e5 !important; /* Tailwind's indigo-600 */
+    font-weight: bold;
+}
+
+.active-link {
+    transform: scale(1.1);
+}
 </style>
 
-</head>
 <div class="flex flex-row items-start justify-between w-full max-w-md mx-auto gap-1 px-3 mt-2">
     
     <div id="todays-overview" class="w-1/2 mb-1">
@@ -489,11 +529,47 @@ position: fixed;
     </div>
 
 </div>
+<style>
+    :root { 
+        --bg: #ffffff;
+        --card: #f8fafc;
+        --text-main: #0f172a;    /* Deep slate for readability */
+        --text-muted: #64748b;
+        --border: #e2e8f0;
+        --accent: #6366f1;
+    }
 
-    
-<body class="p-4 md:p-6">
+    [data-theme="dark"] { 
+        --bg: #0f172a;           /* Deep Navy instead of Black */
+        --card: #1e293b;         /* Slate blue for cards */
+        --text-main: #f1f5f9;    /* Crisp off-white */
+        --text-muted: #94a3b8;
+        --border: #334155;
+    }
 
-    <div class="max-w-6xl mx-auto">
+
+
+    .stat-card {
+        background: var(--card); 
+        border: 1px solid var(--border);
+        border-radius: 16px; 
+        padding: 1.25rem;
+
+    }
+
+    .chart-wrapper { position: relative; height: 320px; width: 100%; }
+    .hidden { display: none !important; }
+
+    .spinner {
+        width: 35px; height: 35px;
+        border: 3px solid var(--border);
+        border-top: 3px solid var(--accent);
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+</style>
+  <div class="max-w-6xl mx-auto">
 <header class="flex flex-row justify-between items-center gap-4 mb-1 py-2">
     <div class="flex items-center gap-2">
         <div class="w-1.5 h-4 bg-indigo-600 rounded-full"></div>
@@ -545,98 +621,37 @@ position: fixed;
      
         </div>
     </div>
-  
-  <nav id="universal-bottom-nav">
-   <a href="homemob.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
-        <i class="fa-solid fa-house transition-colors duration-300 group-hover:text-indigo-600"></i>
-        <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold text-xm">Home</div>
+<nav id="universal-bottom-nav" class="flex justify-around items-center py-3 bg-white shadow-lg">
+    <a href="homemob.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
+        <i class="fa-solid fa-house text-2xl mb-1 transition-colors duration-300 group-hover:text-indigo-600"></i>
+        <div class="text-[15px] transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Home</div>
     </a>
 
     <a href="addressmob.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
-        <i class="fa-solid fa-location-dot transition-colors duration-300 group-hover:text-indigo-600"></i>
-        <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Address</div>
+        <i class="fa-solid fa-location-dot text-2xl mb-1 transition-colors duration-300 group-hover:text-indigo-600"></i>
+        <div class="text-[15px] transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Address</div>
     </a>
 
     <a href="passwordmob.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
-        <i class="fa-solid fa-key transition-colors duration-300 group-hover:text-indigo-600"></i>
-        <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Password</div>
+        <i class="fa-solid fa-key text-2xl mb-1 transition-colors duration-300 group-hover:text-indigo-600"></i>
+        <div class="text-[15px] transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Password</div>
     </a>
 
     <a href="contact.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
-        <i class="fa-solid fa-envelope transition-colors duration-300 group-hover:text-indigo-600"></i>
-        <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Contact</div>
+        <i class="fa-solid fa-envelope text-2xl mb-1 transition-colors duration-300 group-hover:text-indigo-600"></i>
+        <div class="text-[15px] transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Contact</div>
     </a>
-          <a href="cr.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
-        <i class="fas fa-calendar-alt transition-colors duration-300 group-hover:text-indigo-600"></i>
-        <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Calender</div>
+
+    <a href="cr.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
+        <i class="fas fa-calendar-alt text-2xl mb-1 transition-colors duration-300 group-hover:text-indigo-600"></i>
+        <div class="text-[15px] transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Calendar</div>
     </a>
-    </nav>
-<style>
-    /* 1. Component Specific Variables */
-    :root {
-        --event-card-bg: #ffffff;
-        --event-text-title: #1e293b;
-        --event-text-sub: #64748b;
-        --event-border: #f1f5f9;
-        --event-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    }
+</nav>
 
-    [data-theme="dark"] {
-        --event-card-bg: #1e293b; /* Slate 800 */
-        --event-text-title: #f8fafc;
-        --event-text-sub: #94a3b8;
-        --event-border: #334155;
-        --event-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
-    }
 
-    /* 2. Styling the Event Cards */
-    .event-dashboard-card {
-        background-color: var(--event-card-bg);
-        border: 1px solid var(--event-border);
-        box-shadow: var(--event-shadow);
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        border-left-width: 4px;
-        border-left-color: #6366f1; /* Indigo Accent */
-    }
 
-    .event-dashboard-card:hover {
-        transform: translateY(-2px);
-        border-left-color: #4f46e5;
-    }
 
-    .event-title {
-        color: var(--event-text-title);
-        font-weight: 800;
-        letter-spacing: -0.01em;
-    }
 
-    .event-meta {
-        color: var(--event-text-sub);
-        font-weight: 600;
-    }
-
-    /* 3. Empty State Styling */
-    .empty-event-state {
-        background-color: var(--event-card-bg);
-        border: 2px dashed var(--event-border);
-        color: var(--event-text-sub);
-    }
-  :root {
-    --bg-body: #ffffff; /* Was #f9fafb (grayish) */
-    --bg-card: #ffffff; /* Was #f8fafc (grayish) */
-    --text-main: #1f2937;
-    --border: #e2e8f0;
-}
-
-[data-theme="dark"] {
-    --bg-body: #0f172a;
-    --bg-card: #1e293b;
-    --text-main: #f1f5f9;
-    --border: #334155;
-}
-   
-</style>
-</style>
    <script>
     // 1. Firebase Configuration
     const firebaseConfig = {
@@ -967,12 +982,7 @@ function updateTimeGreeting() {
     greetEl.innerText = message;
 }
 </script>
-<!DOCTYPE html>
-<html lang="mr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Savig | Interactive Full Screen News</title>
+
     <style>
         :root {
             --bg-main: #f8f9fa;
@@ -1079,8 +1089,6 @@ function updateTimeGreeting() {
         .close-btn:hover { background color: green;}
         .loader { text-align: center; padding: 100px; color: #888; }
     </style>
-</head>
-<body>
 
  
 
@@ -1147,37 +1155,20 @@ function updateTimeGreeting() {
 
 
 
+ <div class="relative z-10 w-full px-6 py-1 flex justify-between items-center max-w-md mx-auto">
+            <div class="animate-pop" style="--d: 4.5">
+                <p id="greeting-time" class="text-blue-300/60 text-[10px] uppercase tracking-[2px] font-bold">Good Morning</p>
+                <h2 class="text-white text-lg font-extrabold">Hey, <span id="user-display-name" class="text-[#ffe11b]"></span></h2>
+            </div>
+            <div class="w-10 h-6 rounded-full border-2 border-blue-500/30 bg-slate-800 flex items-center justify-center animate-pop" style="--d: 5">
+                 <i class="fas fa-user-circle text-blue-400 text-3xl"></i>
+            </div>
+        </div>
+
 
 
 </body>
-</html>
-</body>
 
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
