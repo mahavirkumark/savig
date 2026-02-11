@@ -30,7 +30,7 @@
             z-index: 1000;
             border-bottom: 1px solid var(--border);
       
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+       
         }
 
         /* Mesh Glow Background Effects */
@@ -52,7 +52,7 @@
         }
 
         .box-container {
-            height: 60px;
+            height: 65px;
             border-radius: 1.25rem;
             display: flex;
             flex-direction: column;
@@ -71,7 +71,7 @@
             display: flex;
             overflow-x: auto;
             gap: 18px;
-            padding: 10px 20px;
+            padding: 1px 2px;
             width: 100%;
             max-width: 500px;
             scrollbar-width: none;
@@ -90,6 +90,7 @@
             justify-content: center;
             border: 1px solid var(--border);
             transition: all 0.3s ease;
+            margin-top: -7px;
         }
 
         /* 5. Entrance Animations */
@@ -177,7 +178,7 @@
 .header-container {
 position: fixed;
 
-    top: 10px;
+    top: 5px;
 
     right: 5px;
 
@@ -200,8 +201,8 @@ position: fixed;
     justify-content: center;
     border: 2px solid var(--active-color);
     transition: background-color 0.3s ease;
-    margin-top: 29px;
-    margin-bottom: 5px;
+    margin-top: 10px;
+   
 }
 
 [data-theme='dark'] .profile-box { 
@@ -344,41 +345,41 @@ a:active, .w-12.h-12:active {
       <div class="blob-2"></div>
     </div>
 
-    <div class="max-w-7xl mx-auto px-4 relative z-10">
-      <nav class="grid grid-cols-4 md:grid-cols-4 lg:grid-cols-6 gap-3 py-4">
-        <a href="homemob.html" class="animate-pop group" style="--d: 1">
-          <div class="box-container box-savig shadow-lg group-hover:scale-105 active:scale-95 flex flex-col items-center justify-center p-2  bg-white/5 border border-white/10">
-            <div class="relative flex items-center justify-center ">
-              <i class="fas fa-shield text-blue-600 text-3xl"></i>
-              <i class="fas fa-database text-white absolute text-[16px]" style="top: 27%;"></i>
-            </div>
-            <span class="font-black italic text-[12px] uppercase text-slate-900 mt-1">Savig</span>
-          </div>
-        </a>
+    <div class="max-w-7xl mx-auto px-4 relative z-10 mt-2">
+   <nav class="grid grid-cols-4 md:grid-cols-4 lg:grid-cols-6 gap-3">
+  <a href="homemob.html" class="animate-pop group" style="--d: 1">
+    <div class="box-container box-savig shadow-lg group-hover:scale-105 active:scale-95 flex flex-col items-center justify-center bg-white/5 border border-white/10">
+      <div class="relative flex items-center justify-center">
+        <i class="fas fa-shield text-blue-600 text-3xl"></i>
+        <i class="fas fa-database text-white absolute text-[16px]" style="top: 27%;"></i>
+      </div>
+      <span class="font-black italic text-[12px] uppercase text-slate-900">Savig</span>
+    </div>
+  </a>
 
-        <a href="financemob.html" class="animate-pop group" style="--d: 2">
-          <div class="box-container flex flex-col items-center justify-center p-2 bg-white/5 border border-white/10 group-hover:border-blue-500/50">
-            <div class="w-10 h-10 bg-blue-700 rounded-lg flex items-center justify-center mb-1">
-              <i class="fas fa-rupee-sign text-white text-xs"></i>
-            </div>
-            <span class="font-bold text-slate-300 italic text-[12px]">Finance</span>
-          </div>
-        </a>
+  <a href="financemob.html" class="animate-pop group" style="--d: 2">
+    <div class="box-container flex flex-col items-center justify-center bg-white/5 border border-white/10 group-hover:border-blue-500/50">
+      <div class="bg-blue-700 rounded-lg flex items-center justify-center">
+        <i class="fas fa-rupee-sign text-white text-xs"></i>
+      </div>
+      <span class="font-bold text-slate-300 italic text-[12px]">Finance</span>
+    </div>
+  </a>
 
-        <a href="travelmob.html" class="animate-pop group" style="--d: 3">
-          <div class="box-container flex flex-col items-center justify-center p-2  bg-white/5 border border-white/10 group-hover:border-blue-500/50">
-            <i class="fas fa-plane text-blue-400 text-xl mb-1"></i>
-            <span class="font-bold text-slate-300 italic text-[12px]">Travel</span>
-          </div>
-        </a>
+  <a href="travelmob.html" class="animate-pop group" style="--d: 3">
+    <div class="box-container flex flex-col items-center justify-center bg-white/5 border border-white/10 group-hover:border-blue-500/50">
+      <i class="fas fa-plane text-blue-400 text-xl"></i>
+      <span class="font-bold text-slate-300 italic text-[12px]">Travel</span>
+    </div>
+  </a>
 
-        <a href="grocerymob.html" class="animate-pop group" style="--d: 4">
-          <div class="box-container flex flex-col items-center justify-center p-2  bg-white/5 border border-white/10 group-hover:border-orange-500/50">
-            <i class="fas fa-basket-shopping text-orange-400 text-xl mb-1"></i>
-            <span class="font-bold text-slate-300 italic text-[12px]">Grocery</span>
-          </div>
-        </a>
-      </nav>
+  <a href="grocerymob.html" class="animate-pop group" style="--d: 4">
+    <div class="box-container flex flex-col items-center justify-center bg-white/5 border border-white/10 group-hover:border-orange-500/50">
+      <i class="fas fa-basket-shopping text-orange-400 text-xl"></i>
+      <span class="font-bold text-slate-300 italic text-[12px]">Grocery</span>
+    </div>
+  </a>
+</nav>
     </div>
 
 
@@ -480,7 +481,7 @@ a:active, .w-12.h-12:active {
         border: 1px solid var(--border);
         border-radius: 16px; 
         padding: 1.25rem;
-        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+     
     }
 
     .chart-wrapper { position: relative; height: 320px; width: 100%; }
@@ -1170,5 +1171,9 @@ function updateTimeGreeting() {
 </body>
 
 </html>
+
+
+
+
 
 
