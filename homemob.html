@@ -369,7 +369,13 @@ html {
 .no-scrollbar::-webkit-scrollbar {
     display: none;
 }
-
+/* Smoothly transitions the icon and text color */
+.nav-link:hover i, 
+.nav-link:hover div {
+    color: #FFE11B !important; /* Brand Yellow */
+    text-shadow: 0 0 10px rgba(255, 225, 27, 0.4);
+    transition: all 0.3s ease;
+}
     
 </style>
 </head>
@@ -1240,6 +1246,7 @@ updateTimeGreeting();
 </body>
 
 </html>
+
 
 
 
