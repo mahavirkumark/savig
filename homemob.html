@@ -247,39 +247,9 @@ position: fixed;
 .universal-bottom-nav:hover{
     color: #2563eb;
 }
-#universal-bottom-nav {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    width: 100%;
-    height: 55px;
-    
-    /* 1. SOLID BACKGROUND: Ensures content behind it is hidden */
-    background-color: #0f172a; /* Matches your --bg-main Midnight Blue */
-    
-    /* 2. LAYERING: High z-index ensures it is ALWAYS on top */
-    z-index: 999999; 
-    
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    padding-bottom: env(safe-area-inset-bottom);
-    
-    /* Optional: shadow to separate it from the content */
-    box-shadow: 0 -10px 25px rgba(0, 0, 0, 0.5);
-}
 
-/* Ensure the text stays visible on the dark background */
-#universal-bottom-nav .nav-link div {
-    color: #94a3b8;
-    font-size: 12px;
-    padding-bottom: 1px;
-}
 
-#universal-bottom-nav .nav-link i {
-    color: #60a5fa;
-}
+
 /* 1. Global Hover Behavior for Navigation Boxes */
 .box-container {
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -370,14 +340,7 @@ html {
 .no-scrollbar::-webkit-scrollbar {
     display: none;
 }
-/* Smoothly transitions the icon and text color */
-.nav-link:hover i, 
-.nav-link:hover div {
-    color: #FFE11B !important; /* Brand Yellow */
-    text-shadow: 0 0 10px rgba(255, 225, 27, 0.4);
-    transition: all 0.3s ease;
-}
-    
+
 </style>
 </head>
 <body class="min-h-screen bg-white-950 flex flex-col items-center">
@@ -575,26 +538,33 @@ html {
 }
 </style>
 
-<div class="flex flex-row items-start justify-between w-full max-w-md mx-auto gap-1 px-3 mt-2">
+<div class="flex flex-row items-start justify-between w-full max-w-md mx-auto gap-4 px-4 py-4 mt-2 bg-white rounded-2xl shadow-sm">
     
-    <div id="todays-overview" class="w-1/2 mb-1">
-        <h2 class="text-[14px] font-bold mb-2 flex items-center gap-1 text-blue-700 dark:text-blue-700 uppercase tracking-tight">
-            <i class="fas fa-calendar-day text-blue-700"></i> Schedule
+    <div id="todays-overview" class="w-1/2">
+        <h2 class="text-[14px] font-[700] mb-3 flex items-center gap-2 text-black uppercase tracking-tight">
+            <i class="fas fa-calendar-day"></i> Schedule
         </h2>
         <div id="event-list" class="space-y-3">
-            <p class="text-blue-400/70 italic text-[12px] p-3 border border-dashed border-blue-200 dark:border-blue-900/50 rounded-xl text-center leading-tight">Checking...</p>
+            <p class="text-black font-[600] text-[10px] p-3 border-2 border-solid border-black bg-white rounded-xl text-center leading-tight">
+                Checking...
+            </p>
         </div>
     </div>
 
-    <div id="bday-overview-container" class="w-1/2 ">
-        <h6 class="text-[14px] font-bold mb-2 flex items-center gap-1 uppercase tracking-tight text-blue-700 dark:text-blue-700">
-            <i class="fas fa-cake-candles text-blue-600"></i> Birthdays
+    <div id="bday-overview-container" class="w-1/2">
+        <h6 class="text-[14px] font-[700] mb-3 flex items-center gap-2 uppercase tracking-tight text-black">
+            <i class="fas fa-cake-candles"></i> Birthdays
         </h6>
         <div id="bday-realtime-list" class="space-y-3">
-            <p class="text-blue-400/70 italic text-[12px] p-3 border border-dashed border-blue-200 dark:border-blue-900/50 rounded-xl text-center leading-tight">Checking...</p>
+            <p class="text-black font-[600] text-[10px] p-3 border-2 border-solid border-black bg-white rounded-xl text-center leading-tight">
+                Checking...
+            </p>
         </div>
     </div>
 
+</div>
+
+</div>
 </div>
 <style>
     :root { 
@@ -691,37 +661,201 @@ box-shadow: none !important; /* Removes default shadow */
      
         </div>
     </div>
-<nav id="universal-bottom-nav" class="flex justify-around items-center py-3 bg-white shadow-lg">
-    <a href="homemob.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
-        <i class="fa-solid fa-house text-2xl mb-1 transition-colors duration-300 group-hover:text-indigo-600"></i>
-        <div class="text-[13px] transition-all duration-300 group-hover:text-indigo-600 mb-1 group-hover:font-bold">Home</div>
+
+  <nav id="universal-bottom-nav">
+   <a href="homemob.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
+        <i class="fa-solid fa-house transition-colors duration-300 group-hover:text-indigo-600"></i>
+        <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold text-xm">Home</div>
     </a>
 
     <a href="addressmob.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
-        <i class="fa-solid fa-location-dot text-2xl mb-1 transition-colors duration-300 group-hover:text-indigo-600"></i>
-        <div class="text-[13px] transition-all duration-300 group-hover:text-indigo-600  mb-1 group-hover:font-bold">Address</div>
+        <i class="fa-solid fa-location-dot transition-colors duration-300 group-hover:text-indigo-600"></i>
+        <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Address</div>
     </a>
 
     <a href="passwordmob.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
-        <i class="fa-solid fa-key text-2xl mb-1 transition-colors duration-300 group-hover:text-indigo-600"></i>
-        <div class="text-[13px] transition-all duration-300 group-hover:text-indigo-600  mb-1 group-hover:font-bold">Password</div>
+        <i class="fa-solid fa-key transition-colors duration-300 group-hover:text-indigo-600"></i>
+        <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Password</div>
     </a>
 
     <a href="contact.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
-        <i class="fa-solid fa-envelope text-2xl mb-1 transition-colors duration-300 group-hover:text-indigo-600"></i>
-        <div class="text-[13px] transition-all duration-300 group-hover:text-indigo-600  mb-1 group-hover:font-bold">Contact</div>
+        <i class="fa-solid fa-envelope transition-colors duration-300 group-hover:text-indigo-600"></i>
+        <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Contact</div>
     </a>
-
-    <a href="cr.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
-        <i class="fas fa-calendar-alt text-2xl mb-1 transition-colors duration-300 group-hover:text-indigo-600"></i>
-        <div class="text-[13px] transition-all duration-300 group-hover:text-indigo-600  mb-1 group-hover:font-bold">Calendar</div>
+          <a href="cr.html" class="nav-link group flex flex-col items-center transition-all duration-300 hover:scale-110 active:scale-90">
+        <i class="fas fa-calendar-alt transition-colors duration-300 group-hover:text-indigo-600"></i>
+        <div class="transition-all duration-300 group-hover:text-indigo-600 group-hover:font-bold">Calender</div>
     </a>
-</nav>
+    </nav>
+
+
+
+
+<style>
+/* 1. Theme Variables & Reset */
+:root {
+    --bg-color: #ffffff;
+    --nav-bg: rgba(255, 255, 255, 0.95); 
+    --nav-text: #000000; /* Pure black for light mode */
+    --hover-bg: #f8fafc;
+    --active-color: #2563eb;
+    --border-color: rgba(0, 0, 0, 0.1);
+    --nav-height: 70px;
+}
+
+[data-theme='dark'] {
+    --bg-color: #0f172a;
+    --nav-bg: rgba(15, 23, 42, 0.98);
+    --nav-text: #ffffff; /* FIXED: Changed from black to white for readability */
+    --hover-bg: #1e293b;
+    --active-color: #60a5fa;
+    --border-color: rgba(255, 255, 255, 0.1);
+}
+
+/* 2. Universal Bottom Nav Entrance Animation */
+#universal-bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 60px;
+    background-color: var(--nav-bg);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    border-top: 1px solid var(--border-color);
+    box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.1);
+    z-index: 999999;
+    padding-bottom: env(safe-area-inset-bottom);
+    animation: navSlideUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    font-size: 10px;
+}
+
+@keyframes navSlideUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+/* 3. Bottom Nav Link Styling */
+.nav-link {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: var(--nav-text) !important; 
+    text-decoration: none !important;
+    transition: color 0.3s ease;
+    position: relative;
+    height: 40px;
+}
+
+.nav-link i {
+    font-size: 21px;
+    margin-bottom: 4px;
+    color: inherit;
+    /* Cleaned up stroke for better legibility */
+    -webkit-text-stroke: 0.5px var(--nav-text); 
+    font-weight: 700;
+}
+
+.nav-link div {
+    font-size: 11px;
+    font-weight: 800; /* 900 can be too chunky on some screens */
+    text-transform: uppercase;
+    color: inherit;
+    letter-spacing: 0.02em;
+    gap: 5px;
+}
+
+.nav-link.active {
+    color: var(--active-color) !important;
+}
+
+.nav-link.active i {
+    transform: translateY(-3px);
+    -webkit-text-stroke: 0.5px var(--active-color);
+}
+
+
+[data-theme='dark'] .box-container:not(.bg-\[\#ffe11b\]) {
+    background: #1e293b;
+    color: #ffffff; /* Ensures text is visible in dark mode */
+}
+
+.animate-pop {
+    animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    opacity: 0;
+}
+
+@keyframes popIn {
+    0% { transform: scale(0.6); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+
+.theme-toggle:hover {
+    transform: translateY(-2px);
+    background: var(--hover-bg);
+}
 
 
 
 
 
+
+
+
+[data-theme='dark'] .profile-box { 
+    background: #1e293b; 
+}
+
+/* --- Adjustments for the Top Header Area --- */
+
+
+/* Ensure icons in the toggle switch between moon/sun */
+[data-theme='dark'] .theme-toggle .fa-sun { display: block; }
+[data-theme='dark'] .theme-toggle .fa-moon { display: none; }
+[data-theme='light'] .theme-toggle .fa-sun { display: none; }
+[data-theme='light'] .theme-toggle .fa-moon { display: block; }
+
+/* Logic to show moon/sun icons depending on theme (Compatibility Fallback) */
+[data-theme='dark'] .theme-toggle i.fa-sun {
+    display: inline-block;
+}
+[data-theme='light'] .theme-toggle i.fa-moon {
+    display: inline-block;
+}
+
+
+
+/* 1. Reset Body and Layout Logic */
+
+/* 3. Fix the Grid Columns for Mobile */
+
+
+/* 4. Positioning the Profile Box back to the top right */
+
+
+/* 5. Data Visibility and Contrast */
+
+/* Keeps the text readable on the yellow background specifically */
+
+/* If you want ONLY the Savig text to stay dark because the box is yellow */
+[data-theme='dark'] .box-container.bg-\[\#ffe11b\] span {
+    color: #000000 !important;
+}
+/* 6. Theme Toggle Logic (Icon Display) */
+[data-theme='dark'] .theme-toggle .fa-sun { display: block !important; }
+[data-theme='dark'] .theme-toggle .fa-moon { display: none !important; }
+[data-theme='light'] .theme-toggle .fa-sun { display: none !important; }
+[data-theme='light'] .theme-toggle .fa-moon { display: block !important; }
+.universal-bottom-nav:hover{
+    color: #2563eb;
+}
+</style>
    <script>
     // 1. Firebase Configuration
     const firebaseConfig = {
@@ -872,61 +1006,67 @@ async function loadTodaysDashboard() {
     const listCont = document.getElementById('event-list');
     
     if (!user) {
-        listCont.innerHTML = `<p class="text-red-500 text-center">Please log in to view events.</p>`;
+        listCont.innerHTML = `<p class="text-red-500 text-center text-xs font-[600]">Please log in.</p>`;
         return;
     }
 
-    // 1. Get Today's Date in YYYY-MM-DD format
     const now = new Date();
     const todayISO = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
     try {
-        // 2. Fetch data from Firebase
         const snapshot = await firebase.database().ref(`users/${user.uid}/events/${todayISO}`).once("value");
         const data = snapshot.val();
         
-if (!data) {
-    listCont.innerHTML = `
-        <div class="p-2 bg-white dark:bg-slate-800 rounded-xl  text-gray-400 dark:text-gray-500 font-medium border border-dashed border-gray-200 dark:border-slate-700 text-xs text-center">
-            ✨ No events for today.
-        </div>`;
-    return;
-}
+        if (!data) {
+            listCont.innerHTML = `
+                <div class="p-3 bg-white rounded-xl text-black font-[600] border-2 border-black text-[12px] text-center leading-tight">
+                    ✨ No events for today.
+                </div>`;
+            return;
+        }
 
-        // 3. Process and Filter
         const events = Object.entries(data)
             .map(([id, ev]) => ({ id, ...ev }))
             .filter(ev => ev.status === 'pending')
             .sort((a, b) => a.time.localeCompare(b.time));
 
- if (events.length === 0) {
-    listCont.innerHTML = `
-        <div class="p-2 bg-white dark:bg-slate-800 rounded-xl text-center text-emerald-500 font-medium border border-gray-100 text-xs dark:border-slate-700">
-            ✅ All events caught up!
-        </div>`;
-    return;
-}
+        if (events.length === 0) {
+            listCont.innerHTML = `
+                <div class="p-3 bg-white rounded-xl text-black font-[600] border-2 border-black text-[12px] text-center leading-tight">
+                    ✅ All events caught up!
+                </div>`;
+            return;
+        }
 
-        // 4. Render HTML
+        // Render HTML with Wrapping support
         listCont.innerHTML = events.map(ev => `
-            <div class="bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border-l-4 border-indigo-500 flex justify-between items-center transition hover:shadow-md">
+            <div class="bg-white p-3 rounded-xl border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,0.1)] flex justify-between items-start gap-2 transition active:translate-y-[1px] active:shadow-none mb-2">
                 <div class="min-w-0">
-                    <h3 class="font-bold bg-slate text-gray-800 dark:text-white truncate">${ev.title}</h3>
-                    <div class="flex items-center gap-2 text-xs text-indigo-600 font-bold mt-1">
-                        <i class="fas fa-clock"></i> ${ev.time}
-                        ${ev.location ? `<span class="text-gray-400 font-normal">| <i class="fas fa-location-dot"></i> ${ev.location}</span>` : ''}
+                    <h3 class="font-[700] text-black text-[13px] tracking-tight leading-tight break-words">${ev.title}</h3>
+                    
+                    <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-black font-[600] mt-1.5">
+                        <span class="flex items-center whitespace-nowrap">
+                            <i class="fas fa-clock mr-1 text-black text-[10px]"></i>${ev.time}
+                        </span>
+                        
+                        ${ev.location ? `
+                            <span class="text-black font-[500] text-[10px] opacity-60 break-words"> 
+                                <i class="fas fa-location-dot ml-0.5"></i> ${ev.location}
+                            </span>` : ''}
                     </div>
                 </div>
-                <i class="fas fa-chevron-right text-gray-300"></i>
+                
+                <div class="bg-black rounded-full p-1.5 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <i class="fas fa-chevron-right text-white text-[8px]"></i>
+                </div>
             </div>
         `).join('');
 
     } catch (err) {
         console.error("Fetch error:", err);
-        listCont.innerHTML = `<p class="text-red-500">Failed to load events.</p>`;
+        listCont.innerHTML = `<p class="text-red-600 text-xs text-center font-[600]">Failed to load events.</p>`;
     }
 }
-
 // Trigger load once user is authenticated
 firebase.auth().onAuthStateChanged(user => {
     if (user) loadTodaysDashboard();
@@ -942,16 +1082,18 @@ async function fetchAndShowTodaysBirthdays() {
     const tDay = today.getDate();
 
     try {
-        const snapshot = await firebase.database().ref(`users/${user.uid}/birthdays`).once("value");
-        const allBdays = snapshot.val();
+        const [bdaySnap, contactSnap] = await Promise.all([
+            firebase.database().ref(`users/${user.uid}/birthdays`).once("value"),
+            firebase.database().ref(`users/${user.uid}/contacts`).once("value")
+        ]);
+
+        const allBdays = bdaySnap.val();
+        const allContacts = contactSnap.val() || {};
 
         if (!allBdays) {
-    listCont.innerHTML = `
-        <div class="bg-white dark:bg-slate-800 p-4 rounded-xl border border-dashed border-gray-200 dark:border-slate-700 text-gray-400 text-xs text-center">
-            No birthdays saved yet.
-        </div>`;
-    return;
-}
+            listCont.innerHTML = `<div class="p-3 bg-white rounded-xl text-black font-[600] border-2 border-solid border-black text-[10px] text-center leading-tight">No birthdays saved.</div>`;
+            return;
+        }
 
         const todaysList = Object.values(allBdays).filter(person => {
             if (!person.birthdate || person.birthdate.length < 5) return false;
@@ -961,35 +1103,53 @@ async function fetchAndShowTodaysBirthdays() {
             return m === tMonth && d === tDay;
         });
 
-if (todaysList.length === 0) {
-    listCont.innerHTML = `
-        <div class="dark:bg-slate-800 p-3 rounded-xl border border-dashed border-gray-200 dark:border-slate-700 dark:text-gray-500 text-gray-400 text-xs text-center bg-white-800 ">
-            No birthdays today.
-        </div>`;
-    return;
-}
+        if (todaysList.length === 0) {
+            listCont.innerHTML = `<div class="p-3 bg-white rounded-xl text-black font-[600] border-2 border-solid border-black text-[10px] text-center leading-tight">No birthdays today.</div>`;
+            return;
+        }
 
-        listCont.innerHTML = todaysList.map(person => {
-             return `
-    <div class="flex items-center gap-1 p-2 rounded-lg bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700 mt-3">
-        <div class="w-7 h-4 bg-white dark:bg-slate-900/30 rounded-full flex items-center justify-center flex-shrink-0">
-            <i class="fas fa-birthday-cake text-indigo-600 dark:text-indigo-400 text-[10px]"></i>
-        </div>
-        <div class="flex-1 min-w-0">
-            <div class="text-[11px] font-bold text-slate-800 dark:text-slate-100 truncate uppercase">
-                ${person.name}
+        const decoIcons = ["🎂", "🍫", "🌸", "🎉"];
+
+        listCont.innerHTML = todaysList.map((person, index) => {
+            const contactMatch = Object.values(allContacts).find(c => c.name.toLowerCase() === person.name.toLowerCase());
+            const phoneNumber = contactMatch ? (contactMatch.whatsapp || contactMatch.mobile) : null;
+            const deco = decoIcons[index % decoIcons.length];
+            
+         // Use these standard versions for better compatibility
+const message = encodeURIComponent(`Happy Birthday ${person.name}! 🎂🍫🌸🥳`);
+const waLink = phoneNumber ? `https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=${message}` : "#";
+
+            return `
+            <div class="bg-white p-3 rounded-xl border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,0.1)] flex justify-between items-start gap-2 mb-2 transition active:translate-y-[1px] active:shadow-none">
+                <div class="min-w-0 flex items-start gap-2">
+                    <div class="w-7 h-7 flex-shrink-0 flex items-center justify-center text-[16px]">
+                         ${deco}
+                    </div>
+                    <div class="min-w-0">
+                        <div class="text-[13px] font-[700] text-black tracking-tight uppercase leading-tight break-words">
+                            ${person.name}
+                        </div>
+                     
+                    </div>
+                </div>
+                
+                ${phoneNumber ? `
+                    <a href="${waLink}" target="_blank" class="bg-[#25D366] border-2 border-black rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
+                        <i class="fab fa-whatsapp text-white text-[16px]"></i>
+                    </a>
+                ` : `
+                    <div class="bg-gray-100 border-2 border-black rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 opacity-30">
+                        <i class="fas fa-comment-slash text-black text-[12px]"></i>
+                    </div>
+                `}
             </div>
-        </div>
-    </div>
-`;
+        `;
         }).join('');
 
     } catch (error) {
-        console.error("Error fetching birthdays:", error);
-        listCont.innerHTML = `<p class="text-red-500 text-xs text-center bg-white p-2 rounded-lg border border-red-100">Failed to load birthdays.</p>`;
+        listCont.innerHTML = `<div class="p-3 bg-white border-2 border-black rounded-xl text-[10px] text-center font-bold">Error loading.</div>`;
     }
 }
-
 firebase.auth().onAuthStateChanged((user) => {
     if (!user) {
         // No user is signed in, redirect to login page immediately
@@ -1241,6 +1401,52 @@ updateTimeGreeting();
 </body>
 
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
