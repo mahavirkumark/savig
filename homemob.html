@@ -335,6 +335,16 @@ a:active, .w-12.h-12:active {
     transform: scale(0.92) !important;
     transition: transform 0.1s ease;
 }
+    /* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+}
 </style>
 </head>
 <body class="min-h-screen bg-white-950 flex flex-col items-center">
@@ -1197,6 +1207,7 @@ updateTimeGreeting();
 </body>
 
 </html>
+
 
 
 
