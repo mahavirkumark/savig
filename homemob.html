@@ -1082,6 +1082,7 @@ async function fetchAndShowTodaysBirthdays() {
     const tDay = today.getDate();
 
     try {
+        // Fetch both Birthdays and Contacts to link the Phone Numbers
         const [bdaySnap, contactSnap] = await Promise.all([
             firebase.database().ref(`users/${user.uid}/birthdays`).once("value"),
             firebase.database().ref(`users/${user.uid}/contacts`).once("value")
@@ -1091,10 +1092,14 @@ async function fetchAndShowTodaysBirthdays() {
         const allContacts = contactSnap.val() || {};
 
         if (!allBdays) {
-            listCont.innerHTML = `<div class="p-3 bg-white rounded-xl text-black font-[600] border-2 border-solid border-black text-[10px] text-center leading-tight">No birthdays saved.</div>`;
+            listCont.innerHTML = `
+                <div class="p-2 bg-white rounded-xl text-black font-[600] border-2 border-solid border-black text-[10px] text-center leading-tight">
+                    No birthdays saved.
+                </div>`;
             return;
         }
 
+        // Filter for today
         const todaysList = Object.values(allBdays).filter(person => {
             if (!person.birthdate || person.birthdate.length < 5) return false;
             const dateParts = person.birthdate.split('-');
@@ -1104,7 +1109,10 @@ async function fetchAndShowTodaysBirthdays() {
         });
 
         if (todaysList.length === 0) {
-            listCont.innerHTML = `<div class="p-3 bg-white rounded-xl text-black font-[600] border-2 border-solid border-black text-[10px] text-center leading-tight">No birthdays today.</div>`;
+            listCont.innerHTML = `
+                <div class="p-2 bg-white rounded-xl text-black font-[600] border-2 border-solid border-black text-[10px] text-center leading-tight">
+                    None today.
+                </div>`;
             return;
         }
 
@@ -1115,31 +1123,29 @@ async function fetchAndShowTodaysBirthdays() {
             const phoneNumber = contactMatch ? (contactMatch.whatsapp || contactMatch.mobile) : null;
             const deco = decoIcons[index % decoIcons.length];
             
-         // Use these standard versions for better compatibility
-const message = encodeURIComponent(`Happy Birthday ${person.name}! 🎂🍫🌸🥳`);
-const waLink = phoneNumber ? `https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=${message}` : "#";
+            // Standard UTF-8 Emojis for best cross-platform compatibility
+            const message = encodeURIComponent(`Happy Birthday ${person.name}! 🎂🍫🌸🥳`);
+            const waLink = phoneNumber ? `https://wa.me/${phoneNumber.replace(/\D/g, '')}?text=${message}` : "#";
 
             return `
-            <div class="bg-white p-3 rounded-xl border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,0.1)] flex justify-between items-start gap-2 mb-2 transition active:translate-y-[1px] active:shadow-none">
-                <div class="min-w-0 flex items-start gap-2">
-                    <div class="w-7 h-7 flex-shrink-0 flex items-center justify-center text-[16px]">
-                         ${deco}
-                    </div>
+            <div class="bg-white p-2 rounded-xl border-2 border-black shadow-[2px_2px_0px_0px_rgba(0,0,0,1)] flex justify-between items-center gap-2 mb-2 transition active:translate-y-[1px] active:shadow-none">
+                <div class="flex items-center gap-1.5 min-w-0">
+                    <span class="text-[14px] flex-shrink-0">${deco}</span>
                     <div class="min-w-0">
-                        <div class="text-[13px] font-[700] text-black tracking-tight uppercase leading-tight break-words">
+                        <div class="text-[11px] font-[800] text-black leading-[1.1] break-words uppercase">
                             ${person.name}
                         </div>
-                     
                     </div>
                 </div>
                 
                 ${phoneNumber ? `
-                    <a href="${waLink}" target="_blank" class="bg-[#25D366] border-2 border-black rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]">
-                        <i class="fab fa-whatsapp text-white text-[16px]"></i>
+                    <a href="${waLink}" target="_blank" 
+                       class="bg-[#25D366] border-2 border-black rounded-full w-7 h-7 flex items-center justify-center flex-shrink-0 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 hover:bg-[#128C7E] hover:scale-110 hover:rotate-6 active:scale-95 active:shadow-none">
+                        <i class="fab fa-whatsapp text-white text-[14px]"></i>
                     </a>
                 ` : `
-                    <div class="bg-gray-100 border-2 border-black rounded-full w-8 h-8 flex items-center justify-center flex-shrink-0 opacity-30">
-                        <i class="fas fa-comment-slash text-black text-[12px]"></i>
+                    <div class="bg-gray-100 border-2 border-black rounded-full w-7 h-7 flex items-center justify-center flex-shrink-0 opacity-30">
+                        <i class="fas fa-comment-slash text-black text-[10px]"></i>
                     </div>
                 `}
             </div>
@@ -1147,7 +1153,8 @@ const waLink = phoneNumber ? `https://wa.me/${phoneNumber.replace(/\D/g, '')}?te
         }).join('');
 
     } catch (error) {
-        listCont.innerHTML = `<div class="p-3 bg-white border-2 border-black rounded-xl text-[10px] text-center font-bold">Error loading.</div>`;
+        console.error("Fetch error:", error);
+        listCont.innerHTML = `<div class="p-2 bg-white border-2 border-black rounded-xl text-[10px] text-center font-bold">Error loading.</div>`;
     }
 }
 firebase.auth().onAuthStateChanged((user) => {
@@ -1401,6 +1408,20 @@ updateTimeGreeting();
 </body>
 
 </html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
