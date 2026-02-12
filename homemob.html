@@ -19,7 +19,16 @@
             --border: rgba(255, 255, 255, 0.1);
         }
 
+#monthSelector {
+    background-color: #ffffff !important; /* पूर्ण पांढरा */
+    color: #000000 !important;           /* मजकूर काळा */
+}
 
+/* डार्क मोडमध्येही पांढराच ठेवण्यासाठी */
+[data-theme='dark'] #monthSelector {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+}
 
         /* 2. Unified Fixed Header */
         .nav-container {
@@ -29,7 +38,7 @@
             background: var(--bg-main);
             z-index: 1000;
             border-bottom: 1px solid var(--border);
-      
+      box-shadow: none !important; /* ही लाईन जोडा किंवा जुनी लाईन काढा */
        
         }
 
@@ -308,7 +317,7 @@ position: fixed;
 .w-12.h-12.rounded-full:hover {
     border-color: #60a5fa; /* blue-400 */
     background-color: rgba(59, 130, 246, 0.2);
-    box-shadow: 0 0 15px rgba(59, 130, 246, 0.4);
+
     transform: scale(1.05);
 }
 
@@ -317,12 +326,16 @@ a:active, .w-12.h-12:active {
     transform: scale(0.92) !important;
     transition: transform 0.1s ease;
 }
-/* Enable smooth scrolling for the whole page */
-html {
-    scroll-behavior: smooth;
+/* पूर्ण स्क्रोलिंग सुरू करण्यासाठी */
+html, body {
+    height: auto !important;
+    overflow-x: hidden;
+    overflow-y: auto !important;
 }
 
-
+body {
+    padding-bottom: 100px; /* बॉटम नेव्हिगेशन बारसाठी खालच्या बाजूला रिकामी जागा */
+}
 
 /* Hide scrollbar for IE, Edge and Firefox */
 
@@ -415,7 +428,7 @@ html {
       </div>
 
 
-     <div class="flex overflow-x-auto no-scrollbar gap-6 md:grid md:grid-cols-5 md:overflow-visible px-4 mt-1">
+     <div class="flex overflow-x-auto no-scrollbar gap-6 md:grid md:grid-cols-5 md:overflow-visible px-4 ">
   
   <a href="clothmob.html" class="flex-shrink-0 flex flex-col items-center group animate-pop" style="--d: 7">
     <div class="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center transition-all duration-300 group-hover:scale-110 group-hover:bg-blue-500/10 group-hover:border-blue-500/40 shadow-lg">
@@ -1019,7 +1032,7 @@ async function loadTodaysDashboard() {
         
         if (!data) {
             listCont.innerHTML = `
-                <div class="p-3 bg-white rounded-xl text-black font-[600] border-2 border-black text-[16px] text-center leading-tight">
+                <div class="p-3 bg-white rounded-xl text-black font-[600] border-2 border-black text-[14px] text-center leading-tight">
                     ✨ No events for today.
                 </div>`;
             return;
@@ -1032,7 +1045,7 @@ async function loadTodaysDashboard() {
 
         if (events.length === 0) {
             listCont.innerHTML = `
-                <div class="p-3 bg-white rounded-xl text-black font-[600] border-2 border-black text-[16px] text-center leading-tight">
+                <div class="p-3 bg-white rounded-xl text-black font-[600] border-2 border-black text-[14px] text-center leading-tight">
                     ✅ All events caught up!
                 </div>`;
             return;
@@ -1042,22 +1055,22 @@ async function loadTodaysDashboard() {
         listCont.innerHTML = events.map(ev => `
             <div class="bg-white p-3 rounded-xl border-2 border-black shadow-[3px_3px_0px_0px_rgba(0,0,0,0.1)] flex justify-between items-start gap-2 transition active:translate-y-[1px] active:shadow-none mb-2">
                 <div class="min-w-0">
-                    <h3 class="font-[700] text-black text-[13px] tracking-tight leading-tight break-words">${ev.title}</h3>
+                    <h3 class="font-[700] text-black text-[14px] tracking-tight leading-tight break-words">${ev.title}</h3>
                     
-                    <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-black font-[600] mt-1.5">
+                    <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-black font-[600] mt-1">
                         <span class="flex items-center whitespace-nowrap">
-                            <i class="fas fa-clock mr-1 text-black text-[12px]"></i>${ev.time}
+                            <i class="fas fa-clock mr-1 text-black text-[14px]"></i>${ev.time}
                         </span>
                         
                         ${ev.location ? `
-                            <span class="text-black font-[500] text-[10px] opacity-60 break-words"> 
+                            <span class="text-black font-[500] text-[14px] opacity-60 break-words"> 
                                 <i class="fas fa-location-dot ml-0.5"></i> ${ev.location}
                             </span>` : ''}
                     </div>
                 </div>
                 
                 <div class="bg-black rounded-full p-1.5 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <i class="fas fa-chevron-right text-white text-[12px]"></i>
+                    <i class="fas fa-chevron-right text-white text-[14px]"></i>
                 </div>
             </div>
         `).join('');
@@ -1093,7 +1106,7 @@ async function fetchAndShowTodaysBirthdays() {
 
         if (!allBdays) {
             listCont.innerHTML = `
-                <div class="p-2 bg-white rounded-xl text-black font-[600] border-2 border-solid border-black text-[10px] text-center leading-tight">
+                <div class="p-2 bg-white rounded-xl text-black font-[600] border-2 border-solid border-black text-[14px] text-center leading-tight">
                     No birthdays saved.
                 </div>`;
             return;
@@ -1110,8 +1123,8 @@ async function fetchAndShowTodaysBirthdays() {
 
         if (todaysList.length === 0) {
             listCont.innerHTML = `
-                <div class="p-2 bg-white rounded-xl text-black font-[600] border-2 border-solid border-black text-[10px] text-center leading-tight">
-                    None today.
+                <div class="p-2 bg-white rounded-xl text-black font-[600] border-2 border-solid border-black text-[14px] text-center leading-tight">
+                    No Birthday Today
                 </div>`;
             return;
         }
@@ -1432,133 +1445,6 @@ updateTimeGreeting();
 </body>
 
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
