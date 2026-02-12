@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Savig - Fully Responsive</title>
+    <title>Savig</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
@@ -357,14 +357,18 @@ a:active, .w-12.h-12:active {
     </div>
   </a>
 
-  <a href="financemob.html" class="animate-pop group" style="--d: 2">
-    <div class="box-container flex flex-col items-center justify-center bg-white/5 border border-white/10 group-hover:border-blue-500/50">
-      <div class="bg-blue-700 rounded-lg flex items-center justify-center">
-        <i class="fas fa-rupee-sign text-white text-xl"></i>
+<a href="financemob.html" class="animate-pop group" style="--d: 2">
+    <div class="box-container flex flex-col items-center pt-3 pb-2 bg-white/5 border border-white/10 rounded-2xl transition-all duration-300 group-hover:bg-white/10 group-hover:border-blue-500/50 group-hover:translate-y-[-2px]">
+      
+      <div class="w-12 h-12 bg-blue-500/10 rounded-xl flex items-center justify-center mb-2 border border-blue-500/20 group-hover:bg-blue-500/20">
+        <i class="fas fa-rupee-sign text-blue-400 text-xl"></i>
       </div>
-      <span class="font-bold text-slate-300 italic text-[14px]">Finance</span>
+
+      <span class="font-semibold text-slate-400 text-[11px] uppercase tracking-wider group-hover:text-blue-300">
+        Finance
+      </span>
     </div>
-  </a>
+</a>
 
   <a href="travelmob.html" class="animate-pop group" style="--d: 3">
     <div class="box-container flex flex-col items-center justify-center bg-white/5 border border-white/10 group-hover:border-blue-500/50">
@@ -383,13 +387,22 @@ a:active, .w-12.h-12:active {
     </div>
 
 
-
-
-      <div class="w-full py-2 flex justify-between items-center max-w-md mx-auto">
-        <div class="animate-pop" style="--d: 4.5">
-          <p id="greeting-time" class="text-blue-300/60 ml-1 text-[10px] uppercase tracking-[2px] font-bold">Good Morning</p>
-          <h2 class="text-white ml-1 text-base font-extrabold">Hey, <span id="user-display-name" class="text-[#ffe11b]">User</span></h2>
+<div class="w-full py-4 flex justify-between items-center max-w-md mx-auto px-4">
+    <div class="animate-pop flex items-center gap-3" style="--d: 4.5">
+        <div class="w-10 h-10 rounded-full bg-white/5 border border-white/10 flex items-center justify-center shadow-lg">
+            <span id="greeting-emoji" class="text-xl">☀️</span>
         </div>
+
+        <div>
+            <p id="greeting-time" class="text-white/40 text-[10px] uppercase tracking-[3px] font-bold leading-none mb-1">
+                Good Morning
+            </p>
+            <h2 class="text-white text-lg font-bold">
+                <span id="user-display-name" class="text-[#ffe11b]">User</span>
+            </h2>
+        </div>
+    </div>
+
 
         <div class="flex items-center gap-4">
           <button class="theme-toggle text-xl text-yellow-400" id="theme-btn">
@@ -400,6 +413,7 @@ a:active, .w-12.h-12:active {
           </a>
         </div>
       </div>
+
 
       <div class="flex overflow-x-auto no-scrollbar gap-6  md:grid md:grid-cols-5 md:overflow-visible ml-2 mt-[-2]">
         <a href="clothmob.html" class="flex-shrink-0 flex flex-col items-center group animate-pop" style="--d: 7">
@@ -964,24 +978,33 @@ firebase.auth().onAuthStateChanged((user) => {
 function updateTimeGreeting() {
     const hours = new Date().getHours();
     const greetEl = document.getElementById('greeting-time');
+    const emojiEl = document.getElementById('greeting-emoji');
     
     if (!greetEl) return;
 
     let message = "";
+    let emoji = "";
 
     if (hours >= 5 && hours < 12) {
         message = "Good Morning";
+        emoji = "☀️"; // Sun for productivity
     } else if (hours >= 12 && hours < 17) {
         message = "Good Afternoon";
+        emoji = "🌤️"; // Soft sun
     } else if (hours >= 17 && hours < 21) {
         message = "Good Evening";
+        emoji = "🌆"; // City sunset (very professional/fin-tech vibe)
     } else {
-        // Covers 9:00 PM to 4:59 AM
         message = "Good Night";
+        emoji = "🌙"; // Calm moon
     }
 
     greetEl.innerText = message;
+    if (emojiEl) emojiEl.innerText = emoji;
 }
+
+// Call the function
+updateTimeGreeting();
 </script>
 
     <style>
@@ -1153,24 +1176,6 @@ function updateTimeGreeting() {
 
 
 
-
-
-
- <div class="relative z-10 w-full px-6 py-1 flex justify-between items-center max-w-md mx-auto">
-            <div class="animate-pop" style="--d: 4.5">
-                <p id="greeting-time" class="text-blue-300/60 text-[10px] uppercase tracking-[2px] font-bold">Good Morning</p>
-                <h2 class="text-white text-lg font-extrabold">Hey, <span id="user-display-name" class="text-[#ffe11b]"></span></h2>
-            </div>
-            <div class="w-10 h-6 rounded-full border-2 border-blue-500/30 bg-slate-800 flex items-center justify-center animate-pop" style="--d: 5">
-                 <i class="fas fa-user-circle text-blue-400 text-3xl"></i>
-            </div>
-        </div>
-
-
-
-</body>
-
-</html>
 
 
 
