@@ -1019,7 +1019,7 @@ async function loadTodaysDashboard() {
         
         if (!data) {
             listCont.innerHTML = `
-                <div class="p-3 bg-white rounded-xl text-black font-[600] border-2 border-black text-[12px] text-center leading-tight">
+                <div class="p-3 bg-white rounded-xl text-black font-[600] border-2 border-black text-[16px] text-center leading-tight">
                     ✨ No events for today.
                 </div>`;
             return;
@@ -1032,7 +1032,7 @@ async function loadTodaysDashboard() {
 
         if (events.length === 0) {
             listCont.innerHTML = `
-                <div class="p-3 bg-white rounded-xl text-black font-[600] border-2 border-black text-[12px] text-center leading-tight">
+                <div class="p-3 bg-white rounded-xl text-black font-[600] border-2 border-black text-[16px] text-center leading-tight">
                     ✅ All events caught up!
                 </div>`;
             return;
@@ -1046,7 +1046,7 @@ async function loadTodaysDashboard() {
                     
                     <div class="flex flex-wrap items-center gap-x-2 gap-y-1 text-[11px] text-black font-[600] mt-1.5">
                         <span class="flex items-center whitespace-nowrap">
-                            <i class="fas fa-clock mr-1 text-black text-[10px]"></i>${ev.time}
+                            <i class="fas fa-clock mr-1 text-black text-[12px]"></i>${ev.time}
                         </span>
                         
                         ${ev.location ? `
@@ -1057,7 +1057,7 @@ async function loadTodaysDashboard() {
                 </div>
                 
                 <div class="bg-black rounded-full p-1.5 flex items-center justify-center flex-shrink-0 mt-0.5">
-                    <i class="fas fa-chevron-right text-white text-[8px]"></i>
+                    <i class="fas fa-chevron-right text-white text-[12px]"></i>
                 </div>
             </div>
         `).join('');
@@ -1141,11 +1141,11 @@ async function fetchAndShowTodaysBirthdays() {
                 ${phoneNumber ? `
                     <a href="${waLink}" target="_blank" 
                        class="bg-[#25D366] border-2 border-black rounded-full w-7 h-7 flex items-center justify-center flex-shrink-0 shadow-[1px_1px_0px_0px_rgba(0,0,0,1)] transition-all duration-200 hover:bg-[#128C7E] hover:scale-110 hover:rotate-6 active:scale-95 active:shadow-none">
-                        <i class="fab fa-whatsapp text-white text-[29px]"></i>
+                        <i class="fab fa-whatsapp text-white text-[34px]"></i>
                     </a>
                 ` : `
                     <div class="bg-gray-100 border-2 border-black rounded-full w-7 h-7 flex items-center justify-center flex-shrink-0 opacity-30">
-                        <i class="fas fa-comment-slash text-black text-[14px]"></i>
+                        <i class="fas fa-comment-slash text-black text-[20px]"></i>
                     </div>
                 `}
             </div>
@@ -1432,6 +1432,7 @@ updateTimeGreeting();
 </body>
 
 </html>
+
 
 
 
