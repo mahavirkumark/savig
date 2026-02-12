@@ -598,14 +598,17 @@ html {
         --border: #334155;
     }
 
-
+.group:hover .box-container {
+    transform: translateY(-2px);
+    box-shadow: none !important; /* Forces shadow removal on hover */
+}
 
     .stat-card {
         background: var(--card); 
         border: 1px solid var(--border);
         border-radius: 16px; 
         padding: 1.25rem;
-
+box-shadow: none !important; /* Removes default shadow */
     }
 
     .chart-wrapper { position: relative; height: 320px; width: 100%; }
@@ -1222,6 +1225,7 @@ updateTimeGreeting();
 </body>
 
 </html>
+
 
 
 
