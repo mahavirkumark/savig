@@ -730,7 +730,7 @@ box-shadow: none !important; /* Removes default shadow */
     z-index: 999999;
     padding-bottom: env(safe-area-inset-bottom);
     animation: navSlideUp 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    font-size: 10px;
+    font-size: 14px;
 }
 
 @keyframes navSlideUp {
@@ -753,7 +753,7 @@ box-shadow: none !important; /* Removes default shadow */
 }
 
 .nav-link i {
-    font-size: 21px;
+    font-size: 25px;
     margin-bottom: 4px;
     color: inherit;
     /* Cleaned up stroke for better legibility */
@@ -1229,7 +1229,18 @@ function updateTimeGreeting() {
 updateTimeGreeting();
 </script>
 
-    <style>
+    <button id="news-open-btn" onclick="toggleWidget()"><span></span>News</button>
+
+    <div class="news-widget" id="newsWidget">
+        <div class="widget-header">
+            <span>ताज्या घडामोडी</span>
+            <span class="close-btn" onclick="toggleWidget()">×</span>
+        </div>
+        <div id="news-list">
+            <div class="loader">बातमी शोधत आहोत...</div>
+        </div>
+    </div>
+       <style>
         :root {
             --bg-main: #f8f9fa;
             --card-bg: #ffffff;
@@ -1254,18 +1265,19 @@ updateTimeGreeting();
 
         /* १. सुरुवातीचे छोटे बटण */
         #news-open-btn {
-            
+            position: fixed; bottom: 20px; right: 5px;
             background: var(--accent); color: white; border: none;
             padding: 5px 5px; border-radius: 50px; font-weight: bold;
             cursor: pointer; box-shadow: 0 4px 15px var(--hover-shadow);
             z-index: 999; font-family: 'Segoe UI', sans-serif;
-            display: flex; align-items: center; gap: 2px;
+            display: flex; align-items: center; gap: 8px;
+            margin-bottom: 70px;
         }
 
         /* २. फुल स्क्रीन कंटेनर */
         .news-widget {
             display: none; position: fixed; top: 0; left: 0;
-            width: 100vw; height: 94vh; background: var(--bg-main);
+            width: 100vw; height: 90vh; background: var(--bg-main);
             flex-direction: column; z-index: 1000;
             font-family: 'Segoe UI', sans-serif; animation: fadeIn 0.3s;
         }
@@ -1274,7 +1286,7 @@ updateTimeGreeting();
 
         .widget-header {
             background: var(--accent); color: white;
-            padding: 5px 5px; font-size: 1.3rem; font-weight: bold;
+            padding: 15px 20px; font-size: 1.3rem; font-weight: bold;
             display: flex; justify-content: space-between; align-items: center;
         }
 
@@ -1282,7 +1294,7 @@ updateTimeGreeting();
 
         /* ३. कार्ड आणि होव्हर इफेक्ट */
         .news-item {
-            background: var(--card-bg); margin-bottom: 2px;
+            background: var(--card-bg); margin-bottom: 12px;
             border-radius: 12px; border-left: 5px solid var(--accent);
             box-shadow: 0 2px 8px var(--hover-shadow);
             overflow: hidden; transition: all 0.3s ease;
@@ -1296,7 +1308,7 @@ updateTimeGreeting();
         }
 
         .news-header-row {
-            padding: 8px; display: flex; align-items: center;
+            padding: 18px; display: flex; align-items: center;
             justify-content: space-between; cursor: pointer;
         }
 
@@ -1319,7 +1331,7 @@ updateTimeGreeting();
         }
 
         .news-item.active .news-detail {
-            max-height: 500px; padding-bottom: 8px; padding-top: 1px;
+            max-height: 500px; padding-bottom: 18px; padding-top: 10px;
             border-top: 1px solid var(--border);
         }
 
@@ -1332,10 +1344,22 @@ updateTimeGreeting();
         }
 
         .close-btn { cursor: pointer; font-size: 30px; }
-        .close-btn:hover { background color: green;}
         .loader { text-align: center; padding: 100px; color: #888; }
-    </style>
+        /* क्लोज बटण होव्हर इफेक्ट */
+.close-btn { 
+    cursor: pointer; 
+    font-size: 30px; 
+    transition: all 0.3s ease; /* स्मूथ बदलण्यासाठी */
+    display: inline-block;
+    line-height: 1;
+}
 
+.close-btn:hover {
+    color: #ffd1d1; /* लाईट पिंक/व्हाईट रंगात बदल */
+    transform: scale(1.2) rotate(90deg); /* मोठे होईल आणि ९० अंशात फिरेल */
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5); /* हलकी चकाकी */
+}
+    </style>
  
 
     <script>
@@ -1408,7 +1432,6 @@ updateTimeGreeting();
 </body>
 
 </html>
-
 
 
 
