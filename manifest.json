@@ -1,14 +1,9 @@
 {
   "name": "Savig",
   "short_name": "Savig",
-  "start_url": "indexmob.html?v=1",
-  "scope": "./",
+  "start_url": "indexmob.html",
   "display": "standalone",
   "background_color": "#FFD700",
   "theme_color": "#2874f0",
-  "orientation": "portrait",
-  "icons": []
+  "orientation": "portrait"
 }
-
-
-
